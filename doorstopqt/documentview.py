@@ -84,12 +84,18 @@ class DocumentTreeView(QWidget):
 
         treeofitems = []
         for i, top in enumerate(topindices):
-            test = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
-            treeofitems.append(test)
+            branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
+            treeofitems.append(branch)
+        '''
+        #How to print tree in command line:
 
-        for t in treeofitems:
+        tree = []
+        for i, top in enumerate(topindices):
+            branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
+            tree.append(branch)
+        for t in tree:
             self.printtree(t, 1)
-
+        '''
         self.rename(treeofitems)
 
     def rename(self, tree):
