@@ -9,8 +9,8 @@ from markdown import markdown
 class DocumentTreeView(QWidget):
     def __init__(self, parent=None):
         super(DocumentTreeView, self).__init__(parent)
-
         self.tree = QTreeView()
+        self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.header().hide()
         self.tree.setIndentation(20)
         self.model = QStandardItemModel()
@@ -40,7 +40,9 @@ class DocumentTreeView(QWidget):
                 self.selectionclb(self.selecteduid())
 
             oldSelectionChanged(selected, deselected)
+
         self.tree.selectionChanged = selectionChanged
+
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
         self.tree.setModel(self.model)
@@ -59,12 +61,129 @@ class DocumentTreeView(QWidget):
 
         self.uid_to_item = {}
 
+        self.model.layoutChanged.connect(self.onLayoutChanged)
+
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
             if self.clipboard is None:
                 return
             return self.clipboard(str(self.selecteduid()))
+
         copyshortcut.activated.connect(copy)
+
+    def onLayoutChanged(self):
+        movedobject = self.tree.currentIndex()
+        nextlist = self.getnext(movedobject, [])
+        previouslist = self.getprevious(movedobject, [])
+        currentobjects_list = previouslist + nextlist
+
+        topindices = []
+        for index in currentobjects_list:
+            if self.itemtouid(self.model.itemFromIndex(index).parent()) == None:
+                topindices.append(index)
+
+        treeofitems = []
+        for i, top in enumerate(topindices):
+            test = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
+            treeofitems.append(test)
+
+        for t in treeofitems:
+            self.printtree(t, 1)
+
+        self.rename(treeofitems)
+
+    def rename(self, tree):
+        for i, t in enumerate(tree):
+            self.namerecursively(t, str(i+1), 1)
+
+    def namerecursively(self, t, level, sublevel):
+        for keys, values in t.items():
+            item = values[0]  # first value in the list of each key is the item of the key
+            self.setlevelfromitem(item, level)
+            self.updateuidfromitem(item)
+            for i, value in enumerate(values[1:]):
+                child_level = level+'.'+str(i+1)
+                if type(value) == QStandardItem:
+                    self.setlevelfromitem(value, child_level)
+                    self.updateuidfromitem(value)
+                elif type(value) == dict:
+                    self.namerecursively(value, child_level, sublevel+1)
+
+
+    def printtree(self, tree, level):
+            for keys, values in tree.items():
+                print('\t'*(level-1), keys, flush=True)
+                for value in values:
+                    if type(value) != dict:
+                        print('\t'*level, value, flush=True)
+                    elif type(value) == dict:
+                        self.printtree(value, level+1)
+
+    def itemtouid(self, item):
+        return self.uidfromindex(self.model.indexFromItem(item))
+
+    def treeofitems(self, item, dictofdicts, moved):
+        if item.hasChildren():
+            dictofdicts[self.itemtouid(item)] = []
+            children = self.findAllChildren(item)
+
+            for child in children:
+                if child is not moved:
+                    if child.parent() == item:
+                        dictofdicts[self.itemtouid(item)].append(self.treeofitems(child, {}, moved))
+
+            return dictofdicts
+        elif not item.hasChildren() and item.parent() is None:
+            return {self.itemtouid(item): []}
+        else:
+            return self.itemtouid(item)
+
+    def findplacepointers(self, item, dictofdicts, moved):
+        if item.hasChildren():
+            dictofdicts[self.itemtouid(item)] = [item]
+            children = self.findAllChildren(item)
+
+            for child in children:
+                if child is not moved:
+                    if child.parent() == item:
+                        dictofdicts[self.itemtouid(item)].append(self.findplacepointers(child, {}, moved))
+
+            return dictofdicts
+        elif not item.hasChildren() and item.parent() is None:
+            return {self.itemtouid(item): [item]}
+        else:
+            return item
+
+
+
+    def findAllChildren(self, item):
+        if not item.hasChildren():
+            return
+        rows = item.rowCount()
+        children = []
+        for i in range(rows):
+            child = item.child(i, 0)
+            children.append(child)
+        return children
+
+
+
+    def getnext(self, index, nextobjectslist):
+        nextobject = self.tree.indexBelow(index)
+        if self.uidfromindex(nextobject) != None:
+            nextobjectslist.append(nextobject)
+            self.getnext(nextobject, nextobjectslist)
+        return nextobjectslist
+
+    def getprevious(self, index, nextobjectslist):
+        previousobject = self.tree.indexAbove(index)
+        if self.uidfromindex(previousobject) != None:
+            nextobjectslist.insert(0, previousobject)
+            self.getprevious(previousobject, nextobjectslist)
+        else:
+            self.tree.setRootIndex(previousobject)
+        return nextobjectslist
+
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
@@ -152,7 +271,7 @@ class DocumentTreeView(QWidget):
             uid = str(doc.uid)
             item = QStandardItem()
             self.uid_to_item[str(doc.uid)] = [item, doc]
-            item.setData(doc, Qt.UserRole)
+            item.setData(doc, role=Qt.UserRole)
             items[level] = item
             up = level.split('.')[:-1]
             up = '.'.join(up)
@@ -174,6 +293,7 @@ class DocumentTreeView(QWidget):
         self.buildtree()
         self.catselector.connectdb(db)
 
+
     def connectview(self, view):
         self.editview = view
 
@@ -186,6 +306,20 @@ class DocumentTreeView(QWidget):
         if data is not None:
             return str(data.uid)
         return None
+
+    def levelfromindex(self, index):
+        data = self.model.data(index, role=Qt.UserRole)
+        if data is not None:
+            return str(data.level)
+        return None
+
+    def setlevelfromitem(self, item, level):
+        index = self.model.indexFromItem(item)
+        data = self.model.data(index, role=Qt.UserRole)
+        if data is not None:
+            data.level = level
+        return None
+
 
     def selecteduid(self):
         selected = self.tree.selectedIndexes()
@@ -202,11 +336,46 @@ class DocumentTreeView(QWidget):
         if data.heading:
             heading = data.text
             heading = markdown(heading.split('\n')[0])
+
             text = QTextDocument()
             text.setHtml(heading)
             title = '{} {}'.format(level, text.toPlainText())
         else:
-            title = '{} {}'.format(level, uid)
+            start = '**Feature name:**'
+            end = "**Feature requirement:**"
+            dt = data.text
+            if start in dt and end in dt:
+                text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+            elif start in dt and end not in dt:
+                text = dt[dt.find(start) + len(start):].strip()
+            else:
+                text = uid
+            title = '{} {}'.format(level, text)
+        item.setText(title)
+
+    def updateuidfromitem(self, item):
+        index = self.model.indexFromItem(item)
+        data = self.model.data(index, role=Qt.UserRole)
+        level = str(data.level)
+        if data.heading:
+            heading = data.text
+            heading = markdown(heading.split('\n')[0])
+
+            text = QTextDocument()
+            text.setHtml(heading)
+            title = '{} {}'.format(level, text.toPlainText())
+        else:
+            start = '**Feature name:**'
+            end = "**Feature requirement:**"
+            dt = data.text
+            if start in dt and end in dt:
+                text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+            elif start in dt and end not in dt:
+                text = dt[dt.find(start) + len(start):].strip()
+            else:
+                uid = self.uidfromindex(index)
+                text = uid
+            title = '{} {}'.format(level, text)
         item.setText(title)
 
     def read(self, uid):
@@ -216,3 +385,5 @@ class DocumentTreeView(QWidget):
         cat = str(item.parent_documents[0])
         self.lastselected[cat] = str(uid)
         self.catselector.select(cat)
+
+
