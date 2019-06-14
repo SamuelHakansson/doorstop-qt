@@ -71,6 +71,7 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
 
+
     def onLayoutChanged(self):
         movedobject = self.tree.currentIndex()
         nextlist = self.getnext(movedobject, [])
@@ -87,7 +88,7 @@ class DocumentTreeView(QWidget):
             branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
             treeofitems.append(branch)
         '''
-        #How to print tree in command line:
+        #Prints tree in command line:
 
         tree = []
         for i, top in enumerate(topindices):

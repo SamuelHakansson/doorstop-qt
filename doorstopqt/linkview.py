@@ -179,7 +179,6 @@ class LinkView(QListView):
         if type(data) is not tuple:
             return
         uid = data[1]
-        print(data, flush=True)
         if uid not in self.db.find(self.currentuid).links:
             return
 
