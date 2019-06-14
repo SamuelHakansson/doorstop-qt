@@ -61,7 +61,7 @@ class DocumentTreeView(QWidget):
 
         self.uid_to_item = {}
 
-        self.model.layoutChanged.connect(self.onLayoutChanged)
+        self.model.layoutChanged.connect(self.onlayoutchanged)
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -132,7 +132,7 @@ class DocumentTreeView(QWidget):
     def treeofitems(self, item, dictofdicts, moved):
         if item.hasChildren():
             dictofdicts[self.itemtouid(item)] = []
-            children = self.findAllChildren(item)
+            children = self.findallchildren(item)
 
             for child in children:
                 if child is not moved:
@@ -148,7 +148,7 @@ class DocumentTreeView(QWidget):
     def treeofpointers(self, item, dictofdicts, moved):
         if item.hasChildren():
             dictofdicts[self.itemtouid(item)] = [item]
-            children = self.findAllChildren(item)
+            children = self.findallchildren(item)
 
             for child in children:
                 if child is not moved:
