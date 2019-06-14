@@ -72,7 +72,7 @@ class DocumentTreeView(QWidget):
         copyshortcut.activated.connect(copy)
 
 
-    def onLayoutChanged(self):
+    def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
@@ -85,7 +85,7 @@ class DocumentTreeView(QWidget):
 
         treeofitems = []
         for i, top in enumerate(topindices):
-            branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
+            branch = self.treeofpointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
             treeofitems.append(branch)
         '''
         #Prints tree in command line:
@@ -145,7 +145,7 @@ class DocumentTreeView(QWidget):
         else:
             return self.itemtouid(item)
 
-    def findplacepointers(self, item, dictofdicts, moved):
+    def treeofpointers(self, item, dictofdicts, moved):
         if item.hasChildren():
             dictofdicts[self.itemtouid(item)] = [item]
             children = self.findAllChildren(item)
@@ -153,7 +153,7 @@ class DocumentTreeView(QWidget):
             for child in children:
                 if child is not moved:
                     if child.parent() == item:
-                        dictofdicts[self.itemtouid(item)].append(self.findplacepointers(child, {}, moved))
+                        dictofdicts[self.itemtouid(item)].append(self.treeofpointers(child, {}, moved))
 
             return dictofdicts
         elif not item.hasChildren() and item.parent() is None:
@@ -161,9 +161,7 @@ class DocumentTreeView(QWidget):
         else:
             return item
 
-
-
-    def findAllChildren(self, item):
+    def findallchildren(self, item):
         if not item.hasChildren():
             return
         rows = item.rowCount()
