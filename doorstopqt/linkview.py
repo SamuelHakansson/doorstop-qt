@@ -178,11 +178,12 @@ class LinkView(QListView):
         data = item.data()
         if type(data) is not tuple:
             return
-        data = data[1]
-        if data.uid not in self.db.find(self.currentuid).links:
+        uid = data[1]
+        print(data, flush=True)
+        if uid not in self.db.find(self.currentuid).links:
             return
 
-        self.db.root.unlink_items(self.currentuid, data.uid)
+        self.db.root.unlink_items(self.currentuid, uid)
         self.read(self.currentuid)
 
     def review_link(self, uid):
