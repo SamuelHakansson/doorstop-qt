@@ -167,7 +167,8 @@ class DocumentTreeView(QWidget):
         children = []
         for i in range(rows):
             child = item.child(i, 0)
-            children.append(child)
+            if child is not None:
+                children.append(child)
         return children
 
 
