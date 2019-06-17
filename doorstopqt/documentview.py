@@ -9,11 +9,23 @@ from markdown import markdown
 class DocumentTreeView(QWidget):
     def __init__(self, parent=None):
         super(DocumentTreeView, self).__init__(parent)
+
+        class QVLine(QFrame):
+            def __init__(self):
+                super(QVLine, self).__init__()
+                self.setFrameShape(QFrame.VLine)
+                self.setFrameShadow(QFrame.Sunken)
+
         self.tree = QTreeView()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
-        self.tree.header().hide()
         self.tree.setIndentation(20)
-        self.model = QStandardItemModel()
+        self.tree.setAlternatingRowColors(True)
+        self.tree.setAcceptDrops(True)
+        self.tree.setDragEnabled(True)
+        self.model = QStandardItemModel(0, 2)
+
+        #self.model.insertRow(0)
+        #self.model.setData(self.model.index(0, 1), 'test')
 
         self.category = None
         self.db = None
@@ -23,6 +35,7 @@ class DocumentTreeView(QWidget):
         catselgrid = QHBoxLayout()
         catselgrid.setSpacing(10)
         catselgrid.setContentsMargins(0, 0, 0, 0)
+
 
         self.catselector = CategorySelector()
         self.catselector.callback(self.buildtree)
@@ -50,8 +63,21 @@ class DocumentTreeView(QWidget):
         self.grid = QVBoxLayout()
         catsel = QWidget()
         catsel.setLayout(catselgrid)
+        '''
+        self.tagmodel = QStandardItemModel(0, 1, parent)
+        self.tagmodel.setHeaderData(0, Qt.Horizontal, "Tags")
+
+        self.dataLayout = QHBoxLayout()
+        self.dataLayout.addWidget(self.tree)
+
+        self.tree.setModel(self.tagmodel)
+        '''
         self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
+        #self.taglist = QListWidget()
+        #self.grid.addWidget(self.taglist)
+
+
         self.setLayout(self.grid)
 
         self.lastselected = {}
@@ -72,11 +98,21 @@ class DocumentTreeView(QWidget):
         copyshortcut.activated.connect(copy)
 
 
+
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
+
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
+
+
+        #toremove
+        '''
+        for index in currentobjects_list:
+            item = self.model.itemFromIndex(index)
+        '''
+
 
         topindices = []
         for index in currentobjects_list:
@@ -280,10 +316,23 @@ class DocumentTreeView(QWidget):
             items[level] = item
             up = level.split('.')[:-1]
             up = '.'.join(up)
+
+            activeitem = QStandardItem()
+            deriveditem = QStandardItem()
+            normativeitem = QStandardItem()
+            headingitem = QStandardItem()
+            activeitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
+            activeitem.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            deriveditem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
+            normativeitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
+            headingitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
+
+            row = [item, activeitem, deriveditem, normativeitem, headingitem]
+
             if up != level and up in items:
-                items[up].appendRow(item)
+                items[up].appendRow(row)
             else:
-                self.model.appendRow(item)
+                self.model.appendRow(row)
             index = self.model.indexFromItem(item)
             if str(doc.uid) not in self.collapsed:
                 self.tree.expand(index)
@@ -293,10 +342,12 @@ class DocumentTreeView(QWidget):
         if len(self.tree.selectedIndexes()) == 0:
             self.tree.setCurrentIndex(self.model.index(0, 0))
 
+
     def connectdb(self, db):
         self.db = db
         self.buildtree()
         self.catselector.connectdb(db)
+        self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
 
 
     def connectview(self, view):
@@ -382,6 +433,7 @@ class DocumentTreeView(QWidget):
                 text = uid
             title = '{} {}'.format(level, text)
         item.setText(title)
+
 
     def read(self, uid):
         if self.db is None:
