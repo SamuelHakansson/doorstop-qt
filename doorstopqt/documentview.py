@@ -72,6 +72,7 @@ class DocumentTreeView(QWidget):
         self.tree.expanded.connect(lambda x: self.collapsed.discard(self.uidfromindex(x)))
 
         self.uid_to_item = {}
+        self.uid_to_checkboxes = {}
 
         self.model.layoutChanged.connect(self.onlayoutchanged)
 
@@ -318,12 +319,12 @@ class DocumentTreeView(QWidget):
         headingcheckbox = QStandardItem()
 
         checkboxrow = [activecheckbox, derivedcheckbox, normativecheckbox, headingcheckbox]
-
+        self.uid_to_checkboxes[uid] = checkboxrow
         data = self.db.find(uid)
         checkboxattributes = [data.active, data.derived, data.normative, data.heading]
         checkboxnames = ['active', 'derived', 'normative', 'heading']
         for i, checkbox in enumerate(checkboxrow):
-            checkbox.setData([uid, checkboxnames[i], data, checkboxrow])
+            checkbox.setData([uid, checkboxnames[i], data])
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
             checkbox.setFlags(activecheckbox.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         return checkboxrow
@@ -335,8 +336,9 @@ class DocumentTreeView(QWidget):
         uid = s.data()[0]
         checkboxtype = s.data()[1]
         data = s.data()[2]
-        normativecheckbox = s.data()[3][2]
-        headingcheckbox = s.data()[3][3]
+        normativecheckbox = self.uid_to_checkboxes[uid][3]
+        headingcheckbox = self.uid_to_checkboxes[uid][4]
+
         if checkboxtype == 'active':
             data.active = True if s.checkState() == Qt.Checked else False
         if checkboxtype == 'derived':
@@ -359,6 +361,7 @@ class DocumentTreeView(QWidget):
                 data.normative = False
             else:
                 data.heading = False
+
         self.attributeview.read_current(uid)
 
 
@@ -367,9 +370,18 @@ class DocumentTreeView(QWidget):
         self.buildtree()
         self.catselector.connectdb(db)
         self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
+        header = self.tree.header()
+        self.tree.setColumnWidth(0, 260)
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
+
 
     def connectview(self, view):
         self.editview = view
