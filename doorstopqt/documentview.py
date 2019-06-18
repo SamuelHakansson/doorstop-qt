@@ -337,7 +337,6 @@ class DocumentTreeView(QWidget):
         data = s.data()[2]
         normativecheckbox = s.data()[3][2]
         headingcheckbox = s.data()[3][3]
-        print(normativecheckbox.checkState(), flush=True)
         if checkboxtype == 'active':
             data.active = True if s.checkState() == Qt.Checked else False
         if checkboxtype == 'derived':
@@ -371,13 +370,6 @@ class DocumentTreeView(QWidget):
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
-        self.model.dataChanged.connect(self.test)
-
-    def test(self, funfun):
-        item = self.model.itemFromIndex(funfun)
-        r = item.model()
-        print('use this instead?', r.horizontalHeaderItem(0), flush=True)
-
 
     def connectview(self, view):
         self.editview = view
