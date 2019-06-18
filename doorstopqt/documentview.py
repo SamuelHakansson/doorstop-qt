@@ -5,9 +5,8 @@ from .icon import Icon
 from .categoryselector import CategorySelector
 from markdown import markdown
 
-
 class DocumentTreeView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, attributeview=None):
         super(DocumentTreeView, self).__init__(parent)
 
         class QVLine(QFrame):
@@ -22,10 +21,8 @@ class DocumentTreeView(QWidget):
         self.tree.setAlternatingRowColors(True)
         self.tree.setAcceptDrops(True)
         self.tree.setDragEnabled(True)
-        self.model = QStandardItemModel(0, 2)
-
-        #self.model.insertRow(0)
-        #self.model.setData(self.model.index(0, 1), 'test')
+        self.model = QStandardItemModel()
+        self.attributeview = attributeview
 
         self.category = None
         self.db = None
@@ -63,20 +60,9 @@ class DocumentTreeView(QWidget):
         self.grid = QVBoxLayout()
         catsel = QWidget()
         catsel.setLayout(catselgrid)
-        '''
-        self.tagmodel = QStandardItemModel(0, 1, parent)
-        self.tagmodel.setHeaderData(0, Qt.Horizontal, "Tags")
 
-        self.dataLayout = QHBoxLayout()
-        self.dataLayout.addWidget(self.tree)
-
-        self.tree.setModel(self.tagmodel)
-        '''
         self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
-        #self.taglist = QListWidget()
-        #self.grid.addWidget(self.taglist)
-
 
         self.setLayout(self.grid)
 
@@ -98,20 +84,12 @@ class DocumentTreeView(QWidget):
         copyshortcut.activated.connect(copy)
 
 
-
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
-
-
-        #toremove
-        '''
-        for index in currentobjects_list:
-            item = self.model.itemFromIndex(index)
-        '''
 
 
         topindices = []
@@ -154,13 +132,13 @@ class DocumentTreeView(QWidget):
 
 
     def printtree(self, tree, level):
-            for keys, values in tree.items():
-                print('\t'*(level-1), keys, flush=True)
-                for value in values:
-                    if type(value) != dict:
-                        print('\t'*level, value, flush=True)
-                    elif type(value) == dict:
-                        self.printtree(value, level+1)
+        for keys, values in tree.items():
+            print('\t'*(level-1), keys, flush=True)
+            for value in values:
+                if type(value) != dict:
+                    print('\t'*level, value, flush=True)
+                elif type(value) == dict:
+                    self.printtree(value, level+1)
 
     def itemtouid(self, item):
         return self.uidfromindex(self.model.indexFromItem(item))
@@ -188,8 +166,7 @@ class DocumentTreeView(QWidget):
 
             for child in children:
                 if child is not moved:
-                    if child.parent() == item:
-                        dictofdicts[self.itemtouid(item)].append(self.treeofpointers(child, {}, moved))
+                    dictofdicts[self.itemtouid(item)].append(self.treeofpointers(child, {}, moved))
 
             return dictofdicts
         elif not item.hasChildren() and item.parent() is None:
@@ -204,7 +181,8 @@ class DocumentTreeView(QWidget):
         children = []
         for i in range(rows):
             child = item.child(i, 0)
-            children.append(child)
+            if child is not None:
+                children.append(child)
         return children
 
 
@@ -317,17 +295,8 @@ class DocumentTreeView(QWidget):
             up = level.split('.')[:-1]
             up = '.'.join(up)
 
-            activeitem = QStandardItem()
-            deriveditem = QStandardItem()
-            normativeitem = QStandardItem()
-            headingitem = QStandardItem()
-            activeitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
-            activeitem.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-            deriveditem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
-            normativeitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
-            headingitem.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
-
-            row = [item, activeitem, deriveditem, normativeitem, headingitem]
+            row = self.init_checkboxes(uid)
+            row.insert(0, item)
 
             if up != level and up in items:
                 items[up].appendRow(row)
@@ -342,12 +311,72 @@ class DocumentTreeView(QWidget):
         if len(self.tree.selectedIndexes()) == 0:
             self.tree.setCurrentIndex(self.model.index(0, 0))
 
+    def init_checkboxes(self, uid):
+        activecheckbox = QStandardItem()
+        derivedcheckbox = QStandardItem()
+        normativecheckbox = QStandardItem()
+        headingcheckbox = QStandardItem()
+
+        checkboxrow = [activecheckbox, derivedcheckbox, normativecheckbox, headingcheckbox]
+
+        data = self.db.find(uid)
+        checkboxattributes = [data.active, data.derived, data.normative, data.heading]
+        checkboxnames = ['active', 'derived', 'normative', 'heading']
+        for i, checkbox in enumerate(checkboxrow):
+            checkbox.setData([uid, checkboxnames[i], data, checkboxrow])
+            checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
+            checkbox.setFlags(activecheckbox.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+        return checkboxrow
+
+    def updatecheckbox(self, s):
+        checkboxinfo = s.data()
+        if checkboxinfo is None:
+            return
+        uid = s.data()[0]
+        checkboxtype = s.data()[1]
+        data = s.data()[2]
+        normativecheckbox = s.data()[3][2]
+        headingcheckbox = s.data()[3][3]
+        print(normativecheckbox.checkState(), flush=True)
+        if checkboxtype == 'active':
+            data.active = True if s.checkState() == Qt.Checked else False
+        if checkboxtype == 'derived':
+            data.derived = True if s.checkState() == Qt.Checked else False
+        if checkboxtype == 'normative':
+
+            if s.checkState() == Qt.Checked:
+                data.normative = True
+
+                headingcheckbox.setCheckState(Qt.Unchecked)
+                data.heading = False
+            else:
+                data.normative = False
+
+        if checkboxtype == 'heading':
+            if s.checkState() == Qt.Checked:
+                data.heading = True
+
+                normativecheckbox.setCheckState(Qt.Unchecked)
+                data.normative = False
+            else:
+                data.heading = False
+        self.attributeview.read_current(uid)
+
 
     def connectdb(self, db):
         self.db = db
         self.buildtree()
         self.catselector.connectdb(db)
         self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
+
+    def post_init(self):
+        self.model.itemChanged.connect(self.updatecheckbox)
+        self.model.dataChanged.connect(self.test)
+
+    def test(self, funfun):
+        item = self.model.itemFromIndex(funfun)
+        r = item.model()
+        print('use this instead?', r.horizontalHeaderItem(0), flush=True)
 
 
     def connectview(self, view):

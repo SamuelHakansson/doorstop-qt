@@ -45,6 +45,7 @@ class ReqDatabase(object):
         self.reload()
 
 
+
 def main():
     import sys
     app = QApplication(sys.argv)
@@ -59,9 +60,10 @@ def main():
     attribview = AttributeView()
     linkview = LinkView()
 
-    tree = DocumentTreeView()
+    tree = DocumentTreeView(attributeview=attribview)
     tree.connectview(v)
     tree.connectcreatecatdiag(createcatdiag)
+    tree.post_init()
     def selectfunc(uid):
         if uid is None:
             return

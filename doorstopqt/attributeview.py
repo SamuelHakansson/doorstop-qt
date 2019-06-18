@@ -105,6 +105,7 @@ class AttributeView(QWidget):
         data = self.db.find(uid)
         if data is None:
             return
+
         self.active.setCheckState(Qt.Checked if data.active else Qt.Unchecked)
         self.derived.setCheckState(Qt.Checked if data.derived else Qt.Unchecked)
         self.normative.setCheckState(Qt.Checked if data.normative else Qt.Unchecked)
@@ -126,6 +127,11 @@ class AttributeView(QWidget):
         else:
             self.markreviewed.setVisible(True)
         self.currentuid = uid
+
+    def read_current(self, uid):
+        if uid == self.currentuid:
+            self.read(uid)
+
 
     def showref(self, b):
         if b:
