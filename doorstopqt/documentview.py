@@ -362,6 +362,9 @@ class DocumentTreeView(QWidget):
             else:
                 data.heading = False
 
+                normativecheckbox.setCheckState(Qt.Checked)
+                data.normative = True
+
         self.attributeview.read_current(uid)
 
 
