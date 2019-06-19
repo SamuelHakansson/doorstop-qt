@@ -9,12 +9,6 @@ class DocumentTreeView(QWidget):
     def __init__(self, parent=None, attributeview=None):
         super(DocumentTreeView, self).__init__(parent)
 
-        class QVLine(QFrame):
-            def __init__(self):
-                super(QVLine, self).__init__()
-                self.setFrameShape(QFrame.VLine)
-                self.setFrameShadow(QFrame.Sunken)
-
         self.tree = QTreeView()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.setIndentation(20)
@@ -408,8 +402,11 @@ class DocumentTreeView(QWidget):
     def setlevelfromitem(self, item, level):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
+        uid = self.uidfromindex(index)
+        dbitem = self.db.find(uid)
         if data is not None:
             data.level = level
+            dbitem.level = level
         return None
 
 
