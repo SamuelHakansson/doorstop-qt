@@ -321,8 +321,11 @@ class DocumentTreeView(QWidget):
     def setlevelfromitem(self, item, level):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
+        uid = self.uidfromindex(index)
+        dbitem = self.db.find(uid)
         if data is not None:
             data.level = level
+            dbitem.level = level
         return None
 
 
