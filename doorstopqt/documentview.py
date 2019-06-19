@@ -10,22 +10,14 @@ class DocumentTreeView(QWidget):
     def __init__(self, parent=None):
         super(DocumentTreeView, self).__init__(parent)
 
-        class QVLine(QFrame):
-            def __init__(self):
-                super(QVLine, self).__init__()
-                self.setFrameShape(QFrame.VLine)
-                self.setFrameShadow(QFrame.Sunken)
-
         self.tree = QTreeView()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
+        self.tree.header().hide()
         self.tree.setIndentation(20)
         self.tree.setAlternatingRowColors(True)
         self.tree.setAcceptDrops(True)
         self.tree.setDragEnabled(True)
         self.model = QStandardItemModel(0, 2)
-
-        #self.model.insertRow(0)
-        #self.model.setData(self.model.index(0, 1), 'test')
 
         self.category = None
         self.db = None
@@ -63,19 +55,9 @@ class DocumentTreeView(QWidget):
         self.grid = QVBoxLayout()
         catsel = QWidget()
         catsel.setLayout(catselgrid)
-        '''
-        self.tagmodel = QStandardItemModel(0, 1, parent)
-        self.tagmodel.setHeaderData(0, Qt.Horizontal, "Tags")
 
-        self.dataLayout = QHBoxLayout()
-        self.dataLayout.addWidget(self.tree)
-
-        self.tree.setModel(self.tagmodel)
-        '''
         self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
-        #self.taglist = QListWidget()
-        #self.grid.addWidget(self.taglist)
 
 
         self.setLayout(self.grid)
@@ -106,14 +88,6 @@ class DocumentTreeView(QWidget):
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
 
-
-        #toremove
-        '''
-        for index in currentobjects_list:
-            item = self.model.itemFromIndex(index)
-        '''
-
-
         topindices = []
         for index in currentobjects_list:
             if self.itemtouid(self.model.itemFromIndex(index).parent()) == None:
@@ -125,7 +99,6 @@ class DocumentTreeView(QWidget):
             treeofitems.append(branch)
         '''
         #Prints tree in command line:
-
         tree = []
         for i, top in enumerate(topindices):
             branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
@@ -204,7 +177,8 @@ class DocumentTreeView(QWidget):
         children = []
         for i in range(rows):
             child = item.child(i, 0)
-            children.append(child)
+            if child is not None:
+                children.append(child)
         return children
 
 
@@ -350,6 +324,7 @@ class DocumentTreeView(QWidget):
         self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
 
 
+
     def connectview(self, view):
         self.editview = view
 
@@ -412,6 +387,7 @@ class DocumentTreeView(QWidget):
             title = '{} {}'.format(level, text)
         item.setText(title)
 
+
     def updateuidfromitem(self, item):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
@@ -436,7 +412,6 @@ class DocumentTreeView(QWidget):
                 text = uid
             title = '{} {}'.format(level, text)
         item.setText(title)
-
 
     def read(self, uid):
         if self.db is None:
