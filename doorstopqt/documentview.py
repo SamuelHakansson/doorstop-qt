@@ -69,7 +69,12 @@ class DocumentTreeView(QWidget):
         self.uid_to_checkboxes = {}
 
         self.model.layoutChanged.connect(self.onlayoutchanged)
-        self.attributeview.active.stateChanged.connect(self.test)
+
+        self.attributeview.active.stateChanged.connect(self.active_link)
+        self.attributeview.derived.stateChanged.connect(self.derived_link)
+        self.attributeview.normative.stateChanged.connect(self.normative_link)
+        self.attributeview.heading.stateChanged.connect(self.heading_link)
+
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -79,21 +84,44 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
 
-    def test(self, s):
+    def active_link(self, s):
+        self.setcheckboxvalue(s=s, attribute=1)
+
+    def derived_link(self, s):
+        self.setcheckboxvalue(s=s, attribute=2)
+
+    def normative_link(self, s):
+        self.setcheckboxvalue(s=s, attribute=3)
+
+    def heading_link(self, s):
+        self.setcheckboxvalue(s=s, attribute=4)
+
+    def setcheckboxvalue(self, s, attribute):
         uid = self.attributeview.currentuid
+        self.setcheckboxfromuid(s, uid, attribute)
+
+    def setcheckboxfromuid(self, s, uid, attribute):
         if uid is None:
             return
+
         item = self.db.find(uid)
         leveltuple = item.level.value
-        whichobject = [0]*len(leveltuple)
-        whichobject[-1] = 1
-        item = self.model.item(leveltuple[0]-1, 0)
-        for l in range(len(leveltuple)-1):
+        leveldec = 0
+        if s == Qt.Checked and attribute == 4:
+            leveldec = 1
+        levelsteps = len(leveltuple) - leveldec
+        whichobject = [0]*levelsteps
+        whichobject[-1] = attribute
+        if levelsteps-1 == 0:
+            col = attribute
+        else:
+            col = 0
+        item = self.model.item(leveltuple[0]-1, col)
+        for l in range(0, levelsteps-1):
             l += 1
             item = item.child(leveltuple[l]-1, whichobject[l])
-        active = item
-
-        active.setCheckState(s)
+        print('level', leveltuple, levelsteps, s, flush=True)
+        item.setCheckState(s)
 
 
     def onlayoutchanged(self):
@@ -354,11 +382,6 @@ class DocumentTreeView(QWidget):
         checkboxtype = s.data()[1]
         data = s.data()[2]
 
-        normativecheckbox = self.uid_to_checkboxes[uid][3]
-        headingcheckbox = self.uid_to_checkboxes[uid][4]
-        #self.model.blockSignals(True)
-        #self.tree.blockSignals(True)
-        #self.attributeview.blockSignals(True)
         if checkboxtype == 'active':
             data.active = True if s.checkState() == Qt.Checked else False
         if checkboxtype == 'derived':
@@ -368,7 +391,8 @@ class DocumentTreeView(QWidget):
             if s.checkState() == Qt.Checked:
                 data.normative = True
 
-                headingcheckbox.setCheckState(Qt.Unchecked)
+                #headingcheckbox.setCheckState(Qt.Unchecked)
+                #self.setcheckboxfromuid(Qt.Unchecked, uid, 4)
                 data.heading = False
             else:
                 data.normative = False
@@ -376,18 +400,17 @@ class DocumentTreeView(QWidget):
         if checkboxtype == 'heading':
             if s.checkState() == Qt.Checked:
                 data.heading = True
+                #self.setcheckboxfromuid(Qt.Unchecked, uid, 3)
+                #normativecheckbox.setCheckState(Qt.Unchecked)
 
-                normativecheckbox.setCheckState(Qt.Unchecked)
                 data.normative = False
             else:
                 data.heading = False
-
-                normativecheckbox.setCheckState(Qt.Checked)
+                #self.setcheckboxfromuid(Qt.Checked, uid, 4)
+                #normativecheckbox.setCheckState(Qt.Checked)
                 data.normative = True
-        #self.attributeview.blockSignals(False)
-        #self.attributeview.read_current(uid)
-        #self.model.blockSignals(False)
-        #self.tree.blockSignals(False)
+        self.attributeview.read_current(uid)
+
 
 
     def connectdb(self, db):
@@ -408,8 +431,8 @@ class DocumentTreeView(QWidget):
 
 
     def post_init(self):
-        #self.model.itemChanged.connect(self.updatecheckbox)
-        pass
+        self.model.itemChanged.connect(self.updatecheckbox)
+
 
 
     def connectview(self, view):
