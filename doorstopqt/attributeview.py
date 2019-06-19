@@ -31,16 +31,16 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.active = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            self.db.reload()
+            #self.db.reload()
         self.active.stateChanged.connect(active)
-
+        
         def derived(s):
             if self.currentuid is None:
                 return
             data = self.db.find(self.currentuid)
             data.derived = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            self.db.reload()
+            #self.db.reload()
         self.derived.stateChanged.connect(derived)
 
         def normative(s):
@@ -49,7 +49,7 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.normative = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            self.db.reload()
+            #self.db.reload()
         self.normative.stateChanged.connect(normative)
 
         def heading(s):
@@ -58,7 +58,7 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.heading = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            self.db.reload()
+            #self.db.reload()
         self.heading.stateChanged.connect(heading)
 
         def ref():
@@ -78,7 +78,7 @@ class AttributeView(QWidget):
             data.review()
             data.clear()
             self.read(self.currentuid)
-            self.db.reload()
+            #self.db.reload()
         self.markreviewed.clicked.connect(markreviewed)
 
         grid.addWidget(self.active)

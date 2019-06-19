@@ -69,6 +69,7 @@ class DocumentTreeView(QWidget):
         self.uid_to_checkboxes = {}
 
         self.model.layoutChanged.connect(self.onlayoutchanged)
+        self.attributeview.active.stateChanged.connect(self.test)
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -78,14 +79,31 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
 
+    def test(self, s):
+        uid = self.attributeview.currentuid
+        if uid is None:
+            return
+        item = self.db.find(uid)
+        leveltuple = item.level.value
+        whichobject = [0]*len(leveltuple)
+        whichobject[-1] = 1
+        item = self.model.item(leveltuple[0]-1, 0)
+        for l in range(len(leveltuple)-1):
+            l += 1
+            item = item.child(leveltuple[l]-1, whichobject[l])
+        active = item
+
+        active.setCheckState(s)
+
 
     def onlayoutchanged(self):
+        self.tree.blockSignals(True)
+        self.model.blockSignals(True)
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
-
 
         topindices = []
         for index in currentobjects_list:
@@ -107,6 +125,10 @@ class DocumentTreeView(QWidget):
             self.printtree(t, 1)
         '''
         self.rename(treeofitems)
+        self.setupHeaders()
+        self.tree.blockSignals(False)
+        self.model.blockSignals(False)
+
 
     def rename(self, tree):
         for i, t in enumerate(tree):
@@ -324,15 +346,19 @@ class DocumentTreeView(QWidget):
         return checkboxrow
 
     def updatecheckbox(self, s):
+
         checkboxinfo = s.data()
         if checkboxinfo is None:
             return
         uid = s.data()[0]
         checkboxtype = s.data()[1]
         data = s.data()[2]
+
         normativecheckbox = self.uid_to_checkboxes[uid][3]
         headingcheckbox = self.uid_to_checkboxes[uid][4]
-
+        #self.model.blockSignals(True)
+        #self.tree.blockSignals(True)
+        #self.attributeview.blockSignals(True)
         if checkboxtype == 'active':
             data.active = True if s.checkState() == Qt.Checked else False
         if checkboxtype == 'derived':
@@ -358,8 +384,10 @@ class DocumentTreeView(QWidget):
 
                 normativecheckbox.setCheckState(Qt.Checked)
                 data.normative = True
-
-        self.attributeview.read_current(uid)
+        #self.attributeview.blockSignals(False)
+        #self.attributeview.read_current(uid)
+        #self.model.blockSignals(False)
+        #self.tree.blockSignals(False)
 
 
     def connectdb(self, db):
@@ -367,6 +395,9 @@ class DocumentTreeView(QWidget):
         self.buildtree()
         self.catselector.connectdb(db)
         self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
+        self.setupHeaders()
+
+    def setupHeaders(self):
         header = self.tree.header()
         self.tree.setColumnWidth(0, 260)
         header.setSectionResizeMode(0, QHeaderView.Interactive)
@@ -377,7 +408,8 @@ class DocumentTreeView(QWidget):
 
 
     def post_init(self):
-        self.model.itemChanged.connect(self.updatecheckbox)
+        #self.model.itemChanged.connect(self.updatecheckbox)
+        pass
 
 
     def connectview(self, view):
