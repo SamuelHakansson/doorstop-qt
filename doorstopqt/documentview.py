@@ -392,7 +392,8 @@ class DocumentTreeView(QWidget):
         for i, checkbox in enumerate(checkboxrow):
             checkbox.setData([uid, checkboxnames[i], data])
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
-            checkbox.setFlags(activecheckbox.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            print(activecheckbox.flags(), flush=True)
+            checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         return checkboxrow
 
     def updatecheckbox(self, s):
@@ -448,16 +449,18 @@ class DocumentTreeView(QWidget):
 
             if s.checkState() == Qt.Checked:
                 self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
+                self.attributeview.read(uid)
                 data.heading = True
                 data.normative = False
 
             else:
                 self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
+                self.attributeview.read(uid)
                 data.heading = False
                 data.normative = True
 
             modeldata.heading = data.heading
-        self.attributeview.read(uid)
+
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
@@ -467,7 +470,7 @@ class DocumentTreeView(QWidget):
         self.setupHeaders()
 
     def setupHeaders(self):
-        self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
+        self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
         header = self.tree.header()
         self.tree.setColumnWidth(0, 260)
         header.setSectionResizeMode(0, QHeaderView.Interactive)
