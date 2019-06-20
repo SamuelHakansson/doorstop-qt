@@ -458,7 +458,6 @@ class DocumentTreeView(QWidget):
 
             modeldata.heading = data.heading
 
-        print(uid, modeldata.heading, data.heading, s.checkState(), checkboxtype, flush=True)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
