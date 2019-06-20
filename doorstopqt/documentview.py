@@ -440,25 +440,25 @@ class DocumentTreeView(QWidget):
                 data.normative = False
             modeldata.normative = data.normative
         if checkboxtype == 'heading':
+
             if uid == self.attributeview.currentuid:
                 self.attributeview.heading.setCheckState(s.checkState())
-                if s.checkState() == Qt.Checked:
-                    self.attributeview.normative.setCheckState(Qt.Unchecked)
-                    self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
-                else:
-                    self.attributeview.normative.setCheckState(Qt.Checked)
-                    self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
 
-            elif s.checkState() == Qt.Checked:
+            if s.checkState() == Qt.Checked:
+                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
                 data.heading = True
                 data.normative = False
-                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
 
             else:
+                self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
                 data.heading = False
                 data.normative = True
-                self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
+
+
+
             modeldata.heading = data.heading
+
+        print(uid, modeldata.heading, data.heading, s.checkState(), checkboxtype, flush=True)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
