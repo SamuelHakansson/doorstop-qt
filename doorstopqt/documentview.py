@@ -68,7 +68,9 @@ class DocumentTreeView(QWidget):
         self.uid_to_item = {}
         self.uid_to_checkboxes = {}
 
-        self.model.layoutChanged.connect(self.onlayoutchanged)
+        self.model.layoutChanged.connect(self.layoutwrapper)
+
+        self.layoutchange_cooldown = 0
 
         self.attributeview.active.stateChanged.connect(self.active_link)
         self.attributeview.derived.stateChanged.connect(self.derived_link)
@@ -120,12 +122,19 @@ class DocumentTreeView(QWidget):
         for l in range(0, levelsteps-1):
             l += 1
             item = item.child(leveltuple[l]-1, whichobject[l])
-        item.setCheckState(state)
+        if item is not None:
+            item.setCheckState(state)
+
+    def layoutwrapper(self):
+        # if this is not used, it will update the layout five times, one for every column
+        if self.layoutchange_cooldown == 4:
+            self.onlayoutchanged()
+        self.layoutchange_cooldown += 1
+        self.layoutchange_cooldown %= 5
 
 
     def onlayoutchanged(self):
-        self.tree.blockSignals(True)
-        self.model.blockSignals(True)
+        #print('changing layout', flush=True)
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
@@ -153,9 +162,6 @@ class DocumentTreeView(QWidget):
         '''
         self.rename(treeofitems)
         self.setupHeaders()
-        self.tree.blockSignals(False)
-        self.model.blockSignals(False)
-
 
     def rename(self, tree):
         for i, t in enumerate(tree):
@@ -450,8 +456,6 @@ class DocumentTreeView(QWidget):
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
-
-
 
 
     def connectview(self, view):
