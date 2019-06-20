@@ -104,8 +104,8 @@ class DocumentTreeView(QWidget):
         if uid is None:
             return
 
-        item = self.db.find(uid)
-        leveltuple = item.level.value
+        data = self.db.find(uid)
+        leveltuple = data.level.value
         leveldecrease = 0
         if leveltuple[-1] == 0:
             leveldecrease = 1
@@ -120,7 +120,6 @@ class DocumentTreeView(QWidget):
         for l in range(0, levelsteps-1):
             l += 1
             item = item.child(leveltuple[l]-1, whichobject[l])
-        print(levelsteps, leveltuple, flush=True)
         item.setCheckState(state)
 
 
@@ -374,16 +373,12 @@ class DocumentTreeView(QWidget):
         return checkboxrow
 
     def updatecheckbox(self, s):
-
         checkboxinfo = s.data()
         if checkboxinfo is None:
             return
         uid = s.data()[0]
         checkboxtype = s.data()[1]
         data = s.data()[2]
-        # self.tree.blockSignals(True)
-        # self.model.blockSignals(True)
-        # self.blockSignals(True)
 
         if checkboxtype == 'active':
 
@@ -425,7 +420,6 @@ class DocumentTreeView(QWidget):
                     self.attributeview.normative.setCheckState(Qt.Checked)
                     self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
 
-
             elif s.checkState() == Qt.Checked:
                 data.heading = True
                 data.normative = False
@@ -435,12 +429,6 @@ class DocumentTreeView(QWidget):
                 data.heading = False
                 data.normative = True
                 self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
-
-        #self.attributeview.read_current(uid)
-        # self.tree.blockSignals(False)
-        # self.model.blockSignals(False)
-        # self.blockSignals(False)
-
 
 
     def connectdb(self, db):

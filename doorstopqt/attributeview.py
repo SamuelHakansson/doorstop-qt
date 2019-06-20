@@ -151,5 +151,3 @@ class AttributeView(QWidget):
             self.normative.setVisible(True)
             self.heading.setVisible(True)
 
-    def callactive(self):
-        self.active()
