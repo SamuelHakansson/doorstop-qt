@@ -128,10 +128,6 @@ class AttributeView(QWidget):
             self.markreviewed.setVisible(True)
         self.currentuid = uid
 
-    def read_current(self, uid):
-        if uid == self.currentuid:
-            self.read(uid)
-
 
     def showref(self, b):
         if b:

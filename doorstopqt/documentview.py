@@ -186,12 +186,12 @@ class DocumentTreeView(QWidget):
     def namerecursively(self, t, level, sublevel):
         for keys, values in t.items():
             item = values[0]  # first value in the list of each key is the item of the key
-
             self.setlevelfromitem(item, level)
             self.updateuidfromitem(item)
             for i, value in enumerate(values[1:]):
                 child_level = level+'.'+str(i+1)
                 if type(value) == QStandardItem:
+
                     self.setlevelfromitem(value, child_level)
                     self.updateuidfromitem(value)
                 elif type(value) == dict:
@@ -439,10 +439,12 @@ class DocumentTreeView(QWidget):
             else:
                 data.normative = False
             modeldata.normative = data.normative
+
         if checkboxtype == 'heading':
 
             if uid == self.attributeview.currentuid:
                 self.attributeview.heading.setCheckState(s.checkState())
+                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
 
             if s.checkState() == Qt.Checked:
                 self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
@@ -454,10 +456,8 @@ class DocumentTreeView(QWidget):
                 data.heading = False
                 data.normative = True
 
-
-
             modeldata.heading = data.heading
-
+        self.attributeview.read(uid)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
@@ -503,10 +503,13 @@ class DocumentTreeView(QWidget):
     def setlevelfromitem(self, item, level):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
-        uid = self.uidfromindex(index)
-        dbitem = self.db.find(uid)
         if data is not None:
-            if data.heading == True:
+
+            if str(data.level) == level:
+                return
+            uid = self.uidfromindex(index)
+            dbitem = self.db.find(uid)
+            if data.heading is True:
                 level += '.0'
             data.level = level
             dbitem.level = level
