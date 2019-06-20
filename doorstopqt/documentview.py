@@ -86,6 +86,7 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
 
+
     def active_link(self, s):
         self.setcheckboxvalue(s=s, attribute=1)
 
@@ -101,6 +102,22 @@ class DocumentTreeView(QWidget):
     def setcheckboxvalue(self, s, attribute):
         uid = self.attributeview.currentuid
         self.setcheckboxfromuid(s, uid, attribute)
+
+    def uidtoitem(self, uid):
+        if uid is None:
+            return
+
+        data = self.db.find(uid)
+        leveltuple = data.level.value
+        leveldecrease = 0
+        if leveltuple[-1] == 0:
+            leveldecrease = 1
+        levelsteps = len(leveltuple) - leveldecrease
+        item = self.model.item(leveltuple[0]-1, 0)
+        for l in range(0, levelsteps-1):
+            l += 1
+            item = item.child(leveltuple[l]-1, 0)
+        return item
 
     def setcheckboxfromuid(self, state, uid, attribute):
         if uid is None:
@@ -126,7 +143,7 @@ class DocumentTreeView(QWidget):
             item.setCheckState(state)
 
     def layoutwrapper(self):
-        # if this is not used, it will update the layout five times, one for every column
+        # if this is not used, layoutChange will be called five times, one for every column
         if self.layoutchange_cooldown == 4:
             self.onlayoutchanged()
         self.layoutchange_cooldown += 1
@@ -134,7 +151,6 @@ class DocumentTreeView(QWidget):
 
 
     def onlayoutchanged(self):
-        #print('changing layout', flush=True)
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
@@ -170,6 +186,7 @@ class DocumentTreeView(QWidget):
     def namerecursively(self, t, level, sublevel):
         for keys, values in t.items():
             item = values[0]  # first value in the list of each key is the item of the key
+
             self.setlevelfromitem(item, level)
             self.updateuidfromitem(item)
             for i, value in enumerate(values[1:]):
@@ -386,6 +403,10 @@ class DocumentTreeView(QWidget):
         checkboxtype = s.data()[1]
         data = s.data()[2]
 
+        item = self.uidtoitem(uid)
+        index = self.model.indexFromItem(item)
+        modeldata = self.model.data(index, role=Qt.UserRole)
+
         if checkboxtype == 'active':
 
             if uid == self.attributeview.currentuid:
@@ -393,12 +414,14 @@ class DocumentTreeView(QWidget):
                 # data is set in attributeview to db
             else:
                 data.active = True if s.checkState() == Qt.Checked else False
+            modeldata.active = data.active
 
         if checkboxtype == 'derived':
             if uid == self.attributeview.currentuid:
                 self.attributeview.derived.setCheckState(s.checkState())
             else:
                 data.derived = True if s.checkState() == Qt.Checked else False
+            modeldata.derived = data.derived
 
         if checkboxtype == 'normative':
 
@@ -415,7 +438,7 @@ class DocumentTreeView(QWidget):
                 data.heading = False
             else:
                 data.normative = False
-
+            modeldata.normative = data.normative
         if checkboxtype == 'heading':
             if uid == self.attributeview.currentuid:
                 self.attributeview.heading.setCheckState(s.checkState())
@@ -435,7 +458,8 @@ class DocumentTreeView(QWidget):
                 data.heading = False
                 data.normative = True
                 self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
-
+            modeldata.heading = data.heading
+        self.updateuidfromitem(item)
 
     def connectdb(self, db):
         self.db = db
@@ -483,6 +507,8 @@ class DocumentTreeView(QWidget):
         uid = self.uidfromindex(index)
         dbitem = self.db.find(uid)
         if data is not None:
+            if data.heading == True:
+                level += '.0'
             data.level = level
             dbitem.level = level
         return None
