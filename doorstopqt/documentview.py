@@ -464,10 +464,10 @@ class DocumentTreeView(QWidget):
         self.db = db
         self.buildtree()
         self.catselector.connectdb(db)
-        self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
         self.setupHeaders()
 
     def setupHeaders(self):
+        self.model.setHorizontalHeaderLabels(['Requirements', 'Active', 'Derived', 'Normative', 'Heading'])
         header = self.tree.header()
         self.tree.setColumnWidth(0, 260)
         header.setSectionResizeMode(0, QHeaderView.Interactive)
@@ -484,9 +484,11 @@ class DocumentTreeView(QWidget):
     def connectview(self, view):
         self.editview = view
 
+
     def connectcreatecatdiag(self, createcatdiag):
         self.createcatdiag = createcatdiag
         self.newcatbtn.clicked.connect(self.createcatdiag.show)
+
 
     def uidfromindex(self, index):
         data = self.model.data(index, role=Qt.UserRole)
@@ -509,8 +511,6 @@ class DocumentTreeView(QWidget):
                 return
             uid = self.uidfromindex(index)
             dbitem = self.db.find(uid)
-            if data.heading is True:
-                level += '.0'
             data.level = level
             dbitem.level = level
         return None
@@ -581,5 +581,6 @@ class DocumentTreeView(QWidget):
         cat = str(item.parent_documents[0])
         self.lastselected[cat] = str(uid)
         self.catselector.select(cat)
+        self.setupHeaders()
 
 
