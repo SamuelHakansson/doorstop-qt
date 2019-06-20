@@ -392,7 +392,6 @@ class DocumentTreeView(QWidget):
         for i, checkbox in enumerate(checkboxrow):
             checkbox.setData([uid, checkboxnames[i], data])
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
-            print(activecheckbox.flags(), flush=True)
             checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         return checkboxrow
 
