@@ -100,16 +100,16 @@ class DocumentTreeView(QWidget):
         uid = self.attributeview.currentuid
         self.setcheckboxfromuid(s, uid, attribute)
 
-    def setcheckboxfromuid(self, s, uid, attribute):
+    def setcheckboxfromuid(self, state, uid, attribute):
         if uid is None:
             return
 
         item = self.db.find(uid)
         leveltuple = item.level.value
-        leveldec = 0
-        if s == Qt.Checked and attribute == 4:
-            leveldec = 1
-        levelsteps = len(leveltuple) - leveldec
+        leveldecrease = 0
+        if leveltuple[-1] == 0:
+            leveldecrease = 1
+        levelsteps = len(leveltuple) - leveldecrease
         whichobject = [0]*levelsteps
         whichobject[-1] = attribute
         if levelsteps-1 == 0:
@@ -120,8 +120,8 @@ class DocumentTreeView(QWidget):
         for l in range(0, levelsteps-1):
             l += 1
             item = item.child(leveltuple[l]-1, whichobject[l])
-        print('level', leveltuple, levelsteps, s, flush=True)
-        item.setCheckState(s)
+        print(levelsteps, leveltuple, flush=True)
+        item.setCheckState(state)
 
 
     def onlayoutchanged(self):
@@ -381,35 +381,65 @@ class DocumentTreeView(QWidget):
         uid = s.data()[0]
         checkboxtype = s.data()[1]
         data = s.data()[2]
+        # self.tree.blockSignals(True)
+        # self.model.blockSignals(True)
+        # self.blockSignals(True)
 
         if checkboxtype == 'active':
-            data.active = True if s.checkState() == Qt.Checked else False
+
+            if uid == self.attributeview.currentuid:
+                self.attributeview.active.setCheckState(s.checkState())
+                # data is set in attributeview to db
+            else:
+                data.active = True if s.checkState() == Qt.Checked else False
+
         if checkboxtype == 'derived':
-            data.derived = True if s.checkState() == Qt.Checked else False
+            if uid == self.attributeview.currentuid:
+                self.attributeview.derived.setCheckState(s.checkState())
+            else:
+                data.derived = True if s.checkState() == Qt.Checked else False
+
         if checkboxtype == 'normative':
 
-            if s.checkState() == Qt.Checked:
+            if uid == self.attributeview.currentuid:
+                self.attributeview.normative.setCheckState(s.checkState())
+                if s.checkState() == Qt.Checked:
+                    self.attributeview.heading.setCheckState(Qt.Unchecked)
+                    self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=4)
+
+            elif s.checkState() == Qt.Checked:
+
                 data.normative = True
 
-                #headingcheckbox.setCheckState(Qt.Unchecked)
-                #self.setcheckboxfromuid(Qt.Unchecked, uid, 4)
                 data.heading = False
             else:
                 data.normative = False
 
         if checkboxtype == 'heading':
-            if s.checkState() == Qt.Checked:
-                data.heading = True
-                #self.setcheckboxfromuid(Qt.Unchecked, uid, 3)
-                #normativecheckbox.setCheckState(Qt.Unchecked)
+            if uid == self.attributeview.currentuid:
+                self.attributeview.heading.setCheckState(s.checkState())
+                if s.checkState() == Qt.Checked:
+                    self.attributeview.normative.setCheckState(Qt.Unchecked)
+                    self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
+                else:
+                    self.attributeview.normative.setCheckState(Qt.Checked)
+                    self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
 
+
+            elif s.checkState() == Qt.Checked:
+                data.heading = True
                 data.normative = False
+                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
+
             else:
                 data.heading = False
-                #self.setcheckboxfromuid(Qt.Checked, uid, 4)
-                #normativecheckbox.setCheckState(Qt.Checked)
                 data.normative = True
-        self.attributeview.read_current(uid)
+                self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
+
+        #self.attributeview.read_current(uid)
+        # self.tree.blockSignals(False)
+        # self.model.blockSignals(False)
+        # self.blockSignals(False)
 
 
 
@@ -432,6 +462,7 @@ class DocumentTreeView(QWidget):
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
+
 
 
 
