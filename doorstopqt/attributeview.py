@@ -47,7 +47,9 @@ class AttributeView(QWidget):
             if self.currentuid is None:
                 return
             data = self.db.find(self.currentuid)
+            #print('pre', data.heading, flush=True)
             data.normative = True if s == Qt.Checked else False
+            #print('post', data.heading, flush=True)
             self.read(self.currentuid)
             #self.db.reload()
         self.normative.stateChanged.connect(normative)
