@@ -457,7 +457,6 @@ class DocumentTreeView(QWidget):
                 data.normative = True
 
             modeldata.heading = data.heading
-        #self.attributeview.read(uid)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
@@ -506,9 +505,10 @@ class DocumentTreeView(QWidget):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
         if data is not None:
-
             if str(data.level) == level:
                 return
+            if data.heading is True:
+                level += '.0'
             uid = self.uidfromindex(index)
             dbitem = self.db.find(uid)
             data.level = level
