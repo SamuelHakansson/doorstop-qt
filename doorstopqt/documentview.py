@@ -406,7 +406,8 @@ class DocumentTreeView(QWidget):
         item = self.uidtoitem(uid)
         index = self.model.indexFromItem(item)
         modeldata = self.model.data(index, role=Qt.UserRole)
-
+        print('input:', checkboxtype, flush=True)
+        print('normative', data.normative, 'heading', data.heading, flush=True)
         if checkboxtype == 'active':
 
             if uid == self.attributeview.currentuid:
@@ -432,21 +433,24 @@ class DocumentTreeView(QWidget):
                     self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=4)
 
             elif s.checkState() == Qt.Checked:
-
+                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=4)
                 data.normative = True
-
                 data.heading = False
+
             else:
                 data.normative = False
             modeldata.normative = data.normative
+            self.setcheckboxfromuid(Qt.Checked if data.heading else Qt.Unchecked, uid, attribute=4)
+
 
         if checkboxtype == 'heading':
 
             if uid == self.attributeview.currentuid:
                 self.attributeview.heading.setCheckState(s.checkState())
-                self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
+                if s.checkState() == Qt.Checked:
+                    self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
 
-            if s.checkState() == Qt.Checked:
+            elif s.checkState() == Qt.Checked:
                 self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
                 data.heading = True
                 data.normative = False
@@ -455,8 +459,11 @@ class DocumentTreeView(QWidget):
                 self.setcheckboxfromuid(Qt.Checked, uid, attribute=3)
                 data.heading = False
                 data.normative = True
-
+            self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
             modeldata.heading = data.heading
+
+        print('normative', data.normative, 'heading', data.heading, flush=True)
+        print('---------------------', flush=True)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
