@@ -406,8 +406,6 @@ class DocumentTreeView(QWidget):
         item = self.uidtoitem(uid)
         index = self.model.indexFromItem(item)
         modeldata = self.model.data(index, role=Qt.UserRole)
-        print('input:', checkboxtype, flush=True)
-        print('normative', data.normative, 'heading', data.heading, flush=True)
         if checkboxtype == 'active':
 
             if uid == self.attributeview.currentuid:
@@ -454,9 +452,6 @@ class DocumentTreeView(QWidget):
 
             modeldata.normative = data.normative
             modeldata.heading = data.heading
-
-        print('checkboxtype', checkboxtype, 'normative', data.normative, 'heading', data.heading, flush=True)
-        print('---------------------', flush=True)
         self.updateuidfromitem(item)
 
     def connectdb(self, db):
