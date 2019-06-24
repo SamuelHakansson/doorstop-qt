@@ -390,10 +390,16 @@ class DocumentTreeView(QWidget):
         checkboxattributes = [data.active, data.derived, data.normative, data.heading]
         checkboxnames = ['active', 'derived', 'normative', 'heading']
         for i, checkbox in enumerate(checkboxrow):
-            checkbox.setData([uid, checkboxnames[i], data])
+            checkbox.setData([uid, checkboxnames[i]])
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
             checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled)
         return checkboxrow
+
+    def connectdb(self, db):
+        self.db = db
+        self.buildtree()
+        self.catselector.connectdb(db)
+        self.setupHeaders()
 
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
@@ -401,9 +407,10 @@ class DocumentTreeView(QWidget):
             return
         uid = s.data()[0]
         checkboxtype = s.data()[1]
-        data = s.data()[2]
+        data = self.db.find(uid)
 
         item = self.uidtoitem(uid)
+
         if checkboxtype == 'active':
 
             if uid == self.attributeview.currentuid:
@@ -422,12 +429,11 @@ class DocumentTreeView(QWidget):
             if uid == self.attributeview.currentuid:
                 self.attributeview.normative.setCheckState(s.checkState())
 
-            elif s.checkState() == Qt.Checked:
+            if s.checkState() == Qt.Checked:
                 data.normative = True
 
             else:
                 data.normative = False
-
             self.setcheckboxfromuid(Qt.Checked if data.heading else Qt.Unchecked, uid, attribute=4)
 
         elif checkboxtype == 'heading':
@@ -440,16 +446,8 @@ class DocumentTreeView(QWidget):
 
             else:
                 data.heading = False
-
             self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
-
-        self.updateuidfromitem(item)
-
-    def connectdb(self, db):
-        self.db = db
-        self.buildtree()
-        self.catselector.connectdb(db)
-        self.setupHeaders()
+            self.updateuidfromitem(item)
 
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
@@ -491,10 +489,10 @@ class DocumentTreeView(QWidget):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
         if data is not None:
-            if str(data.level) == level:
-                return
             if data.heading is True:
                 level += '.0'
+            if str(data.level) == level:
+                return
             uid = self.uidfromindex(index)
             dbitem = self.db.find(uid)
             data.level = level
