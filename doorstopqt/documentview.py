@@ -392,7 +392,7 @@ class DocumentTreeView(QWidget):
         for i, checkbox in enumerate(checkboxrow):
             checkbox.setData([uid, checkboxnames[i], data])
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
-            checkbox.setFlags(activecheckbox.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled)
         return checkboxrow
 
     def updatecheckbox(self, s):
@@ -446,7 +446,7 @@ class DocumentTreeView(QWidget):
                 self.attributeview.heading.setCheckState(s.checkState())
                 self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
 
-            if s.checkState() == Qt.Checked:
+            elif s.checkState() == Qt.Checked:
                 self.setcheckboxfromuid(Qt.Unchecked, uid, attribute=3)
                 data.heading = True
                 data.normative = False
