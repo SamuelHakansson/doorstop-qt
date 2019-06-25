@@ -1,6 +1,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from doorstop.common import DoorstopError
+import os
 
 
 class AttributeView(QWidget):
@@ -24,6 +25,9 @@ class AttributeView(QWidget):
         self.refloc.setVisible(False)
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
+        self.publish = QPushButton('Publish')
+        self.publish.setVisible(True)
+
 
         def active(s):
             if self.currentuid is None:
@@ -31,7 +35,6 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.active = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            #self.db.reload()
         self.active.stateChanged.connect(active)
         
         def derived(s):
@@ -40,18 +43,14 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.derived = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            #self.db.reload()
         self.derived.stateChanged.connect(derived)
 
         def normative(s):
             if self.currentuid is None:
                 return
             data = self.db.find(self.currentuid)
-            #print('pre', data.heading, flush=True)
             data.normative = True if s == Qt.Checked else False
-            #print('post', data.heading, flush=True)
             self.read(self.currentuid)
-            #self.db.reload()
         self.normative.stateChanged.connect(normative)
 
         def heading(s):
@@ -60,7 +59,6 @@ class AttributeView(QWidget):
             data = self.db.find(self.currentuid)
             data.heading = True if s == Qt.Checked else False
             self.read(self.currentuid)
-            #self.db.reload()
         self.heading.stateChanged.connect(heading)
 
         def ref():
@@ -80,8 +78,11 @@ class AttributeView(QWidget):
             data.review()
             data.clear()
             self.read(self.currentuid)
-            #self.db.reload()
         self.markreviewed.clicked.connect(markreviewed)
+
+        def publishdocs():
+            os.system("doorstop publish all ./public")
+        self.publish.clicked.connect(publishdocs)
 
         grid.addWidget(self.active)
         grid.addWidget(self.derived)
@@ -92,6 +93,7 @@ class AttributeView(QWidget):
         grid.addWidget(self.refloc)
         grid.addStretch(1)
         grid.addWidget(self.markreviewed)
+        grid.addWidget(self.publish)
         self.setLayout(grid)
 
     def connectdb(self, db):

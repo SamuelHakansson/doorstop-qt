@@ -452,7 +452,7 @@ class DocumentTreeView(QWidget):
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
         header = self.tree.header()
-        self.tree.setColumnWidth(0, 260)
+        self.tree.setColumnWidth(0, 200)
         header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)

@@ -12,6 +12,7 @@ from .linkview import LinkView
 from .version import VERSION
 
 
+
 class ReqDatabase(object):
     def __init__(self):
         self.listeners = []
@@ -48,6 +49,7 @@ class ReqDatabase(object):
 
 def main():
     import sys
+    import os
     app = QApplication(sys.argv)
 
     splitter = QSplitter()
@@ -102,6 +104,8 @@ def main():
             attribview.showref(False)
     v.modeclb = modeclb
 
+
+
     editor = QWidget()
     editorgrid = QVBoxLayout()
     editorgrid.setContentsMargins(0, 0, 0, 0)
@@ -121,6 +125,8 @@ def main():
     splitter.addWidget(tree)
     splitter.addWidget(rview)
     splitter.setStretchFactor(100, 1)
+
+
 
     splitter.show()
 
