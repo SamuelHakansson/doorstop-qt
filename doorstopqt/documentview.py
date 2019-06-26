@@ -32,9 +32,11 @@ class DocumentTreeView(QWidget):
 
         self.newcatbtn = QPushButton(self.icons.FileDialogNewFolder, '')
         self.newcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.newcatbtn.setToolTip('Create new category')
 
-        self.editcatbtn = QPushButton(self.icons.FileDialogListView, '')
+        self.editcatbtn = QPushButton(self.icons.TitleBarNormalButton, '')
         self.editcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.editcatbtn.setToolTip('Edit category hierarchy')
 
         catselgrid.addWidget(self.catselector)
 

@@ -39,6 +39,7 @@ class EditCategoryDialog(QDialog):
         self.apply.clicked.connect(self.changehierarchy)
         self.model.layoutChanged.connect(self.onlayoutchanged)
         self.vbox.addWidget(self.apply)
+        self.tree.setMinimumSize(self.tree.width()/2, self.tree.height())
 
     def applytreechange(self):
         self.db.root = Tree.from_list(self.docs, self.db.root.root)
@@ -56,6 +57,7 @@ class EditCategoryDialog(QDialog):
         for d in self.docs:
             self.docsdict[str(d)] = d
         self.buildlist()
+
 
 
     def buildlist(self):
