@@ -27,15 +27,20 @@ class DocumentTreeView(QWidget):
         catselgrid.setSpacing(10)
         catselgrid.setContentsMargins(0, 0, 0, 0)
 
-
         self.catselector = CategorySelector()
         self.catselector.callback(self.buildtree)
 
         self.newcatbtn = QPushButton(self.icons.FileDialogNewFolder, '')
         self.newcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
+        self.editcatbtn = QPushButton(self.icons.FileDialogListView, '')
+        self.editcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
         catselgrid.addWidget(self.catselector)
+
+        catselgrid.addWidget(self.editcatbtn)
         catselgrid.addWidget(self.newcatbtn)
+
 
         self.selectionclb = None
         oldSelectionChanged = self.tree.selectionChanged
@@ -253,7 +258,6 @@ class DocumentTreeView(QWidget):
         return children
 
 
-
     def getnext(self, index, nextobjectslist):
         nextobject = self.tree.indexBelow(index)
         if self.uidfromindex(nextobject) != None:
@@ -467,6 +471,9 @@ class DocumentTreeView(QWidget):
     def connectview(self, view):
         self.editview = view
 
+    def connecteditcatdiag(self, editcatdiag):
+        self.editcatdiag = editcatdiag
+        self.editcatbtn.clicked.connect(self.editcatdiag.show)
 
     def connectcreatecatdiag(self, createcatdiag):
         self.createcatdiag = createcatdiag

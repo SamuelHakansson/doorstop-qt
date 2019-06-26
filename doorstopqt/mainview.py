@@ -7,10 +7,10 @@ from .markdownview import MarkdownView
 import doorstop
 from .documentview import DocumentTreeView
 from .createcatdiag import CreateCategoryDialog
+from .editcatdiag import EditCategoryDialog
 from .attributeview import AttributeView
 from .linkview import LinkView
 from .version import VERSION
-
 
 
 class ReqDatabase(object):
@@ -49,7 +49,6 @@ class ReqDatabase(object):
 
 def main():
     import sys
-    import os
     app = QApplication(sys.argv)
 
     splitter = QSplitter()
@@ -63,7 +62,9 @@ def main():
     linkview = LinkView()
 
     tree = DocumentTreeView(attributeview=attribview)
+    editcatdiag = EditCategoryDialog(tree.catselector)
     tree.connectview(v)
+    tree.connecteditcatdiag(editcatdiag)
     tree.connectcreatecatdiag(createcatdiag)
     tree.post_init()
     def selectfunc(uid):
@@ -95,7 +96,7 @@ def main():
         db.find(uid).text = text
         tree.updateuid(uid)
     v.savefunc = savefunc
-    db.add_listeners([tree, createcatdiag])
+    db.add_listeners([tree, editcatdiag, createcatdiag])
 
     def modeclb(editmode):
         if editmode:

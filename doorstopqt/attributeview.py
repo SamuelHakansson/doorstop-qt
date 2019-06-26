@@ -2,7 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from doorstop.common import DoorstopError
 import os
-
+from .icon import Icon
 
 class AttributeView(QWidget):
     def __init__(self, parent=None):
@@ -25,7 +25,8 @@ class AttributeView(QWidget):
         self.refloc.setVisible(False)
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
-        self.publish = QPushButton('Publish')
+        self.icons = Icon()
+        self.publish = QPushButton(self.icons.DialogApplyButton, 'Publish')
         self.publish.setVisible(True)
 
 

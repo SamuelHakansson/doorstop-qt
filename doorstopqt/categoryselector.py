@@ -29,6 +29,9 @@ class CategorySelector(QWidget):
         self.combo.addItems([x for x in graph if x.split()[-1].isidentifier()])
         self.select(lastcategory)
 
+    def clear(self):
+        self.combo.clear()
+
     def callback(self, func):
         def clb(index):
             func(self.text(index))
@@ -50,3 +53,4 @@ class CategorySelector(QWidget):
                 if self.text(i) == category:
                     self.combo.setCurrentIndex(i)
                     return
+
