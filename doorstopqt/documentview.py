@@ -416,44 +416,44 @@ class DocumentTreeView(QWidget):
         data = self.db.find(uid)
 
         item = self.uidtoitem(uid)
+        if item:
+            if checkboxtype == 'active':
 
-        if checkboxtype == 'active':
+                if uid == self.attributeview.currentuid:
+                    self.attributeview.active.setCheckState(s.checkState())
+                    # data is set in attributeview to db
+                else:
+                    data.active = True if s.checkState() == Qt.Checked else False
 
-            if uid == self.attributeview.currentuid:
-                self.attributeview.active.setCheckState(s.checkState())
-                # data is set in attributeview to db
-            else:
-                data.active = True if s.checkState() == Qt.Checked else False
+            elif checkboxtype == 'derived':
+                if uid == self.attributeview.currentuid:
+                    self.attributeview.derived.setCheckState(s.checkState())
+                else:
+                    data.derived = True if s.checkState() == Qt.Checked else False
 
-        elif checkboxtype == 'derived':
-            if uid == self.attributeview.currentuid:
-                self.attributeview.derived.setCheckState(s.checkState())
-            else:
-                data.derived = True if s.checkState() == Qt.Checked else False
+            elif checkboxtype == 'normative':
+                if uid == self.attributeview.currentuid:
+                    self.attributeview.normative.setCheckState(s.checkState())
 
-        elif checkboxtype == 'normative':
-            if uid == self.attributeview.currentuid:
-                self.attributeview.normative.setCheckState(s.checkState())
+                if s.checkState() == Qt.Checked:
+                    data.normative = True
 
-            if s.checkState() == Qt.Checked:
-                data.normative = True
+                else:
+                    data.normative = False
+                self.setcheckboxfromuid(Qt.Checked if data.heading else Qt.Unchecked, uid, attribute=4)
 
-            else:
-                data.normative = False
-            self.setcheckboxfromuid(Qt.Checked if data.heading else Qt.Unchecked, uid, attribute=4)
+            elif checkboxtype == 'heading':
 
-        elif checkboxtype == 'heading':
+                if uid == self.attributeview.currentuid:
+                    self.attributeview.heading.setCheckState(s.checkState())
 
-            if uid == self.attributeview.currentuid:
-                self.attributeview.heading.setCheckState(s.checkState())
+                if s.checkState() == Qt.Checked:
+                    data.heading = True
 
-            if s.checkState() == Qt.Checked:
-                data.heading = True
-
-            else:
-                data.heading = False
-            self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
-            self.updateuidfromitem(item)
+                else:
+                    data.heading = False
+                self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
+                self.updateuidfromitem(item)
 
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
