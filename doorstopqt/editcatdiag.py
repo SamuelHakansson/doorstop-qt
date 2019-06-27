@@ -33,13 +33,17 @@ class EditCategoryDialog(QDialog):
         self.vbox.addWidget(g)
         self.setLayout(self.vbox)
 
-        self.undostack = QUndoStack()
         self.tree.setModel(self.model)
 
         self.apply.clicked.connect(self.changehierarchy)
         self.model.layoutChanged.connect(self.onlayoutchanged)
         self.vbox.addWidget(self.apply)
         self.tree.setMinimumSize(self.tree.width()/2, self.tree.height())
+
+        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.contextmenu)
+
+        self.documentstodelete = []
 
     def applytreechange(self):
         self.db.root = Tree.from_list(self.docs, self.db.root.root)
@@ -58,6 +62,23 @@ class EditCategoryDialog(QDialog):
             self.docsdict[str(d)] = d
         self.buildlist()
 
+    def contextmenu(self, pos):
+        menu = QMenu(parent=self.tree)
+        act = menu.addAction('Remove category')
+        si = self.tree.selectedIndexes()
+        indextoremove = si[0]
+        itemtoremove = self.model.itemFromIndex(indextoremove)
+        def documenttoremove(itemtoremove):
+            data = itemtoremove.data(Qt.UserRole)
+            itemtoremove.setBackground(QBrush(QColor("red")))
+            self.documentstodelete.append(data)
+            children = self.findallchildren(itemtoremove)
+            if children:
+                for child in children:
+                    documenttoremove(child)
+
+        act.triggered.connect(lambda: documenttoremove(itemtoremove))
+        menu.popup(self.tree.mapToGlobal(pos))
 
 
     def buildlist(self):
@@ -126,7 +147,15 @@ class EditCategoryDialog(QDialog):
             else:
                 category._data['parent'] = None
                 category.save()
+        self.deletependingdocuments()
         self.applytreechange()
+
+    def deletependingdocuments(self):
+        for data in self.documentstodelete:
+            self.docsdict[str(data)].delete()
+        self.db.reload()
+        self.documentstodelete = []
+
 
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
@@ -164,6 +193,17 @@ class EditCategoryDialog(QDialog):
             nextobjectslist.insert(0, previousobject)
             self.getprevious(previousobject, nextobjectslist)
         return nextobjectslist
+
+    def findallchildren(self, item):
+        if not item.hasChildren():
+            return
+        rows = item.rowCount()
+        children = []
+        for i in range(rows):
+            child = item.child(i, 0)
+            if child is not None:
+                children.append(child)
+        return children
 
 
 
