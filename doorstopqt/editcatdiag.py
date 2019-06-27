@@ -151,10 +151,7 @@ class EditCategoryDialog(QDialog):
         current_category = self.catsel.text()
         if current_category not in self.docsdict:
             somecategory = self.docsdict[list(self.docsdict.keys())[0]]
-            print(current_category, somecategory, flush=True)
-            print(self.catsel.combo.currentIndex(), flush=True)
             self.catsel.select(str(somecategory))
-            print(self.catsel.combo.currentIndex(), flush=True)
         self.documentstodelete = []
 
         self.db.reload()
