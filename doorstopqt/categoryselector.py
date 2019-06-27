@@ -21,6 +21,7 @@ class CategorySelector(QWidget):
         self.buildlist()
 
     def buildlist(self):
+        self.combo.blockSignals(True)
         lastcategory = self.lastcategory
         if self.db is None or len(self.db.root.documents) == 0:
             return
@@ -28,6 +29,8 @@ class CategorySelector(QWidget):
         graph = self.db.root.draw().split('\n')
         self.combo.addItems([x for x in graph if x.split()[-1].isidentifier()])
         self.select(lastcategory)
+        self.combo.blockSignals(False)
+
 
     def clear(self):
         self.combo.clear()

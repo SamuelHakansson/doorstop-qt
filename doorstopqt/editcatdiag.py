@@ -1,7 +1,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from doorstop import Tree, Document
+from doorstop import Tree
 
 class EditCategoryDialog(QDialog):
     def __init__(self, catselector, parent=None):
@@ -47,7 +47,6 @@ class EditCategoryDialog(QDialog):
 
     def applytreechange(self):
         self.db.root = Tree.from_list(self.docs, self.db.root.root)
-        self.catsel.buildlist()
         self.hide()
 
     def show(self):
@@ -147,14 +146,26 @@ class EditCategoryDialog(QDialog):
             else:
                 category._data['parent'] = None
                 category.save()
+
         self.deletependingdocuments()
+        current_category = self.catsel.text()
+        if current_category not in self.docsdict:
+            somecategory = self.docsdict[list(self.docsdict.keys())[0]]
+            print(current_category, somecategory, flush=True)
+            print(self.catsel.combo.currentIndex(), flush=True)
+            self.catsel.select(str(somecategory))
+            print(self.catsel.combo.currentIndex(), flush=True)
+        self.documentstodelete = []
+
+        self.db.reload()
         self.applytreechange()
 
     def deletependingdocuments(self):
+        if len(self.documentstodelete) == 0:
+            return
         for data in self.documentstodelete:
             self.docsdict[str(data)].delete()
-        self.db.reload()
-        self.documentstodelete = []
+            del self.docsdict[str(data)]
 
 
     def onlayoutchanged(self):

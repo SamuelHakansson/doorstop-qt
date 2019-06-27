@@ -173,16 +173,7 @@ class DocumentTreeView(QWidget):
         for i, top in enumerate(topindices):
             branch = self.treeofpointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
             treeofitems.append(branch)
-        '''
-        #Prints tree in command line:
 
-        tree = []
-        for i, top in enumerate(topindices):
-            branch = self.findplacepointers(self.model.itemFromIndex(top), {}, self.model.itemFromIndex(movedobject))
-            tree.append(branch)
-        for t in tree:
-            self.printtree(t, 1)
-        '''
         self.rename(treeofitems)
         self.setupHeaders()
 
@@ -203,16 +194,6 @@ class DocumentTreeView(QWidget):
                     self.updateuidfromitem(value)
                 elif type(value) == dict:
                     self.namerecursively(value, child_level, sublevel+1)
-
-
-    def printtree(self, tree, level):
-        for keys, values in tree.items():
-            print('\t'*(level-1), keys, flush=True)
-            for value in values:
-                if type(value) != dict:
-                    print('\t'*level, value, flush=True)
-                elif type(value) == dict:
-                    self.printtree(value, level+1)
 
     def itemtouid(self, item):
         return self.uidfromindex(self.model.indexFromItem(item))
@@ -353,6 +334,7 @@ class DocumentTreeView(QWidget):
                 cat = self.db.root.documents[0].prefix
         self.category = cat
         c = [x for x in self.db.root if x.prefix == cat][0]
+
         items = {}
         for doc in sorted(c, key=lambda x: x.level):
             level = str(doc.level)
