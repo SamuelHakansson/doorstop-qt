@@ -35,7 +35,7 @@ class EditCategoryDialog(QDialog):
 
         self.tree.setModel(self.model)
 
-        self.apply.clicked.connect(self.changehierarchy)
+        self.apply.clicked.connect(self.onapply)
         self.model.layoutChanged.connect(self.onlayoutchanged)
         self.vbox.addWidget(self.apply)
         self.tree.setMinimumSize(self.tree.width()/2, self.tree.height())
@@ -43,11 +43,36 @@ class EditCategoryDialog(QDialog):
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
 
-        self.documentstodelete = []
+        self.model.itemChanged.connect(self.namechanged)
 
-    def applytreechange(self):
-        self.db.root = Tree.from_list(self.docs, self.db.root.root)
-        self.hide()
+        self.documentstodelete = []
+        self.namechangeditems = []
+        self.doctonewname = {}
+
+    def namechanged(self, changeditem):
+        self.namechangeditems.append(changeditem)
+
+    def setnewnames(self):
+        for changeditem in self.namechangeditems:
+            cat = changeditem.data(Qt.UserRole)
+            newname = changeditem.text()
+            self.doctonewname[str(cat)] = newname
+
+            changeditem.setText(newname)
+            changeddoc = self.docsdict[cat]
+            newname.replace(" ", "_")
+            changeddoc.prefix = newname
+            children = self.findallchildren(changeditem)
+            if children:
+                for child in children:
+                    childdoc = self.docsdict[child.text()]
+                    childdoc.parent = newname
+            self.model.blockSignals(True)
+            changeditem.setData(newname, role=Qt.UserRole)
+            self.model.blockSignals(False)
+            self.docsdict[newname] = changeddoc
+            del self.docsdict[str(cat)]
+        self.namechangeditems = []
 
     def show(self):
         super(EditCategoryDialog, self).show()
@@ -59,7 +84,9 @@ class EditCategoryDialog(QDialog):
         self.docsdict = {}
         for d in self.docs:
             self.docsdict[str(d)] = d
+        self.model.blockSignals(True)
         self.buildlist()
+        self.model.blockSignals(False)
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
@@ -120,6 +147,13 @@ class EditCategoryDialog(QDialog):
             previtem = item
         self.tree.expandAll()
 
+    def onapply(self):
+        self.setnewnames()
+        self.changehierarchy()
+        self.db.reload()
+        self.hide()
+
+
     def changehierarchy(self):
         movedobject = self.tree.currentIndex()
 
@@ -141,21 +175,20 @@ class EditCategoryDialog(QDialog):
 
             pardata = self.model.data(parindex, role=Qt.UserRole)
             category = self.docsdict[data]
-            if pardata != None:
-                category.parent = pardata
-            else:
-                category._data['parent'] = None
-                category.save()
+            if category.parent != pardata:
+                if pardata is not None:
+                    category.parent = pardata
+                else:
+                    category._data['parent'] = None
+                    category.save()
 
         self.deletependingdocuments()
         current_category = self.catsel.text()
         if current_category not in self.docsdict:
+
             somecategory = self.docsdict[list(self.docsdict.keys())[0]]
             self.catsel.select(str(somecategory))
         self.documentstodelete = []
-
-        self.db.reload()
-        self.applytreechange()
 
     def deletependingdocuments(self):
         if len(self.documentstodelete) == 0:
