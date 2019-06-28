@@ -1,7 +1,6 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from doorstop import Tree
 
 class EditCategoryDialog(QDialog):
     def __init__(self, catselector, parent=None):
@@ -25,6 +24,12 @@ class EditCategoryDialog(QDialog):
         self.warningmessage.setStyleSheet('color: red')
         grid.addWidget(self.warningmessage, 3, 1)
         self.warningmessage.hide()
+
+        self.removemessage = QLabel('Sub document will be removed if its parent is removed')
+        self.removemessage.setStyleSheet('color: red')
+        grid.addWidget(self.removemessage, 3, 1)
+        self.removemessage.hide()
+
         self.apply = QPushButton('Apply')
         self.db = None
 
@@ -48,6 +53,7 @@ class EditCategoryDialog(QDialog):
         self.documentstodelete = []
         self.namechangeditems = []
         self.doctonewname = {}
+        self.willberemoved = {}
 
     def namechanged(self, changeditem):
         self.namechangeditems.append(changeditem)
@@ -56,26 +62,27 @@ class EditCategoryDialog(QDialog):
         for changeditem in self.namechangeditems:
             cat = changeditem.data(Qt.UserRole)
             newname = changeditem.text()
-            self.doctonewname[str(cat)] = newname
+            if cat != newname:
+                newname.replace(" ", "_")
+                self.doctonewname[str(cat)] = newname
+                changeditem.setText(newname)
 
-            changeditem.setText(newname)
-            changeddoc = self.docsdict[cat]
-            newname.replace(" ", "_")
-            changeddoc.prefix = newname
-            children = self.findallchildren(changeditem)
-            if children:
-                for child in children:
-                    childdoc = self.docsdict[child.text()]
-                    childdoc.parent = newname
-            self.model.blockSignals(True)
-            changeditem.setData(newname, role=Qt.UserRole)
-            self.model.blockSignals(False)
-            self.docsdict[newname] = changeddoc
-            del self.docsdict[str(cat)]
+                changeddoc = self.docsdict[str(cat)]
+                changeddoc.prefix = newname
+                children = self.findallchildren(changeditem)
+                if children:
+                    for child in children:
+                        childdoc = self.docsdict[child.text()]
+                        childdoc.parent = newname
+                self.model.blockSignals(True)
+                changeditem.setData(newname, role=Qt.UserRole)
+                self.model.blockSignals(False)
+                self.docsdict[newname] = changeddoc
         self.namechangeditems = []
 
     def show(self):
         super(EditCategoryDialog, self).show()
+        self.raise_()
 
     def connectdb(self, db):
         self.db = db
@@ -90,20 +97,47 @@ class EditCategoryDialog(QDialog):
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
-        act = menu.addAction('Remove category')
+        index = self.tree.indexAt(pos)
+        data = self.model.data(index)
+        if data not in self.willberemoved:
+            removeaction = menu.addAction('Remove category')
+            removeaction.triggered.connect(lambda: documenttoremove(itemtoremove))
+        else:
+            notremoveaction = menu.addAction('Do not remove category')
+            notremoveaction.triggered.connect(lambda: documenttonotremove(itemtoremove))
         si = self.tree.selectedIndexes()
         indextoremove = si[0]
         itemtoremove = self.model.itemFromIndex(indextoremove)
+
         def documenttoremove(itemtoremove):
-            data = itemtoremove.data(Qt.UserRole)
+            data = itemtoremove.data(role=Qt.UserRole)
+            self.willberemoved[data] = itemtoremove.background()
             itemtoremove.setBackground(QBrush(QColor("red")))
+            itemtoremove.setData(False)
             self.documentstodelete.append(data)
             children = self.findallchildren(itemtoremove)
             if children:
                 for child in children:
                     documenttoremove(child)
 
-        act.triggered.connect(lambda: documenttoremove(itemtoremove))
+
+        def documenttonotremove(itemtonotremove):
+            parentname = itemtonotremove.parent().data(Qt.UserRole)
+            if parentname not in self.willberemoved:
+                data = itemtonotremove.data(role=Qt.UserRole)
+                oldbrush = self.willberemoved[data]
+                del self.willberemoved[data]
+                itemtonotremove.setBackground(QBrush(oldbrush))
+                itemtonotremove.setData(True)
+                self.documentstodelete.remove(data)
+                children = self.findallchildren(itemtonotremove)
+                if children:
+                    for child in children:
+                        documenttonotremove(child)
+                self.removemessage.hide()
+            else:
+                self.removemessage.show()
+
         menu.popup(self.tree.mapToGlobal(pos))
 
 

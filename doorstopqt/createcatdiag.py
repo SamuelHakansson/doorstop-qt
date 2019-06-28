@@ -51,6 +51,7 @@ class CreateCategoryDialog(QDialog):
     def show(self):
         super(CreateCategoryDialog, self).show()
         self.prefix.setFocus()
+        self.raise_()
 
     def connectdb(self, db):
         self.db = db
