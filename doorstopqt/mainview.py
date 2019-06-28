@@ -11,7 +11,8 @@ from .editcatdiag import EditCategoryDialog
 from .attributeview import AttributeView
 from .linkview import LinkView
 from .version import VERSION
-
+import resources
+# resources fetches icons
 
 class ReqDatabase(object):
     def __init__(self):
@@ -50,6 +51,12 @@ class ReqDatabase(object):
 def main():
     import sys
     app = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+    windowicon = QIcon()
+    windowicon.addFile(':/icons/doorstop-qt.png', QSize(40, 40))
+    app.setWindowIcon(windowicon)
+
 
     splitter = QSplitter()
     splitter.resize(1024, 768)

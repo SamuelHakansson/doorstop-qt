@@ -6,7 +6,7 @@ class EditCategoryDialog(QDialog):
     def __init__(self, catselector, parent=None):
         super(EditCategoryDialog, self).__init__(parent)
 
-        self.setWindowTitle('Edit category hierarchy')
+        self.setWindowTitle('Edit categories')
         self.vbox = QVBoxLayout()
         grid = QGridLayout()
         self.catsel = catselector

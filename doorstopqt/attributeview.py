@@ -1,5 +1,6 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
 import os
 from .icon import Icon
@@ -26,7 +27,10 @@ class AttributeView(QWidget):
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
         self.icons = Icon()
-        self.publish = QPushButton(self.icons.DialogApplyButton, 'Publish')
+        papirusicons = QIcon()
+        papirusicons.setThemeName('papirus')
+        sendicon = papirusicons.fromTheme("document-send-symbolic")
+        self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
 
 
