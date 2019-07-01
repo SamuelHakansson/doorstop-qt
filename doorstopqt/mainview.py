@@ -49,7 +49,7 @@ class ReqDatabase(object):
 
 def main():
     import sys
-    import datetime
+
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
@@ -103,14 +103,6 @@ def main():
     v.readfunc = lambda uid: db.find(uid).text
     v.itemfunc = lambda uid: db.find(uid)
 
-    def savefunc(uid, text):
-        item = db.find(uid)
-        item.text = text
-        item._data['lastupdated'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        item.save()
-        tree.updateuid(uid)
-
-    v.savefunc = savefunc
     db.add_listeners([tree, editcatdiag, createcatdiag])
 
     def modeclb(editmode):

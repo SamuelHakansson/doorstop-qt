@@ -5,6 +5,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
+import datetime
 
 
 class SimpleMarkdownHighlighter(QSyntaxHighlighter):
@@ -103,6 +104,7 @@ class MarkdownView(QWidget):
         self.editview.setPlainText(text)
 
         self.infoview = QTextEdit()
+        self.infoview.setReadOnly(True)
 
 
         self.previewbtn = QPushButton("Preview")
@@ -138,22 +140,27 @@ class MarkdownView(QWidget):
         buttonrow = QWidget()
         buttonrow.setLayout(buttongrid)
 
-        self.lastupdatedtext = QLabel()
-
 
         textviewweight = 4
         self.layout.addWidget(self.editview, textviewweight)
         self.layout.addWidget(self.htmlview, textviewweight)
         self.layout.addWidget(QLabel('Decision log'))
         self.layout.addWidget(self.infoview, 1)
+
+        self.decisiontakerslabel = QLabel('Decision takers:')
+        self.decisiontakersline = QLineEdit()
+        self.layout.addWidget(self.decisiontakerslabel)
+        self.layout.addWidget(self.decisiontakersline)
+
+        self.lastupdatedtext = QLabel()
         self.layout.addWidget(self.lastupdatedtext)
         self.layout.addWidget(buttonrow)
         self.text = self.editview.document().toPlainText
+        self.decisionlog = self.infoview.document().toPlainText()
         self.connectzoomfunctions()
         self.modeclb = None
         self.viewhtml()
         self.readfunc = None
-        self.savefunc = None
         self.itemfunc = None
         self.cache = {}
         self.currentuid = None
@@ -165,6 +172,8 @@ class MarkdownView(QWidget):
                 self.savebtn.setVisible(True)
                 self.discardbtn.setVisible(True)
         self.editview.textChanged.connect(textChanged)
+        self.infoview.textChanged.connect(textChanged)
+        self.decisiontakersline.textChanged.connect(textChanged)
 
     def viewhtml(self):
         from markdown import markdown
@@ -181,6 +190,7 @@ class MarkdownView(QWidget):
         self.previewbtn.setVisible(False)
         if self.modeclb:
             self.modeclb(False)
+        self.infoview.setReadOnly(True)
 
     def vieweditor(self):
         self.editview.setVisible(True)
@@ -190,6 +200,7 @@ class MarkdownView(QWidget):
         self.editview.setFocus()
         if self.modeclb:
             self.modeclb(True)
+        self.infoview.setReadOnly(False)
 
     def connectzoomfunctions(self):
         def zoomeditor(ev):
@@ -236,24 +247,24 @@ class MarkdownView(QWidget):
 
             self.currentuid = None
             self.editview.setPlainText(text)
+            decisionlog = self.getdecisionlog(uid)
+            self.infoview.setPlainText(decisionlog)
             self.currentuid = uid
             self.viewhtml()
-            self.updatelastupdated(uid)
+            self.updateinfo(uid)
 
     def save(self):
-        if self.savefunc is None:
-            return
         if self.currentuid is None:
             return
         if self.currentuid not in self.cache:
             return
-        self.savefunc(self.currentuid, self.text())
+        self.savefunc(self.currentuid)
         self.cache[self.currentuid]['changed'] = False
         self.savebtn.setVisible(False)
         self.discardbtn.setVisible(False)
         if 'text' in self.cache[self.currentuid]:
             del self.cache[self.currentuid]['text']
-        self.updatelastupdated(self.currentuid)
+        self.updateinfo(self.currentuid)
 
     def discard(self):
         if self.currentuid not in self.cache:
@@ -263,15 +274,44 @@ class MarkdownView(QWidget):
         self.currentuid = None
         self.read(uid)
 
-    def updatelastupdated(self, uid):
+    def updateinfo(self, uid):
         item = self.itemfunc(uid)
+        self.updatelastupdated(item)
+        self.updatedecisiontakers(item)
+
+    def updatelastupdated(self, item):
         try:
             lastupdated = item._data['lastupdated']
         except KeyError:
             lastupdated = ''
-        print(item, lastupdated, flush=True)
         self.lastupdatedtext.setText('Last updated:'+lastupdated)
 
+    def updatedecisiontakers(self, item):
+        try:
+            decisiontakers = item._data['decisiontakers']
+        except KeyError:
+            decisiontakers = ''
+        self.decisiontakersline.setText(decisiontakers)
+
+    def savefunc(self, uid):
+        text = self.text()
+        item = self.itemfunc(uid)
+        item.text = text
+        decisionlog = self.infoview.document().toPlainText()
+        decisiontakers = self.decisiontakersline.text()
+        currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        item._data['lastupdated'] = currenttime
+        item._data['decisionlog'] = decisionlog
+        item._data['decisiontakers'] = decisiontakers
+        item.save()
+
+    def getdecisionlog(self, uid):
+        item = self.itemfunc(uid)
+        try:
+            decisionlog = item._data['decisionlog']
+            return decisionlog
+        except KeyError:
+            return
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
