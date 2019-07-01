@@ -78,8 +78,8 @@ class LinkView(QListView):
             data = item.data()
             if data is None or item.isEditable():
                 return
-            data = data[1]
-            self.goto(data.uid)
+            uid = data[1]
+            self.goto(uid)
         self.doubleClicked.connect(dblclicked)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
