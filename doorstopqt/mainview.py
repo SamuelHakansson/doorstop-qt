@@ -53,10 +53,6 @@ def main():
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
-    windowicon = QIcon()
-    windowicon.addFile(':/icons/doorstop-qt.png', QSize(40, 40))
-    app.setWindowIcon(windowicon)
-
 
     splitter = QSplitter()
     splitter.resize(1024, 768)
