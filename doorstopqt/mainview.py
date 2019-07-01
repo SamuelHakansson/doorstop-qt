@@ -11,8 +11,7 @@ from .editcatdiag import EditCategoryDialog
 from .attributeview import AttributeView
 from .linkview import LinkView
 from .version import VERSION
-import resources
-# resources fetches icons
+import resources # resources fetches icons
 
 class ReqDatabase(object):
     def __init__(self):
@@ -62,7 +61,7 @@ def main():
     createcatdiag = CreateCategoryDialog()
 
     attribview = AttributeView()
-    linkview = LinkView()
+    linkview = LinkView(v)
 
     tree = DocumentTreeView(attributeview=attribview)
     editcatdiag = EditCategoryDialog(tree.catselector)
@@ -77,8 +76,14 @@ def main():
         linkview.read(uid)
         v.read(uid)
         tree.read(uid)
+
+    def setlink(uid):
+        return linkview.setlinkingitem(uid)
+
     tree.selectionclb = selectfunc
     linkview.gotoclb = selectfunc
+    tree.setlinkfunc = setlink
+
 
     tree.clipboard = lambda x: app.clipboard().setText(x)
 

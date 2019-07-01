@@ -2,7 +2,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from markdown import markdown
-import doorstop.core.item
 from .icon import Icon
 
 
@@ -43,22 +42,32 @@ class LinkItemModel(QStandardItemModel):
 
 
 class LinkView(QListView):
-    def __init__(self, parent=None):
+    def __init__(self, markdownview, parent=None):
         super(LinkView, self).__init__(parent)
 
+        self.vbox = QVBoxLayout()
         self.icons = Icon()
         self.db = None
         self.model = LinkItemModel()
         self.setModel(self.model)
         self.setAlternatingRowColors(True)
         self.linkentry = None
+        self.locked = False
+        self.currentitemedit = None
+        #self.addparentlinktip = QLabel('Add link by clicking on the requirement or fill in the name')
+        #self.addparentlinktip.setStyleSheet('color: blue')
+        #self.vbox.addWidget(self.addparentlinktip)
+        #self.addparentlinktip.hide()
+        self.setLayout(self.vbox)
+        self.markdownview = markdownview
+
+
         def dataChanged(index):
             if self.db is None:
                 return
             if self.currentuid is None:
                 return
             item = self.model.itemFromIndex(index)
-            data = item.data()
             uid = item.text()
             doc = self.db.find(uid)
             if doc is not None:
@@ -69,17 +78,22 @@ class LinkView(QListView):
 
         def clicked(index):
             item = self.model.itemFromIndex(index)
+            self.currentitemedit = item
             if item.isEditable():
+                self.setlock(True)
                 self.edit(index)
+            else:
+                self.setlock(False)
+
         self.clicked.connect(clicked)
 
         def dblclicked(index):
             item = self.model.itemFromIndex(index)
             data = item.data()
+            uid = data[1]
             if data is None or item.isEditable():
                 return
-            data = data[1]
-            self.goto(data.uid)
+            self.goto(uid)
         self.doubleClicked.connect(dblclicked)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -87,6 +101,10 @@ class LinkView(QListView):
 
         delete = QShortcut(QKeySequence("Delete"), self)
         delete.activated.connect(self.remove_selected_link)
+
+    def setlock(self, lock):
+        self.locked = lock
+        self.markdownview.locked = lock
 
     def contextmenu(self, pos):
         if self.db is None:
@@ -127,13 +145,15 @@ class LinkView(QListView):
     def read(self, uid):
         if self.db is None:
             return
-
+        if self.locked:
+            return
         self.currentuid = None
 
         data = self.db.find(uid)
         self.model.clear()
         self.linkentry = QStandardItem()
         self.linkentry.setData('<Click here to add parent link>')
+
         self.model.appendRow(self.linkentry)
         for link in data.links:
             d = self.db.find(str(link))
@@ -200,3 +220,16 @@ class LinkView(QListView):
     def goto(self, uid):
         if self.gotoclb:
             self.gotoclb(uid)
+
+    def setlinkingitem(self, uid):
+        if self.locked and uid != self.currentuid:
+            parentuid = self.currentuid
+            uid = str(uid)
+            self.model.blockSignals(True)
+            self.currentitemedit.setText(str(uid))
+            self.db.root.link_items(self.currentuid, uid)
+
+            self.setlock(False)
+            self.model.blockSignals(False)
+            self.read(parentuid)
+            return parentuid

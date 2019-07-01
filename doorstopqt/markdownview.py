@@ -145,6 +145,7 @@ class MarkdownView(QWidget):
         self.savefunc = None
         self.cache = {}
         self.currentuid = None
+        self.locked = False
 
         def textChanged():
             if self.currentuid is not None:
@@ -201,29 +202,30 @@ class MarkdownView(QWidget):
         self.editview.wheelEvent = zoomeditor
 
     def read(self, uid):
-        if self.currentuid is not None:
-            if self.currentuid in self.cache \
-               and self.cache[self.currentuid]['changed']:
-                self.cache[self.currentuid]['text'] = self.text()
+        if not self.locked:
+            if self.currentuid is not None:
+                if self.currentuid in self.cache \
+                   and self.cache[self.currentuid]['changed']:
+                    self.cache[self.currentuid]['text'] = self.text()
 
-        self.savebtn.setVisible(False)
-        self.discardbtn.setVisible(False)
-        if uid in self.cache and 'text' in self.cache[uid]:
-            text = self.cache[uid]['text']
-            if self.cache[uid]['changed']:
-                self.savebtn.setVisible(True)
-                self.discardbtn.setVisible(True)
-        elif self.readfunc is not None:
-            self.cache[uid] = {'changed': False}
-            text = self.readfunc(uid)
-        else:
-            uid = None
-            text = ''
+            self.savebtn.setVisible(False)
+            self.discardbtn.setVisible(False)
+            if uid in self.cache and 'text' in self.cache[uid]:
+                text = self.cache[uid]['text']
+                if self.cache[uid]['changed']:
+                    self.savebtn.setVisible(True)
+                    self.discardbtn.setVisible(True)
+            elif self.readfunc is not None:
+                self.cache[uid] = {'changed': False}
+                text = self.readfunc(uid)
+            else:
+                uid = None
+                text = ''
 
-        self.currentuid = None
-        self.editview.setPlainText(text)
-        self.currentuid = uid
-        self.viewhtml()
+            self.currentuid = None
+            self.editview.setPlainText(text)
+            self.currentuid = uid
+            self.viewhtml()
 
     def save(self):
         if self.savefunc is None:

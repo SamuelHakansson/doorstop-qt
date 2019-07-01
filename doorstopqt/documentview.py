@@ -22,6 +22,7 @@ class DocumentTreeView(QWidget):
         self.db = None
         self.editview = None
         self.icons = Icon()
+        self.lastcategory = None
 
         catselgrid = QHBoxLayout()
         catselgrid.setSpacing(10)
@@ -48,13 +49,21 @@ class DocumentTreeView(QWidget):
         catselgrid.addWidget(self.editcatbtn)
         catselgrid.addWidget(self.newcatbtn)
 
-
+        self.setlinkfunc = None
         self.selectionclb = None
         oldSelectionChanged = self.tree.selectionChanged
         def selectionChanged(selected, deselected):
             if self.selectionclb is not None:
                 self.selectionclb(self.selecteduid())
-
+                if self.category == self.lastcategory:
+                    currentuid = self.tree.currentIndex().data(Qt.UserRole)
+                    linkuid = self.setlinkfunc(currentuid)
+                    if linkuid:
+                        uid = self.db.find(linkuid)
+                        self.catselector.select(str(uid.document))
+                        item = self.uidtoitem(linkuid)
+                        self.tree.setCurrentIndex(self.model.indexFromItem(item))
+                self.lastcategory = self.category
             oldSelectionChanged(selected, deselected)
 
         self.tree.selectionChanged = selectionChanged
@@ -69,8 +78,9 @@ class DocumentTreeView(QWidget):
 
         self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
-
         self.setLayout(self.grid)
+        #self.tree.setStyleSheet("border: 1px solid blue;")
+        #self.tree.setGraphicsEffect()
 
         self.lastselected = {}
         self.collapsed = set()
@@ -88,6 +98,8 @@ class DocumentTreeView(QWidget):
         self.attributeview.derived.stateChanged.connect(self.derived_link)
         self.attributeview.normative.stateChanged.connect(self.normative_link)
         self.attributeview.heading.stateChanged.connect(self.heading_link)
+
+
 
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
@@ -562,5 +574,4 @@ class DocumentTreeView(QWidget):
         self.lastselected[cat] = str(uid)
         self.catselector.select(cat)
         self.setupHeaders()
-
 

@@ -31,7 +31,6 @@ class CategorySelector(QWidget):
         self.select(lastcategory)
         self.combo.blockSignals(False)
 
-
     def clear(self):
         self.combo.clear()
 
