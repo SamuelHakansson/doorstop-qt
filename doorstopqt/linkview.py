@@ -153,7 +153,6 @@ class LinkView(QListView):
         self.model.clear()
         self.linkentry = QStandardItem()
         self.linkentry.setData('<Click here to add parent link>')
-
         self.model.appendRow(self.linkentry)
         for link in data.links:
             d = self.db.find(str(link))

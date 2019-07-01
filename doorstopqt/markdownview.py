@@ -92,15 +92,19 @@ class MarkdownView(QWidget):
         super(MarkdownView, self).__init__(parent)
 
         icon = Icon()
-
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
+
         self.htmlview = QTextEdit()
         self.htmlview.setReadOnly(True)
         self.editview = MarkdownEditor()
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
         self.editview.setPlainText(text)
+
+        self.infoview = QTextEdit()
+
+
         self.previewbtn = QPushButton("Preview")
         self.previewbtn.clicked.connect(self.viewhtml)
         self.editbtn = QPushButton("Edit")
@@ -134,8 +138,15 @@ class MarkdownView(QWidget):
         buttonrow = QWidget()
         buttonrow.setLayout(buttongrid)
 
-        self.layout.addWidget(self.editview)
-        self.layout.addWidget(self.htmlview)
+        self.lastupdatedtext = QLabel()
+
+
+        textviewweight = 4
+        self.layout.addWidget(self.editview, textviewweight)
+        self.layout.addWidget(self.htmlview, textviewweight)
+        self.layout.addWidget(QLabel('Decision log'))
+        self.layout.addWidget(self.infoview, 1)
+        self.layout.addWidget(self.lastupdatedtext)
         self.layout.addWidget(buttonrow)
         self.text = self.editview.document().toPlainText
         self.connectzoomfunctions()
@@ -143,6 +154,7 @@ class MarkdownView(QWidget):
         self.viewhtml()
         self.readfunc = None
         self.savefunc = None
+        self.itemfunc = None
         self.cache = {}
         self.currentuid = None
         self.locked = False
@@ -226,6 +238,7 @@ class MarkdownView(QWidget):
             self.editview.setPlainText(text)
             self.currentuid = uid
             self.viewhtml()
+            self.updatelastupdated(uid)
 
     def save(self):
         if self.savefunc is None:
@@ -240,6 +253,7 @@ class MarkdownView(QWidget):
         self.discardbtn.setVisible(False)
         if 'text' in self.cache[self.currentuid]:
             del self.cache[self.currentuid]['text']
+        self.updatelastupdated(self.currentuid)
 
     def discard(self):
         if self.currentuid not in self.cache:
@@ -248,6 +262,15 @@ class MarkdownView(QWidget):
         uid = self.currentuid
         self.currentuid = None
         self.read(uid)
+
+    def updatelastupdated(self, uid):
+        item = self.itemfunc(uid)
+        try:
+            lastupdated = item._data['lastupdated']
+        except KeyError:
+            lastupdated = ''
+        print(item, lastupdated, flush=True)
+        self.lastupdatedtext.setText('Last updated:'+lastupdated)
 
 
 if __name__ == '__main__':
