@@ -62,6 +62,7 @@ class LinkView(QListView):
         self.setLayout(self.vbox)
         self.markdownview = markdownview
         self.attribview = attribview
+        self.attribview.readlinkview = self.read
 
 
         def dataChanged(index):
