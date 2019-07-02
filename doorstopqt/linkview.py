@@ -54,7 +54,7 @@ class LinkView(QListView):
         self.linkentry = None
         self.locked = False
         self.currentitemedit = None
-        self.currenteditindex = None
+        self.currentindexedit = None
 
         #self.addparentlinktip = QLabel('Add link by clicking on the requirement or fill in the name')
         #self.addparentlinktip.setStyleSheet('color: blue')
