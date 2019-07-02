@@ -18,6 +18,7 @@ class DocumentTreeView(QWidget):
         self.model = QStandardItemModel()
         self.attributeview = attributeview
 
+
         self.category = None
         self.db = None
         self.editview = None
@@ -78,6 +79,7 @@ class DocumentTreeView(QWidget):
 
         self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
+
         self.setLayout(self.grid)
         #self.tree.setStyleSheet("border: 1px solid blue;")
         #self.tree.setGraphicsEffect()

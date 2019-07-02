@@ -60,14 +60,14 @@ def main():
     width = int(screenwidth*9/16)
     height = int(screenheight*11/16)
     splitter.resize(width, height)
-    print(splitter.width(), splitter.height(), flush=True)
+
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     v = MarkdownView()
     createcatdiag = CreateCategoryDialog()
 
     attribview = AttributeView()
-    linkview = LinkView(v)
+    linkview = LinkView(v, attribview)
 
     tree = DocumentTreeView(attributeview=attribview)
     editcatdiag = EditCategoryDialog(tree.catselector)
