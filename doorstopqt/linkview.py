@@ -90,9 +90,9 @@ class LinkView(QListView):
         def dblclicked(index):
             item = self.model.itemFromIndex(index)
             data = item.data()
-            uid = data[1]
             if data is None or item.isEditable():
                 return
+            uid = data[1]
             self.goto(uid)
         self.doubleClicked.connect(dblclicked)
 
