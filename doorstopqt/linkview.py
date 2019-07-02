@@ -115,8 +115,6 @@ class LinkView(QListView):
         self.attribview.locked = lock
         if lock:
             self.openPersistentEditor(self.currentindexedit)
-        else:
-            self.closePersistentEditor(self.currentindexedit)
 
     def contextmenu(self, pos):
         if self.db is None:
