@@ -151,6 +151,7 @@ class MarkdownView(QWidget):
         self.decisiontakerslabelhelp = ' (separate names with comma , )'
         self.decisiontakerslabel = QLabel(self.decisiontakerslabeltext)
         self.decisiontakersline = QLineEdit()
+        self.decisiontakersline.setReadOnly(True)
         self.layout.addWidget(self.decisiontakerslabel)
         self.layout.addWidget(self.decisiontakersline)
 
@@ -195,6 +196,7 @@ class MarkdownView(QWidget):
         if self.modeclb:
             self.modeclb(False)
         self.infoview.setReadOnly(True)
+        self.decisiontakersline.setReadOnly(True)
         self.decisiontakerslabel.setText(self.decisiontakerslabeltext)
 
     def vieweditor(self):
@@ -206,6 +208,7 @@ class MarkdownView(QWidget):
         if self.modeclb:
             self.modeclb(True)
         self.infoview.setReadOnly(False)
+        self.decisiontakersline.setReadOnly(False)
         self.decisiontakerslabel.setText(self.decisiontakerslabeltext + self.decisiontakerslabelhelp)
 
     def connectzoomfunctions(self):
@@ -269,7 +272,7 @@ class MarkdownView(QWidget):
 
             self.editview.setPlainText(text)
             self.infoview.setPlainText(decisionlog)
-            self.decisiontakersline.setText(decisiontakers)
+            self.settextdecisiontakers(decisiontakers)
 
             self.currentuid = uid
             self.viewhtml()
@@ -282,13 +285,13 @@ class MarkdownView(QWidget):
             return
         self.savefunc(self.currentuid)
         self.cache[self.currentuid]['changed'] = False
-        self.savebtn.setVisible(False)
-        self.discardbtn.setVisible(False)
 
         for field in self.fields:
             if field in self.cache[self.currentuid]:
                 del self.cache[self.currentuid][field]
         self.updateinfo(self.currentuid)
+        self.savebtn.setVisible(False)
+        self.discardbtn.setVisible(False)
 
     def discard(self):
         if self.currentuid not in self.cache:
@@ -316,14 +319,21 @@ class MarkdownView(QWidget):
             decisiontakers = item._data['decisiontakers']
         except KeyError:
             decisiontakers = ''
-        self.decisiontakersline.setText(decisiontakers)
+
+        self.settextdecisiontakers(decisiontakers)
 
     def updatedecisionlog(self, item):
         try:
             decisionlog = item._data['decisionlog']
         except:
             decisionlog = ''
-        self.decisiontakersline.setText(decisionlog)
+        self.infoview.setText(decisionlog)
+
+    def settextdecisiontakers(self, decisiontakers):
+        if type(decisiontakers) is list:
+            decisiontakers = ', '.join(decisiontakers)
+        self.decisiontakersline.setText(decisiontakers)
+
 
     def savefunc(self, uid):
         text = self.text()
@@ -331,11 +341,20 @@ class MarkdownView(QWidget):
         item.text = text
         decisionlog = self.decisionlog()
         decisiontakers = self.decisiontakers()
+        decisiontakerstrimmed = decisiontakers.split(',')
+        decisiontakerslist = []
+
+        for name in decisiontakerstrimmed:
+            if name[0].isspace():
+                name = name[1:]
+            decisiontakerslist.append(name)
+
+        print(decisiontakerstrimmed, flush=True)
+        print(decisiontakerslist, flush=True)
         currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         item._data['lastupdated'] = currenttime
         item._data['decisionlog'] = decisionlog
-        print(list(decisiontakers.split(',')), flush=True)
-        item._data['decisiontakers'] = decisiontakers
+        item._data['decisiontakers'] = decisiontakerslist
         item.save()
 
     def getiteminfo(self, uid, key):
