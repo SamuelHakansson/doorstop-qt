@@ -55,7 +55,12 @@ def main():
 
 
     splitter = QSplitter()
-    splitter.resize(1024, 768)
+    screen_resolution = app.desktop().screenGeometry()
+    screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
+    width = int(screenwidth*9/16)
+    height = int(screenheight*11/16)
+    splitter.resize(width, height)
+    print(splitter.width(), splitter.height(), flush=True)
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     v = MarkdownView()
@@ -134,6 +139,7 @@ def main():
     splitter.addWidget(rview)
     splitter.setStretchFactor(0, 4)
     splitter.setStretchFactor(1, 3)
+    splitter.splitterMoved.connect(tree.setupHeaderwidth)
 
 
 
