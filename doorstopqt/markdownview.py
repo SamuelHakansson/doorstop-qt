@@ -147,7 +147,9 @@ class MarkdownView(QWidget):
         self.layout.addWidget(QLabel('Decision log'))
         self.layout.addWidget(self.infoview, 1)
 
-        self.decisiontakerslabel = QLabel('Decision takers:')
+        self.decisiontakerslabeltext = 'Decision takers:'
+        self.decisiontakerslabelhelp = ' (separate names with comma , )'
+        self.decisiontakerslabel = QLabel(self.decisiontakerslabeltext)
         self.decisiontakersline = QLineEdit()
         self.layout.addWidget(self.decisiontakerslabel)
         self.layout.addWidget(self.decisiontakersline)
@@ -156,7 +158,8 @@ class MarkdownView(QWidget):
         self.layout.addWidget(self.lastupdatedtext)
         self.layout.addWidget(buttonrow)
         self.text = self.editview.document().toPlainText
-        self.decisionlog = self.infoview.document().toPlainText()
+        self.decisionlog = self.infoview.document().toPlainText
+        self.decisiontakers = self.decisiontakersline.text
         self.connectzoomfunctions()
         self.modeclb = None
         self.viewhtml()
@@ -165,6 +168,7 @@ class MarkdownView(QWidget):
         self.cache = {}
         self.currentuid = None
         self.locked = False
+        self.fields = ['text', 'decisionlog', 'decisiontakers']
 
         def textChanged():
             if self.currentuid is not None:
@@ -191,6 +195,7 @@ class MarkdownView(QWidget):
         if self.modeclb:
             self.modeclb(False)
         self.infoview.setReadOnly(True)
+        self.decisiontakerslabel.setText(self.decisiontakerslabeltext)
 
     def vieweditor(self):
         self.editview.setVisible(True)
@@ -201,6 +206,7 @@ class MarkdownView(QWidget):
         if self.modeclb:
             self.modeclb(True)
         self.infoview.setReadOnly(False)
+        self.decisiontakerslabel.setText(self.decisiontakerslabeltext + self.decisiontakerslabelhelp)
 
     def connectzoomfunctions(self):
         def zoomeditor(ev):
@@ -228,30 +234,46 @@ class MarkdownView(QWidget):
         if not self.locked:
             if self.currentuid is not None:
                 if self.currentuid in self.cache \
-                   and self.cache[self.currentuid]['changed']:
+                        and self.cache[self.currentuid]['changed']:
                     self.cache[self.currentuid]['text'] = self.text()
+                    self.cache[self.currentuid]['decisionlog'] = self.decisionlog()
+                    self.cache[self.currentuid]['decisiontakers'] = self.decisiontakers()
+
 
             self.savebtn.setVisible(False)
             self.discardbtn.setVisible(False)
+
             if uid in self.cache and 'text' in self.cache[uid]:
-                text = self.cache[uid]['text']
+                    text = self.cache[uid]['text']
+            else:
+                text = self.getiteminfo(uid, 'text')
+
+            if uid in self.cache and 'decisionlog' in self.cache[uid]:
+                decisionlog = self.cache[uid]['decisionlog']
+            else:
+                decisionlog = self.getiteminfo(uid, 'decisionlog')
+
+            if uid in self.cache and 'decisiontakers' in self.cache[uid]:
+                decisiontakers = self.cache[uid]['decisiontakers']
+            else:
+                decisiontakers = self.getiteminfo(uid, 'decisiontakers')
+
+            if uid in self.cache:
                 if self.cache[uid]['changed']:
                     self.savebtn.setVisible(True)
                     self.discardbtn.setVisible(True)
-            elif self.readfunc is not None:
-                self.cache[uid] = {'changed': False}
-                text = self.readfunc(uid)
             else:
-                uid = None
-                text = ''
+                self.cache[uid] = {'changed': False}
 
             self.currentuid = None
+
             self.editview.setPlainText(text)
-            decisionlog = self.getdecisionlog(uid)
             self.infoview.setPlainText(decisionlog)
+            self.decisiontakersline.setText(decisiontakers)
+
             self.currentuid = uid
             self.viewhtml()
-            self.updateinfo(uid)
+
 
     def save(self):
         if self.currentuid is None:
@@ -262,8 +284,10 @@ class MarkdownView(QWidget):
         self.cache[self.currentuid]['changed'] = False
         self.savebtn.setVisible(False)
         self.discardbtn.setVisible(False)
-        if 'text' in self.cache[self.currentuid]:
-            del self.cache[self.currentuid]['text']
+
+        for field in self.fields:
+            if field in self.cache[self.currentuid]:
+                del self.cache[self.currentuid][field]
         self.updateinfo(self.currentuid)
 
     def discard(self):
@@ -278,6 +302,7 @@ class MarkdownView(QWidget):
         item = self.itemfunc(uid)
         self.updatelastupdated(item)
         self.updatedecisiontakers(item)
+        self.updatedecisionlog(item)
 
     def updatelastupdated(self, item):
         try:
@@ -293,22 +318,30 @@ class MarkdownView(QWidget):
             decisiontakers = ''
         self.decisiontakersline.setText(decisiontakers)
 
+    def updatedecisionlog(self, item):
+        try:
+            decisionlog = item._data['decisionlog']
+        except:
+            decisionlog = ''
+        self.decisiontakersline.setText(decisionlog)
+
     def savefunc(self, uid):
         text = self.text()
         item = self.itemfunc(uid)
         item.text = text
-        decisionlog = self.infoview.document().toPlainText()
-        decisiontakers = self.decisiontakersline.text()
+        decisionlog = self.decisionlog()
+        decisiontakers = self.decisiontakers()
         currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         item._data['lastupdated'] = currenttime
         item._data['decisionlog'] = decisionlog
+        print(list(decisiontakers.split(',')), flush=True)
         item._data['decisiontakers'] = decisiontakers
         item.save()
 
-    def getdecisionlog(self, uid):
+    def getiteminfo(self, uid, key):
         item = self.itemfunc(uid)
         try:
-            decisionlog = item._data['decisionlog']
+            decisionlog = item._data[key]
             return decisionlog
         except KeyError:
             return
