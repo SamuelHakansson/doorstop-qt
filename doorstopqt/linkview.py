@@ -232,7 +232,7 @@ class LinkView(QListView):
             self.gotoclb(uid)
 
     def setlinkingitem(self, uid):
-        if self.locked and uid != self.currentuid:
+        if self.locked and uid != self.currentuid and uid:
             parentuid = self.currentuid
             uid = str(uid)
             self.model.blockSignals(True)
