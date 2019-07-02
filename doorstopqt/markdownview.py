@@ -349,8 +349,6 @@ class MarkdownView(QWidget):
                 name = name[1:]
             decisiontakerslist.append(name)
 
-        print(decisiontakerstrimmed, flush=True)
-        print(decisiontakerslist, flush=True)
         currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         item._data['lastupdated'] = currenttime
         item._data['decisionlog'] = decisionlog
