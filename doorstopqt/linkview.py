@@ -70,13 +70,15 @@ class LinkView(QListView):
                 return
             if self.currentuid is None:
                 return
+
             item = self.model.itemFromIndex(index)
             uid = item.text()
             doc = self.db.find(uid)
             if doc is not None:
+                self.setlock(False)
                 self.db.root.link_items(self.currentuid, uid)
 
-            self.read(self.currentuid)
+            self.goto(self.currentuid)
         self.model.dataChanged.connect(dataChanged)
 
         def clicked(index):
