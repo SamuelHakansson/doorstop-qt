@@ -80,23 +80,25 @@ class LinkView(QListView):
 
         def clicked(index):
             item = self.model.itemFromIndex(index)
-            self.currentitemedit = item
-            self.currentindexedit = index
+            if self.currentindexedit and index != self.currentindexedit:
+                self.closePersistentEditor(self.currentindexedit)
             if item.isEditable():
+                self.currentitemedit = item
+                self.currentindexedit = index
                 self.setlock(True)
                 self.edit(index)
             else:
                 self.setlock(False)
-                self.closePersistentEditor(index)
+
 
         self.clicked.connect(clicked)
 
         def dblclicked(index):
             item = self.model.itemFromIndex(index)
             data = item.data()
-            uid = data[1]
             if data is None or item.isEditable():
                 return
+            uid = data[1]
             self.goto(uid)
         self.doubleClicked.connect(dblclicked)
 
@@ -110,6 +112,10 @@ class LinkView(QListView):
         self.locked = lock
         self.markdownview.locked = lock
         self.attribview.locked = lock
+        if lock:
+            self.openPersistentEditor(self.currentindexedit)
+        else:
+            self.closePersistentEditor(self.currentindexedit)
 
     def contextmenu(self, pos):
         if self.db is None:
