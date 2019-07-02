@@ -54,14 +54,19 @@ def main():
 
 
     splitter = QSplitter()
-    splitter.resize(1024, 768)
+    screen_resolution = app.desktop().screenGeometry()
+    screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
+    width = int(screenwidth*9/16)
+    height = int(screenheight*11/16)
+    splitter.resize(width, height)
+
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     v = MarkdownView()
     createcatdiag = CreateCategoryDialog()
 
     attribview = AttributeView()
-    linkview = LinkView(v)
+    linkview = LinkView(v, attribview)
 
     tree = DocumentTreeView(attributeview=attribview)
     editcatdiag = EditCategoryDialog(tree.catselector)

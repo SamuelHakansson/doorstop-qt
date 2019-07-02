@@ -42,7 +42,7 @@ class LinkItemModel(QStandardItemModel):
 
 
 class LinkView(QListView):
-    def __init__(self, markdownview, parent=None):
+    def __init__(self, markdownview, attribview, parent=None):
         super(LinkView, self).__init__(parent)
 
         self.vbox = QVBoxLayout()
@@ -61,6 +61,7 @@ class LinkView(QListView):
         #self.addparentlinktip.hide()
         self.setLayout(self.vbox)
         self.markdownview = markdownview
+        self.attribview = attribview
 
 
         def dataChanged(index):
@@ -86,6 +87,7 @@ class LinkView(QListView):
                 self.edit(index)
             else:
                 self.setlock(False)
+                self.closePersistentEditor(index)
 
         self.clicked.connect(clicked)
 
@@ -107,6 +109,7 @@ class LinkView(QListView):
     def setlock(self, lock):
         self.locked = lock
         self.markdownview.locked = lock
+        self.attribview.locked = lock
 
     def contextmenu(self, pos):
         if self.db is None:

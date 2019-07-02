@@ -32,6 +32,7 @@ class AttributeView(QWidget):
         sendicon = papirusicons.fromTheme("document-send-symbolic")
         self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
+        self.locked = False
 
 
         def active(s):
@@ -107,6 +108,8 @@ class AttributeView(QWidget):
 
     def read(self, uid):
         if uid is None:
+            return
+        if self.locked:
             return
         self.currentuid = None
         if self.db is None:
