@@ -54,6 +54,7 @@ class LinkView(QListView):
         self.linkentry = None
         self.locked = False
         self.currentitemedit = None
+        self.currenteditindex = None
         #self.addparentlinktip = QLabel('Add link by clicking on the requirement or fill in the name')
         #self.addparentlinktip.setStyleSheet('color: blue')
         #self.vbox.addWidget(self.addparentlinktip)
@@ -79,6 +80,7 @@ class LinkView(QListView):
         def clicked(index):
             item = self.model.itemFromIndex(index)
             self.currentitemedit = item
+            self.currenteditindex = index
             if item.isEditable():
                 self.setlock(True)
                 self.edit(index)
@@ -146,6 +148,7 @@ class LinkView(QListView):
         if self.db is None:
             return
         if self.locked:
+            self.edit(self.model.indexFromItem(self.currentitemedit))
             return
         self.currentuid = None
 

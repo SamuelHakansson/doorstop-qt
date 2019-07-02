@@ -273,6 +273,11 @@ class MarkdownView(QWidget):
             self.editview.setPlainText(text)
             self.infoview.setPlainText(decisionlog)
             self.settextdecisiontakers(decisiontakers)
+            lastupdated = self.getiteminfo(uid, 'lastupdated')
+            if lastupdated is None:
+                lastupdated = ''
+            self.lastupdatedtext.setText('Last updated:' + lastupdated)
+
 
             self.currentuid = uid
             self.viewhtml()
