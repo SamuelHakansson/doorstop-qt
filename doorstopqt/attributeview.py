@@ -33,7 +33,7 @@ class AttributeView(QWidget):
         self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
         self.locked = False
-
+        self.readlinkview = None
 
         def active(s):
             if self.currentuid is None:
@@ -84,6 +84,8 @@ class AttributeView(QWidget):
             data.review()
             data.clear()
             self.read(self.currentuid)
+            if self.readlinkview:
+                self.readlinkview(self.currentuid)
         self.markreviewed.clicked.connect(markreviewed)
 
         def publishdocs():
