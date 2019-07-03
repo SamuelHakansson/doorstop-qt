@@ -92,7 +92,6 @@ class MarkdownView(QWidget):
     def __init__(self, text='', parent=None):
         super(MarkdownView, self).__init__(parent)
 
-        icon = Icon()
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
@@ -111,10 +110,11 @@ class MarkdownView(QWidget):
         reverticon = papirusicons.fromTheme("document-revert")
         saveicon = papirusicons.fromTheme("media-floppy")
         previewicon = papirusicons.fromTheme("document-preview")
+        editicon = papirusicons.fromTheme("edit")
 
         self.previewbtn = QPushButton(previewicon, "Preview")
         self.previewbtn.clicked.connect(self.viewhtml)
-        self.editbtn = QPushButton("Edit")
+        self.editbtn = QPushButton(editicon, "Edit")
         self.editbtn.clicked.connect(self.vieweditor)
         self.discardbtn = QPushButton(reverticon, "Revert")
         self.discardbtn.clicked.connect(self.discard)

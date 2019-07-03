@@ -9,6 +9,7 @@
         <file>icons/Papirus/24x24/actions/document-revert.svg</file>
         <file>icons/Papirus/24x24/devices/media-floppy.svg</file>
         <file>icons/Papirus/24x24/actions/document-preview.svg</file>
+        <file>icons/Papirus/24x24/actions/edit.svg</file>
     </qresource>
 </RCC>
 
