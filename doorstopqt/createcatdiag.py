@@ -62,7 +62,6 @@ class CreateCategoryDialog(QDialog):
         self.warningtext = 'Invalid character(s)'
         self.warning = QLabel()
         self.warning.setStyleSheet('color: red')
-        #self.warning.hide()
         self.vbox.addWidget(self.warning)
         self.vbox.addWidget(self.create)
         self.setLayout(self.vbox)
