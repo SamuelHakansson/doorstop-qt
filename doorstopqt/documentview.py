@@ -363,6 +363,7 @@ class DocumentTreeView(QWidget):
             level = '.'.join(level)
             uid = str(doc.uid)
             item = QStandardItem()
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             self.uid_to_item[str(doc.uid)] = [item, doc]
             item.setData(doc, role=Qt.UserRole)
             items[level] = item

@@ -6,7 +6,7 @@ class CreateCategoryDialog(QDialog):
     def __init__(self, parent=None):
         super(CreateCategoryDialog, self).__init__(parent)
 
-        self.setWindowTitle('Create new document type')
+        self.setWindowTitle('Create new category')
         self.vbox = QVBoxLayout()
         grid = QGridLayout()
         self.prefix = QLineEdit()
@@ -20,6 +20,7 @@ class CreateCategoryDialog(QDialog):
         grid.addWidget(QLabel('Path:'), 2, 0)
         grid.addWidget(self.path, 2, 1)
         self.db = None
+        self.setMinimumSize(int(self.width()/2), int(self.height()/4))
 
         def updatepath(s):
             path = self.path.text()

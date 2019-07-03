@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/Papirus/index.theme</file>
+        <file>icons/Papirus/16x16/actions/folder-new.svg</file>
+        <file>icons/Papirus/16x16/actions/group-edit.svg</file>
+        <file>icons/Papirus/16x16/actions/dialog-apply.svg</file>
+        <file>icons/Papirus/symbolic/actions/document-send-symbolic.svg</file>
+        <file>icons/Papirus/24x24/actions/lock.svg</file>
+        <file>icons/Papirus/24x24/actions/document-revert.svg</file>
+        <file>icons/Papirus/24x24/devices/media-floppy.svg</file>
+        <file>icons/Papirus/24x24/actions/document-preview.svg</file>
+    </qresource>
+</RCC>
+
+<!--
+To compile to .py:
+pyrcc5 resources.qrc -o resources.py
+-->
