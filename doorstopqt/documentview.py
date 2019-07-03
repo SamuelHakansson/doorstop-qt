@@ -132,7 +132,6 @@ class DocumentTreeView(QWidget):
     def uidtoitem(self, uid):
         if uid is None:
             return
-
         data = self.db.find(uid)
         leveltuple = data.level.value
         leveldecrease = 0
@@ -142,7 +141,10 @@ class DocumentTreeView(QWidget):
         item = self.model.item(leveltuple[0]-1, 0)
         for l in range(0, levelsteps-1):
             l += 1
-            item = item.child(leveltuple[l]-1, 0)
+            try:
+                item = item.child(leveltuple[l]-1, 0)
+            except AttributeError:
+                return
         return item
 
     def setcheckboxfromuid(self, state, uid, attribute):
@@ -205,6 +207,7 @@ class DocumentTreeView(QWidget):
             item = values[0]  # first value in the list of each key is the item of the key
             self.setlevelfromitem(item, level)
             self.updateuidfromitem(item)
+            self.tree.expand(item.index())
             for i, value in enumerate(values[1:]):
                 child_level = level+'.'+str(i+1)
                 if type(value) == QStandardItem:
@@ -419,6 +422,7 @@ class DocumentTreeView(QWidget):
         data = self.db.find(uid)
 
         item = self.uidtoitem(uid)
+
         if item:
             if checkboxtype == 'active':
 
