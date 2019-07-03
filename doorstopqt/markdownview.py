@@ -329,7 +329,6 @@ class MarkdownView(QWidget):
             decisiontakers = item._data['decisiontakers']
         except KeyError:
             decisiontakers = ''
-
         self.settextdecisiontakers(decisiontakers)
 
     def updatedecisionlog(self, item):
@@ -351,6 +350,7 @@ class MarkdownView(QWidget):
         item.text = text
         decisionlog = self.decisionlog()
         decisiontakers = self.decisiontakers()
+
         decisiontakerstrimmed = decisiontakers.split(',')
         decisiontakerslist = []
         for name in decisiontakerstrimmed:
@@ -359,10 +359,11 @@ class MarkdownView(QWidget):
             decisiontakerslist.append(name)
 
         currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        item._data['lastupdated'] = currenttime
-        item._data['decisionlog'] = decisionlog
-        item._data['decisiontakers'] = decisiontakerslist
+        item.set('lastupdated', currenttime)
+        item.set('decisionlog', decisionlog)
+        item.set('decisiontakers', decisiontakerslist)
         item.save()
+
 
     def getiteminfo(self, uid, key):
         item = self.itemfunc(uid)

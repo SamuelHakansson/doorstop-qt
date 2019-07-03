@@ -143,9 +143,7 @@ class EditCategoryDialog(QDialog):
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
-
         menu.popup(self.tree.mapToGlobal(pos))
-
 
 
     def buildlist(self):
