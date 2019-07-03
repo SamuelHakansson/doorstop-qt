@@ -138,7 +138,8 @@ def main():
     splitter.addWidget(tree)
     splitter.addWidget(rview)
     splitter.splitterMoved.connect(tree.setupHeaderwidth)
-
+    splitter.setStretchFactor(0, 5)
+    splitter.setStretchFactor(1, 4)
 
 
     splitter.show()
