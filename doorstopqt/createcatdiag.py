@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
 from .categoryselector import CategorySelector
-
+import re
 
 class CreateCategoryDialog(QDialog):
     def __init__(self, parent=None):
@@ -13,6 +13,7 @@ class CreateCategoryDialog(QDialog):
         self.catsel = CategorySelector()
         self.path = QLineEdit('./reqs/')
         self.create = QPushButton('Create')
+        self.create.setEnabled(False)
         grid.addWidget(QLabel('Prefix:'), 0, 0)
         grid.addWidget(self.prefix, 0, 1)
         grid.addWidget(QLabel('Parent:'), 1, 0)
@@ -20,7 +21,7 @@ class CreateCategoryDialog(QDialog):
         grid.addWidget(QLabel('Path:'), 2, 0)
         grid.addWidget(self.path, 2, 1)
         self.db = None
-        self.setMinimumSize(int(self.width()/2), int(self.height()/4))
+        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
 
         def updatepath(s):
             path = self.path.text()
@@ -30,6 +31,17 @@ class CreateCategoryDialog(QDialog):
             else:
                 path = path[:lastslash + 1] + s.lower()
             self.path.setText(path)
+            if self.prefix.text():
+                for char in self.badcharacters:
+                    if char in self.prefix.text():
+                        self.create.setEnabled(False)
+                        self.warning.setText(self.warningtext)
+                        return
+                self.create.setEnabled(True)
+                self.warning.setText('')
+            else:
+                self.create.setEnabled(False)
+                self.warning.setText('')
         self.prefix.textChanged.connect(updatepath)
 
         def create(b):
@@ -46,6 +58,11 @@ class CreateCategoryDialog(QDialog):
         g = QWidget()
         g.setLayout(grid)
         self.vbox.addWidget(g)
+        self.warningtext = 'Invalid character(s)'
+        self.warning = QLabel()
+        self.warning.setStyleSheet('color: red')
+        #self.warning.hide()
+        self.vbox.addWidget(self.warning)
         self.vbox.addWidget(self.create)
         self.setLayout(self.vbox)
 
