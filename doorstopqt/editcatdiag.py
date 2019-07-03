@@ -100,14 +100,16 @@ class EditCategoryDialog(QDialog):
         index = self.tree.indexAt(pos)
         data = self.model.data(index)
         if data not in self.willberemoved:
-            removeaction = menu.addAction('Remove category')
-            removeaction.triggered.connect(lambda: documenttoremove(itemtoremove))
+            removeaction = menu.addAction('Remove')
+            removeaction.triggered.connect(lambda: documenttoremove(itemt))
         else:
-            notremoveaction = menu.addAction('Do not remove category')
-            notremoveaction.triggered.connect(lambda: documenttonotremove(itemtoremove))
+            notremoveaction = menu.addAction('Do not remove')
+            notremoveaction.triggered.connect(lambda: documenttonotremove(itemt))
+        renameaction = menu.addAction("Rename")
+        renameaction.triggered.connect(lambda: rename(itemt))
         si = self.tree.selectedIndexes()
         indextoremove = si[0]
-        itemtoremove = self.model.itemFromIndex(indextoremove)
+        itemt = self.model.itemFromIndex(indextoremove)
 
         def documenttoremove(itemtoremove):
             data = itemtoremove.data(role=Qt.UserRole)
@@ -138,7 +140,12 @@ class EditCategoryDialog(QDialog):
             else:
                 self.removemessage.show()
 
+        def rename(itemtorename):
+            self.tree.edit(itemtorename.index())
+
+
         menu.popup(self.tree.mapToGlobal(pos))
+
 
 
     def buildlist(self):
