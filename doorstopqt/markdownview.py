@@ -348,9 +348,8 @@ class MarkdownView(QWidget):
         decisiontakers = self.decisiontakers()
         decisiontakerstrimmed = decisiontakers.split(',')
         decisiontakerslist = []
-
         for name in decisiontakerstrimmed:
-            if name[0].isspace():
+            if name != '' and name[0].isspace():
                 name = name[1:]
             decisiontakerslist.append(name)
 
