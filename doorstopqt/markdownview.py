@@ -152,7 +152,7 @@ class MarkdownView(QWidget):
         self.layout.addWidget(QLabel('Decision log'))
         self.layout.addWidget(self.infoview, 1)
 
-        self.decisiontakerslabeltext = 'Decision takers:'
+        self.decisiontakerslabeltext = 'Decision takers'
         self.decisiontakerslabelhelp = ' (separate names with comma , )'
         self.decisiontakerslabel = QLabel(self.decisiontakerslabeltext)
         self.decisiontakersline = QLineEdit()
