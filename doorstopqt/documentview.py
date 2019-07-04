@@ -2,7 +2,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
-from .categoryselector import CategorySelector
 from markdown import markdown
 
 class DocumentTreeView(QWidget):
@@ -25,30 +24,15 @@ class DocumentTreeView(QWidget):
         self.icons = Icon()
         self.lastcategory = None
 
-        catselgrid = QHBoxLayout()
-        catselgrid.setSpacing(10)
-        catselgrid.setContentsMargins(0, 0, 0, 0)
-
-        self.catselector = CategorySelector()
-        self.catselector.callback(self.buildtree)
 
         papirusicons = QIcon()
         papirusicons.setThemeName('Papirus')
-        editicon = papirusicons.fromTheme("group-edit")
         newicon = papirusicons.fromTheme("folder-new")
 
         self.newcatbtn = QPushButton(newicon, '')
+        self.newcatbtn.hide()
         self.newcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.newcatbtn.setToolTip('Create new category')
-
-        self.editcatbtn = QPushButton(editicon, '')
-        self.editcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.editcatbtn.setToolTip('Edit category')
-
-        catselgrid.addWidget(self.catselector)
-
-        catselgrid.addWidget(self.editcatbtn)
-        catselgrid.addWidget(self.newcatbtn)
 
         self.setlinkfunc = None
         self.selectionclb = None
@@ -61,7 +45,7 @@ class DocumentTreeView(QWidget):
                     linkuid = self.setlinkfunc(currentuid)
                     if linkuid:
                         uid = self.db.find(linkuid)
-                        self.catselector.select(str(uid.document))
+                        self.editcatdiag.select(str(uid.document))
                         item = self.uidtoitem(linkuid)
                         self.tree.setCurrentIndex(self.model.indexFromItem(item))
                 self.lastcategory = self.category
@@ -74,10 +58,6 @@ class DocumentTreeView(QWidget):
         self.tree.setModel(self.model)
 
         self.grid = QVBoxLayout()
-        catsel = QWidget()
-        catsel.setLayout(catselgrid)
-
-        self.grid.addWidget(catsel)
         self.grid.addWidget(self.tree)
 
         self.setLayout(self.grid)
@@ -100,9 +80,6 @@ class DocumentTreeView(QWidget):
         self.attributeview.derived.stateChanged.connect(self.derived_link)
         self.attributeview.normative.stateChanged.connect(self.normative_link)
         self.attributeview.heading.stateChanged.connect(self.heading_link)
-
-
-
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -321,20 +298,20 @@ class DocumentTreeView(QWidget):
 
         if len(si) > 0:
             data = self.model.data(si[0], Qt.UserRole)
-            act = menu.addAction(self.icons.FileIcon, 'Create sibling document')
+            act = menu.addAction(self.icons.FileIcon, 'Create sibling item')
             act.triggered.connect(lambda: createdocument())
-            act = menu.addAction(self.icons.FileIcon, 'Create child document')
+            act = menu.addAction(self.icons.FileIcon, 'Create child item')
             act.triggered.connect(lambda: createdocument(False))
             if str(data.level).split('.')[-1] != '0':
                 act.setEnabled(False)
 
             menu.addSeparator()
-            act = menu.addAction('Remove document')
+            act = menu.addAction('Remove item')
             def removedocument(uid):
                 self.db.remove(uid)
             act.triggered.connect(lambda: removedocument(data.uid))
         else:
-            act = menu.addAction(self.icons.FileIcon, 'Create document')
+            act = menu.addAction(self.icons.FileIcon, 'Create item')
             act.triggered.connect(lambda: createdocument())
         menu.addSeparator()
         menu.addAction('Expand all').triggered.connect(lambda: self.tree.expandAll())
@@ -345,12 +322,13 @@ class DocumentTreeView(QWidget):
         menu.popup(self.tree.mapToGlobal(pos))
 
     def buildtree(self, cat=None):
+        self.buildingtree = True
         self.lastselected[str(self.category)] = self.selecteduid()
         self.model.clear()
         if self.db is None or len(self.db.root.documents) == 0:
             return
         if cat is None:
-            if self.category is not None:
+            if self.category is not None and self.category in self.db.root.documents:
                 cat = self.category
             else:
                 cat = self.db.root.documents[0].prefix
@@ -410,8 +388,6 @@ class DocumentTreeView(QWidget):
     def connectdb(self, db):
         self.db = db
         self.buildtree()
-        self.catselector.connectdb(db)
-        self.setupHeaders()
 
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
@@ -462,15 +438,16 @@ class DocumentTreeView(QWidget):
                 self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
                 self.updateuidfromitem(item)
 
+
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
         header = self.tree.header()
-        self.tree.setColumnWidth(0, 220)
         header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        self.setupHeaderwidth()
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-220)
@@ -485,7 +462,7 @@ class DocumentTreeView(QWidget):
 
     def connecteditcatdiag(self, editcatdiag):
         self.editcatdiag = editcatdiag
-        self.editcatbtn.clicked.connect(self.editcatdiag.show)
+        self.editcatdiag.callback(self.buildtree)
 
     def connectcreatecatdiag(self, createcatdiag):
         self.createcatdiag = createcatdiag
@@ -518,7 +495,6 @@ class DocumentTreeView(QWidget):
             dbitem.level = level
         return None
 
-
     def selecteduid(self):
         selected = self.tree.selectedIndexes()
         if len(selected) > 0:
@@ -531,6 +507,7 @@ class DocumentTreeView(QWidget):
         item = self.uid_to_item[uid][0]
         data = self.uid_to_item[uid][1]
         level = str(data.level)
+        text = None
         if data.heading:
             heading = data.text
             heading = markdown(heading.split('\n')[0])
@@ -546,15 +523,19 @@ class DocumentTreeView(QWidget):
                 text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
             elif start in dt and end not in dt:
                 text = dt[dt.find(start) + len(start):].strip()
+            if text:
+                text = '| ' + text
             else:
-                text = uid
-            title = '{} {}'.format(level, text)
+                text = ''
+            title = '{} {} {}'.format(level, uid, text)
         item.setText(title)
 
     def updateuidfromitem(self, item):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
         level = str(data.level)
+        uid = self.uidfromindex(index)
+        text = None
         if data.heading:
             heading = data.text
             heading = markdown(heading.split('\n')[0])
@@ -570,12 +551,13 @@ class DocumentTreeView(QWidget):
                 text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
             elif start in dt and end not in dt:
                 text = dt[dt.find(start) + len(start):].strip()
-            else:
-                uid = self.uidfromindex(index)
-                text = uid
-            title = '{} {}'.format(level, text)
-        item.setText(title)
 
+            if text:
+                text = '| '+text
+            else:
+                text = ''
+            title = '{} {} {}'.format(level, uid, text)
+        item.setText(title)
 
     def read(self, uid):
         if self.db is None:
@@ -583,6 +565,6 @@ class DocumentTreeView(QWidget):
         item = self.db.find(uid)
         cat = str(item.parent_documents[0])
         self.lastselected[cat] = str(uid)
-        self.catselector.select(cat)
+        self.editcatdiag.select(cat)
         self.setupHeaders()
 

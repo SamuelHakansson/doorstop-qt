@@ -2,14 +2,12 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-class EditCategoryDialog(QDialog):
-    def __init__(self, catselector, parent=None):
+class EditCategoryDialog(QWidget):
+    def __init__(self, parent=None):
         super(EditCategoryDialog, self).__init__(parent)
 
-        self.setWindowTitle('Edit categories')
         self.vbox = QVBoxLayout()
-        grid = QGridLayout()
-        self.catsel = catselector
+        grid = QVBoxLayout()
         self.model = QStandardItemModel()
 
         self.tree = QTreeView()
@@ -18,67 +16,88 @@ class EditCategoryDialog(QDialog):
         self.tree.setIndentation(20)
         self.tree.setAlternatingRowColors(True)
 
-        grid.addWidget(QLabel('Categories:'), 0, 1)
-        grid.addWidget(self.tree, 1, 1)
+        grid.addWidget(self.tree)
+
         self.warningmessage = QLabel('Warning: only one root allowed')
         self.warningmessage.setStyleSheet('color: red')
-        grid.addWidget(self.warningmessage, 3, 1)
+        grid.addWidget(self.warningmessage)
         self.warningmessage.hide()
 
         self.removemessage = QLabel('Sub document will be removed if its parent is removed')
         self.removemessage.setStyleSheet('color: red')
-        grid.addWidget(self.removemessage, 3, 1)
+        grid.addWidget(self.removemessage)
         self.removemessage.hide()
 
+
         self.apply = QPushButton('Apply')
+        self.apply.hide()
+        self.revert = QPushButton('Revert')
+        self.revert.hide()
+
         self.db = None
 
         g = QWidget()
         g.setLayout(grid)
-        self.vbox.addWidget(g)
+        #self.vbox.addWidget(g)
+        self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
 
         self.tree.setModel(self.model)
 
         self.apply.clicked.connect(self.onapply)
+        self.revert.clicked.connect(self.onrevert)
         self.model.layoutChanged.connect(self.onlayoutchanged)
-        self.vbox.addWidget(self.apply)
-        self.tree.setMinimumSize(self.tree.width()/2, self.tree.height())
+        self.hbox = QHBoxLayout()
 
+        self.hbox.addWidget(self.revert)
+        self.hbox.addWidget(self.apply)
+        self.vbox.addLayout(self.hbox)
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
 
         self.model.itemChanged.connect(self.namechanged)
-
         self.documentstodelete = []
         self.namechangeditems = []
         self.doctonewname = {}
         self.willberemoved = {}
+        self.categoriestocreate = []
+        self.path = './reqs/'
+        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
+
 
     def namechanged(self, changeditem):
         self.namechangeditems.append(changeditem)
+        self.setnewnames()
 
-    def setnewnames(self):
+    def setnewnames(self): #  uses a list to be able to use an apply button
         for changeditem in self.namechangeditems:
             cat = changeditem.data(Qt.UserRole)
             newname = changeditem.text()
-            if cat != newname:
-                newname.replace(" ", "_")
-                self.doctonewname[str(cat)] = newname
-                changeditem.setText(newname)
 
-                changeddoc = self.docsdict[str(cat)]
-                changeddoc.prefix = newname
-                children = self.findallchildren(changeditem)
-                if children:
-                    for child in children:
-                        childdoc = self.docsdict[child.text()]
-                        childdoc.parent = newname
-                self.model.blockSignals(True)
-                changeditem.setData(newname, role=Qt.UserRole)
-                self.model.blockSignals(False)
-                self.docsdict[newname] = changeddoc
+            if cat:
+                if cat != newname:
+                    newname.replace(" ", "_")
+                    self.doctonewname[str(cat)] = newname
+                    changeditem.setText(newname)
+
+                    changeddoc = self.docsdict[str(cat)]
+                    changeddoc.prefix = newname
+                    children = self.findallchildren(changeditem)
+                    if children:
+                        for child in children:
+                            childdoc = self.docsdict[child.text()]
+                            childdoc.parent = newname
+                    self.model.blockSignals(True)
+                    changeditem.setData(newname, role=Qt.UserRole)
+                    self.model.blockSignals(False)
+                    self.docsdict[newname] = changeddoc
+            else:
+                self.categoriestocreate.append(changeditem)
+
+
         self.namechangeditems = []
+
+        self.createnew()
 
     def show(self):
         super(EditCategoryDialog, self).show()
@@ -86,7 +105,6 @@ class EditCategoryDialog(QDialog):
 
     def connectdb(self, db):
         self.db = db
-        self.catsel.connectdb(db)
         self.docs = [x for x in self.db.root]
         self.docsdict = {}
         for d in self.docs:
@@ -99,19 +117,26 @@ class EditCategoryDialog(QDialog):
         menu = QMenu(parent=self.tree)
         index = self.tree.indexAt(pos)
         data = self.model.data(index)
+        addaction = menu.addAction("Create child document")
+        addaction.triggered.connect(lambda: addnewdocument(item))
+        menu.addSeparator()
+        renameaction = menu.addAction("Rename")
+        renameaction.triggered.connect(lambda: rename(item))
+        menu.addSeparator()
         if data not in self.willberemoved:
             removeaction = menu.addAction('Remove')
-            removeaction.triggered.connect(lambda: documenttoremove(itemt))
+            removeaction.triggered.connect(lambda: documenttoremove(item))
         else:
             notremoveaction = menu.addAction('Do not remove')
-            notremoveaction.triggered.connect(lambda: documenttonotremove(itemt))
-        renameaction = menu.addAction("Rename")
-        renameaction.triggered.connect(lambda: rename(itemt))
+            notremoveaction.triggered.connect(lambda: documenttonotremove(item))
+
         si = self.tree.selectedIndexes()
         indextoremove = si[0]
-        itemt = self.model.itemFromIndex(indextoremove)
+        item = self.model.itemFromIndex(indextoremove)
 
         def documenttoremove(itemtoremove):
+            self.showbuttons()
+
             data = itemtoremove.data(role=Qt.UserRole)
             self.willberemoved[data] = itemtoremove.background()
             itemtoremove.setBackground(QBrush(QColor("red")))
@@ -143,7 +168,34 @@ class EditCategoryDialog(QDialog):
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
+        def addnewdocument(parentitem):
+            newitem = QStandardItem()
+            parentitem.appendRow(newitem)
+            self.tree.edit(newitem.index())
+
         menu.popup(self.tree.mapToGlobal(pos))
+
+    def createnew(self):
+        for catitem in self.categoriestocreate:
+            if not catitem:
+                return
+            prefix = catitem.text()
+            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
+                self.model.removeRow(catitem.row(), catitem.parent().index())
+                self.categoriestocreate.remove(catitem)
+                return
+            for char in self.badcharacters:
+                if char in prefix:
+                    prefix.replace(char, '_')
+            self.model.blockSignals(True)
+            catitem.setData(prefix, role=Qt.UserRole)
+            self.model.blockSignals(False)
+            path = self.path + prefix
+            parent = catitem.parent().text()
+            print('{} {} {}'.format(prefix, parent, path), flush=True)
+            self.db.root.create_document(path, prefix, parent=parent)
+
+        self.categoriestocreate = []
 
 
     def buildlist(self):
@@ -190,7 +242,19 @@ class EditCategoryDialog(QDialog):
         self.setnewnames()
         self.changehierarchy()
         self.db.reload()
-        self.hide()
+        self.hidebuttons()
+
+    def onrevert(self):
+        self.db.reload()
+        self.hidebuttons()
+
+    def showbuttons(self):
+        self.apply.show()
+        self.revert.show()
+
+    def hidebuttons(self):
+        self.apply.hide()
+        self.revert.hide()
 
 
     def changehierarchy(self):
@@ -222,12 +286,7 @@ class EditCategoryDialog(QDialog):
                     category.save()
 
         self.deletependingdocuments()
-        current_category = self.catsel.text()
-        if current_category not in self.docsdict:
 
-            somecategory = self.docsdict[list(self.docsdict.keys())[0]]
-            self.catsel.select(str(somecategory))
-        self.documentstodelete = []
 
     def deletependingdocuments(self):
         if len(self.documentstodelete) == 0:
@@ -235,7 +294,7 @@ class EditCategoryDialog(QDialog):
         for data in self.documentstodelete:
             self.docsdict[str(data)].delete()
             del self.docsdict[str(data)]
-
+        self.documentstodelete = []
 
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
@@ -257,6 +316,7 @@ class EditCategoryDialog(QDialog):
             self.warningmessage.hide()
             self.apply.setDisabled(False)
         self.tree.expandAll()
+        self.showbuttons()
 
     def getnext(self, index, nextobjectslist):
         nextobject = self.tree.indexBelow(index)
@@ -285,5 +345,30 @@ class EditCategoryDialog(QDialog):
                 children.append(child)
         return children
 
+    def callback(self, func):
+        def clb(selectionmodel):
+            try:
+                index = selectionmodel.indexes()[0]
+                cat = index.data(Qt.UserRole)
+            except IndexError:
+                cat = None
+            func(cat)
+        self.tree.selectionModel().selectionChanged.connect(clb)
+
+    def select(self, category=None):
+        movedobject = self.tree.currentIndex()
+
+        nextlist = self.getnext(movedobject, [])
+        previouslist = self.getprevious(movedobject, [])
+        currentobjects_list = previouslist + nextlist
+        if category is None:
+            currentindex = previouslist[0]
+            self.tree.setCurrentIndex(currentindex)
+            return
+
+        for index in currentobjects_list:
+            if index.data() == category:
+                currentindex = index
+                self.tree.setCurrentIndex(currentindex)
 
 

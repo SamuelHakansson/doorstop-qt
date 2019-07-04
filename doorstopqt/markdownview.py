@@ -97,13 +97,14 @@ class MarkdownView(QWidget):
         self.setLayout(self.layout)
 
         self.htmlview = QTextEdit()
-        self.htmlview.setReadOnly(True)
+        self.htmlview.selectionChanged.connect(self.vieweditor)
+
         self.editview = MarkdownEditor()
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
         self.editview.setPlainText(text)
 
         self.infoview = QTextEdit()
-        self.infoview.setReadOnly(True)
+        self.infoview.selectionChanged.connect(self.vieweditor)
 
         papirusicons = QIcon()
         papirusicons.setThemeName('Papirus')
@@ -146,26 +147,26 @@ class MarkdownView(QWidget):
         buttonrow.setLayout(buttongrid)
 
 
-        textviewweight = 4
+        textviewweight = 30
         self.layout.addWidget(self.editview, textviewweight)
         self.layout.addWidget(self.htmlview, textviewweight)
         self.layout.addWidget(QLabel('Decision log'))
-        self.layout.addWidget(self.infoview, 1)
+        self.layout.addWidget(self.infoview, 10)
 
         self.decisiontakerslabeltext = 'Decision takers'
         self.decisiontakerslabelhelp = ' (separate names with comma , )'
         self.decisiontakerslabel = QLabel(self.decisiontakerslabeltext)
-        self.decisiontakersline = QLineEdit()
-        self.decisiontakersline.setReadOnly(True)
+        self.decisiontakersline = QTextEdit()
+        self.decisiontakersline.selectionChanged.connect(self.vieweditor)
         self.layout.addWidget(self.decisiontakerslabel)
-        self.layout.addWidget(self.decisiontakersline)
+        self.layout.addWidget(self.decisiontakersline, 1)
 
         self.lastupdatedtext = QLabel()
         self.layout.addWidget(self.lastupdatedtext)
         self.layout.addWidget(buttonrow)
         self.text = self.editview.document().toPlainText
         self.decisionlog = self.infoview.document().toPlainText
-        self.decisiontakers = self.decisiontakersline.text
+        self.decisiontakers = self.decisiontakersline.document().toPlainText
         self.connectzoomfunctions()
         self.modeclb = None
         self.viewhtml()
@@ -200,8 +201,6 @@ class MarkdownView(QWidget):
         self.previewbtn.setVisible(False)
         if self.modeclb:
             self.modeclb(False)
-        self.infoview.setReadOnly(True)
-        self.decisiontakersline.setReadOnly(True)
         self.decisiontakerslabel.setText(self.decisiontakerslabeltext)
 
     def vieweditor(self):
@@ -209,11 +208,8 @@ class MarkdownView(QWidget):
         self.previewbtn.setVisible(True)
         self.htmlview.setVisible(False)
         self.editbtn.setVisible(False)
-        self.editview.setFocus()
         if self.modeclb:
             self.modeclb(True)
-        self.infoview.setReadOnly(False)
-        self.decisiontakersline.setReadOnly(False)
         self.decisiontakerslabel.setText(self.decisiontakerslabeltext + self.decisiontakerslabelhelp)
 
     def connectzoomfunctions(self):

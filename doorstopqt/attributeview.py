@@ -18,6 +18,10 @@ class AttributeView(QWidget):
         self.derived = QCheckBox('Derived')
         self.normative = QCheckBox('Normative')
         self.heading = QCheckBox('Heading')
+        self.active.hide()
+        self.derived.hide()
+        self.normative.hide()
+        self.heading.hide()
         self.reflabel = QLabel('External ref:')
         self.refloc = QLabel('')
         self.ref = QLineEdit()
@@ -120,10 +124,12 @@ class AttributeView(QWidget):
         if data is None:
             return
 
+
         self.active.setCheckState(Qt.Checked if data.active else Qt.Unchecked)
         self.derived.setCheckState(Qt.Checked if data.derived else Qt.Unchecked)
         self.normative.setCheckState(Qt.Checked if data.normative else Qt.Unchecked)
         self.heading.setCheckState(Qt.Checked if data.heading else Qt.Unchecked)
+
         self.ref.setText(data.ref)
         self.refloc.setText('')
         if data.ref != '':
@@ -155,8 +161,10 @@ class AttributeView(QWidget):
             self.reflabel.setVisible(False)
             self.ref.setVisible(False)
             self.refloc.setVisible(False)
+            '''
             self.active.setVisible(True)
             self.derived.setVisible(True)
             self.normative.setVisible(True)
             self.heading.setVisible(True)
+            '''
 

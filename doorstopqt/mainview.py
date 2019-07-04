@@ -57,7 +57,7 @@ def main():
     splitter = QSplitter()
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*9/16)
+    width = int(screenwidth*11/16)
     height = int(screenheight*11/16)
     splitter.resize(width, height)
 
@@ -70,7 +70,7 @@ def main():
     linkview = LinkView(v, attribview)
 
     tree = DocumentTreeView(attributeview=attribview)
-    editcatdiag = EditCategoryDialog(tree.catselector)
+    editcatdiag = EditCategoryDialog()
     tree.connectview(v)
     tree.connecteditcatdiag(editcatdiag)
     tree.connectcreatecatdiag(createcatdiag)
@@ -82,6 +82,7 @@ def main():
         linkview.read(uid)
         v.read(uid)
         tree.read(uid)
+
 
     def setlink(uid):
         return linkview.setlinkingitem(uid)
@@ -135,13 +136,16 @@ def main():
     vsplitter.setStretchFactor(0, 100)
     rviewgrid.addWidget(vsplitter)
 
+    splitter.addWidget(editcatdiag)
     splitter.addWidget(tree)
     splitter.addWidget(rview)
     splitter.splitterMoved.connect(tree.setupHeaderwidth)
-    splitter.setStretchFactor(0, 5)
-    splitter.setStretchFactor(1, 4)
-
-
+    splitter.setStretchFactor(0, 2)
+    splitter.setStretchFactor(1, 5)
+    splitter.setStretchFactor(2, 4)
+    #splitter.setStyleSheet("QWidget{background-color: black};")
+    #splitter.setStyleSheet("QWidget{foreground-color: white};")
     splitter.show()
+    tree.setupHeaderwidth()
 
     sys.exit(app.exec_())
