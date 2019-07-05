@@ -85,14 +85,17 @@ class DocumentTreeView(QWidget):
                            "**Feature requirement:** \n\n" \
                            "**Feature benefit:** \n\n" \
                            "**User:**"
+        self.treestack = {}
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
+        undoshortcut = QShortcut(QKeySequence("Ctrl+Z"), self.tree)
         def copy():
             if self.clipboard is None:
                 return
             return self.clipboard(str(self.selecteduid()))
 
         copyshortcut.activated.connect(copy)
+        undoshortcut.activated.connect(self.applyoldlevels)
 
 
     def active_link(self, s):
@@ -159,8 +162,16 @@ class DocumentTreeView(QWidget):
         self.layoutchange_cooldown += 1
         self.layoutchange_cooldown %= 5
 
+    def gettreeindices(self):
+        movedobject = self.tree.currentIndex()
+        nextlist = self.getnext(movedobject, [])
+        previouslist = self.getprevious(movedobject, [])
+        currentobjects_list = previouslist + nextlist
+        return currentobjects_list
 
     def onlayoutchanged(self):
+        self.savelevels()
+
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
@@ -267,7 +278,6 @@ class DocumentTreeView(QWidget):
         si = self.tree.selectedIndexes()
 
         def createdocument(sibling=True):
-            print('creating doc --------------------------', flush=True)
             level = None
             lastsibling = None
             if len(si) > 0:
@@ -329,8 +339,28 @@ class DocumentTreeView(QWidget):
         menu.addAction('Collapse all').triggered.connect(collapse)
         menu.popup(self.tree.mapToGlobal(pos))
 
+    def savelevels(self):
+        self.treestack = {}
+        c = [x for x in self.db.root if x.prefix == self.category][0]
+
+        for doc in sorted(c, key=lambda x: x.level):
+            self.treestack[doc] = str(doc.level)
+
+
+    def applyoldlevels(self):
+        if not self.treestack:
+            return
+        c = [x for x in self.db.root if x.prefix == self.category][0]
+
+        for doc in sorted(c, key=lambda x: x.level):
+            doc.level = self.treestack[doc]
+
+        self.treestack = {}
+        self.buildtree(self.category)
+
+
     def buildtree(self, cat=None):
-        self.buildingtree = True
+
         self.lastselected[str(self.category)] = self.selecteduid()
         self.model.clear()
         if self.db is None or len(self.db.root.documents) == 0:
@@ -458,7 +488,7 @@ class DocumentTreeView(QWidget):
         self.setupHeaderwidth()
 
     def setupHeaderwidth(self):
-        self.tree.setColumnWidth(0, self.tree.width()-220)
+        self.tree.setColumnWidth(0, self.tree.width()-235)
 
 
     def post_init(self):
@@ -501,7 +531,7 @@ class DocumentTreeView(QWidget):
             dbitem = self.db.find(uid)
             data.level = level
             dbitem.level = level
-        return None
+            return True
 
     def selecteduid(self):
         selected = self.tree.selectedIndexes()
