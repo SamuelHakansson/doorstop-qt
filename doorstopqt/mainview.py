@@ -134,7 +134,6 @@ def main():
     vsplitter = QSplitter(Qt.Vertical)
     vsplitter.addWidget(editor)
     vsplitter.addWidget(linkview)
-    vsplitter.setStretchFactor(0, 100)
     rviewgrid.addWidget(vsplitter)
 
     splitter.addWidget(editcatdiag)
@@ -144,8 +143,9 @@ def main():
     splitter.setStretchFactor(0, 2)
     splitter.setStretchFactor(1, 5)
     splitter.setStretchFactor(2, 4)
+    #app.setStyleSheet("QWidget{background-color: black; color: white;}")
     #splitter.setStyleSheet("QWidget{background-color: black};")
-    #splitter.setStyleSheet("QWidget{foreground-color: white};")
+    #splitter.setStyleSheet("border: 0px;")
     splitter.show()
     tree.setupHeaderwidth()
 

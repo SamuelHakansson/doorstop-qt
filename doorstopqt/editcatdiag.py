@@ -35,15 +35,29 @@ class EditCategoryDialog(QWidget):
         self.revert = QPushButton('Revert')
         self.revert.hide()
 
+        papirusicons = QIcon()
+        papirusicons.setThemeName('Papirus')
+        searchicon = papirusicons.fromTheme("search")
+
         self.db = None
 
         g = QWidget()
         g.setLayout(grid)
         #self.vbox.addWidget(g)
         self.searchbox = QLineEdit()
+        self.searchbox.setStyleSheet("background-color: white; border: 0px;")
+
+        self.searchlabel = QLabel()
+        self.searchlabel.setStyleSheet("background-color: white")
+        self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
+        self.searchlayout = QHBoxLayout()
+        self.searchlayout.addWidget(self.searchlabel)
+        self.searchlayout.addWidget(self.searchbox)
+        self.searchlayout.setSpacing(0)
         self.completer = CustomQCompleter()
+        self.completer.activated.connect(self.gotocompleted)
         self.searchbox.setCompleter(self.completer)
-        self.vbox.addWidget(self.searchbox)
+        self.vbox.addLayout(self.searchlayout)
         self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
 
@@ -89,7 +103,7 @@ class EditCategoryDialog(QWidget):
         self.completer.setModel(model)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-        self.completer.activated.connect(self.gotocompleted)
+
 
     def goto(self, uid):
         if self.gotoclb:

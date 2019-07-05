@@ -565,7 +565,6 @@ class DocumentTreeView(QWidget):
         item = self.db.find(uid)
         cat = str(item.parent_documents[0])
         self.lastselected[cat] = str(uid)
-        print(cat, flush=True)
         self.editcatdiag.select(cat)
         self.setupHeaders()
 
