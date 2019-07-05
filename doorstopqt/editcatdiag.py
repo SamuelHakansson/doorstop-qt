@@ -38,21 +38,24 @@ class EditCategoryDialog(QWidget):
         papirusicons = QIcon()
         papirusicons.setThemeName('Papirus')
         searchicon = papirusicons.fromTheme("search")
+        clearicon = papirusicons.fromTheme("edit-clear-all")
 
         self.db = None
 
-        g = QWidget()
-        g.setLayout(grid)
+        #g = QWidget()
+        #g.setLayout(grid)
         #self.vbox.addWidget(g)
         self.searchbox = QLineEdit()
         self.searchbox.setStyleSheet("background-color: white; border: 0px;")
-
         self.searchlabel = QLabel()
         self.searchlabel.setStyleSheet("background-color: white")
         self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
+        self.clearbutton = QPushButton(clearicon, '')
+        self.clearbutton.setStyleSheet("background-color: white; border: 0px;")
         self.searchlayout = QHBoxLayout()
         self.searchlayout.addWidget(self.searchlabel)
         self.searchlayout.addWidget(self.searchbox)
+        self.searchlayout.addWidget(self.clearbutton)
         self.searchlayout.setSpacing(0)
         self.completer = CustomQCompleter()
         self.searchbox.setCompleter(self.completer)
@@ -82,6 +85,11 @@ class EditCategoryDialog(QWidget):
         self.path = './reqs/'
         self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
         self.gotoclb = None
+        self.completer.activated.connect(self.gotocompleted)
+        self.clearbutton.clicked.connect(self.clearsearchbox)
+
+    def clearsearchbox(self):
+        self.searchbox.setText('')
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
@@ -100,9 +108,8 @@ class EditCategoryDialog(QWidget):
         model = QStringListModel()
         model.setStringList(texts)
         self.completer.setModel(model)
-        self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-        self.completer.activated.connect(self.gotocompleted)
+        self.completer.setCompletionMode(QCompleter.PopupCompletion)
 
     def goto(self, uid):
         if self.gotoclb:

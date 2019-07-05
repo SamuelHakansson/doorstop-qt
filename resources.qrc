@@ -11,6 +11,7 @@
         <file>icons/Papirus/24x24/actions/document-preview.svg</file>
         <file>icons/Papirus/24x24/actions/edit.svg</file>
         <file>icons/Papirus/24x24/actions/search.svg</file>
+        <file>icons/Papirus/24x24/actions/edit-clear-all.svg</file>
     </qresource>
 </RCC>
 

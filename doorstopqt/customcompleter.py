@@ -46,7 +46,7 @@ class AutoCompleteComboBox(QComboBox):
 
         self.comp = CustomQCompleter(self)
         self.comp.setCompletionMode(QCompleter.PopupCompletion)
-        self.setCompleter(self.comp)#
+        self.setCompleter(self.comp)
         self.setModel(["Lola", "Lila", "Cola", 'Lothian'])
 
     def setModel(self, strList):

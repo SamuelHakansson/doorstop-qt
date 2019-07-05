@@ -81,6 +81,11 @@ class DocumentTreeView(QWidget):
         self.attributeview.normative.stateChanged.connect(self.normative_link)
         self.attributeview.heading.stateChanged.connect(self.heading_link)
 
+        self.newitemtext = "**Feature name:** \n\n" \
+                           "**Feature requirement:** \n\n" \
+                           "**Feature benefit:** \n\n" \
+                           "**User:**"
+
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
             if self.clipboard is None:
@@ -262,6 +267,7 @@ class DocumentTreeView(QWidget):
         si = self.tree.selectedIndexes()
 
         def createdocument(sibling=True):
+            print('creating doc --------------------------', flush=True)
             level = None
             lastsibling = None
             if len(si) > 0:
@@ -293,8 +299,10 @@ class DocumentTreeView(QWidget):
             if len(level) < 2:
                 level.append('0')
             level = '.'.join(level)
-            item = self.db.root.add_item(self.category, level=level)
+            item = self.db.root.add_item(self.category, level=level, reorder=False)
+            item.text = self.newitemtext
             self.db.reload()
+            self.tree.setCurrentIndex(self.uidtoitem(item.uid).index())
 
         if len(si) > 0:
             data = self.model.data(si[0], Qt.UserRole)
