@@ -89,6 +89,7 @@ def main():
 
     tree.selectionclb = selectfunc
     linkview.gotoclb = selectfunc
+    editcatdiag.gotoclb = selectfunc
     tree.setlinkfunc = setlink
 
 

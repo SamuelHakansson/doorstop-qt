@@ -1,6 +1,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from .customcompleter import CustomQCompleter
 
 class EditCategoryDialog(QWidget):
     def __init__(self, parent=None):
@@ -39,6 +40,10 @@ class EditCategoryDialog(QWidget):
         g = QWidget()
         g.setLayout(grid)
         #self.vbox.addWidget(g)
+        self.searchbox = QLineEdit()
+        self.completer = CustomQCompleter()
+        self.searchbox.setCompleter(self.completer)
+        self.vbox.addWidget(self.searchbox)
         self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
 
@@ -63,7 +68,36 @@ class EditCategoryDialog(QWidget):
         self.categoriestocreate = []
         self.path = './reqs/'
         self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
+        self.gotoclb = None
 
+    def updateCompleter(self):
+        docs = list(map(lambda x: x, self.db.root.documents))
+        texts = []
+
+        start = '**Feature name:**'
+        end = "**Feature requirement:**"
+        self.completerdict = {}
+        for doc in docs:
+            for item in doc.items:
+                dt = item.text
+                if start in dt and end in dt:
+                    text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+                    texts.append(text)
+                    self.completerdict[text] = item.uid
+        model = QStringListModel()
+        model.setStringList(texts)
+        self.completer.setModel(model)
+        self.completer.setCompletionMode(QCompleter.PopupCompletion)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer.activated.connect(self.gotocompleted)
+
+    def goto(self, uid):
+        if self.gotoclb:
+            self.gotoclb(uid)
+
+    def gotocompleted(self, searchstr):
+        uid = self.completerdict[searchstr]
+        self.goto(uid)
 
     def namechanged(self, changeditem):
         self.namechangeditems.append(changeditem)
@@ -112,6 +146,7 @@ class EditCategoryDialog(QWidget):
         self.model.blockSignals(True)
         self.buildlist()
         self.model.blockSignals(False)
+        self.updateCompleter()
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
@@ -203,6 +238,7 @@ class EditCategoryDialog(QWidget):
             return
         self.model.clear()
         self.createhierarchy()
+        self.tree.setCurrentIndex(self.model.index(0, 0))
 
     def createhierarchy(self):
         graph = self.db.root.draw().split('\n')
@@ -365,10 +401,10 @@ class EditCategoryDialog(QWidget):
             currentindex = previouslist[0]
             self.tree.setCurrentIndex(currentindex)
             return
-
         for index in currentobjects_list:
             if index.data() == category:
                 currentindex = index
                 self.tree.setCurrentIndex(currentindex)
+
 
 
