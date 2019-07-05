@@ -55,7 +55,6 @@ class EditCategoryDialog(QWidget):
         self.searchlayout.addWidget(self.searchbox)
         self.searchlayout.setSpacing(0)
         self.completer = CustomQCompleter()
-        self.completer.activated.connect(self.gotocompleted)
         self.searchbox.setCompleter(self.completer)
         self.vbox.addLayout(self.searchlayout)
         self.vbox.addWidget(self.tree)
@@ -103,7 +102,7 @@ class EditCategoryDialog(QWidget):
         self.completer.setModel(model)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-
+        self.completer.activated.connect(self.gotocompleted)
 
     def goto(self, uid):
         if self.gotoclb:

@@ -69,7 +69,9 @@ class LinkView(QWidget):
         self.vbox.addWidget(self.linkentry)
         self.vbox.addWidget(self.listview)
         self.vbox.setSpacing(0)
+        self.vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.vbox)
+        self.completerdict = {}
 
 
         def dataChanged(index):
@@ -118,15 +120,23 @@ class LinkView(QWidget):
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
-        uids = []
 
+        start = '**Feature name:**'
+        end = "**Feature requirement:**"
+        texts = []
         for doc in docs:
             for item in doc.items:
-                uid = item.uid
-                uids.append(str(uid))
-
+                dt = item.text
+                uid = str(item.uid)
+                if start in dt and end in dt:
+                    text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+                    text = uid + ' | ' + text
+                else:
+                    text = uid
+                texts.append(text)
+                self.completerdict[text] = uid
         model = QStringListModel()
-        model.setStringList(uids)
+        model.setStringList(texts)
         self.completer.setModel(model)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -253,7 +263,6 @@ class LinkView(QWidget):
             parentuid = self.currentuid
             uid = str(uid)
             self.model.blockSignals(True)
-            #self.currentitemedit.setText(str(uid))
             self.db.root.link_items(self.currentuid, uid)
 
             self.setlock(False)
@@ -261,7 +270,7 @@ class LinkView(QWidget):
             self.read(parentuid)
             return parentuid
 
-    def createlinkingitem(self, uid):
-
+    def createlinkingitem(self, text):
+        uid = self.completerdict[text]
         self.setlock(True)
         self.setlinkingitem(uid)
