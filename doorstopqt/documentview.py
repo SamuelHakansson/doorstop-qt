@@ -15,12 +15,8 @@ class CustomTree(QTreeView):
     def dropEvent(self, a0: QDropEvent) -> None:
         position = a0.pos()
         index = self.indexAt(position)
-        print(index.data(Qt.UserRole), flush=True)
         if index.column() == 0:
             super().dropEvent(a0)
-
-
-
 
 
 class DocumentTreeView(QWidget):
@@ -101,17 +97,18 @@ class DocumentTreeView(QWidget):
                            "**Feature requirement:** \n\n" \
                            "**Feature benefit:** \n\n" \
                            "**User:**"
-        self.treestack = {}
+        self.treestack = []
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
-        undoshortcut = QShortcut(QKeySequence("Ctrl+Z"), self.tree)
+        #undoshortcut = QShortcut(QKeySequence("Ctrl+Z"), self.tree)
         def copy():
             if self.clipboard is None:
                 return
             return self.clipboard(str(self.selecteduid()))
 
         copyshortcut.activated.connect(copy)
-        undoshortcut.activated.connect(self.applyoldlevels)
+        #undoshortcut.activated.connect(self.applyoldlevels)
+        self.revertbtn.clicked.connect(self.applyoldlevels)
 
 
 
@@ -362,23 +359,25 @@ class DocumentTreeView(QWidget):
     def savelevels(self):
         self.revertbtn.move(self.tree.width()-37, self.tree.height()-self.tree.horizontalScrollBar().height()-30)
         self.revertbtn.show()
-        self.treestack = {}
+        stack = {}
         c = [x for x in self.db.root if x.prefix == self.category][0]
 
         for doc in sorted(c, key=lambda x: x.level):
-            self.treestack[doc] = str(doc.level)
-
+            stack[doc] = str(doc.level)
+        self.treestack.append(stack)
 
     def applyoldlevels(self):
         if not self.treestack:
             return
         c = [x for x in self.db.root if x.prefix == self.category][0]
-
+        stack = self.treestack[-1]
         for doc in sorted(c, key=lambda x: x.level):
-            doc.level = self.treestack[doc]
+            doc.level = stack[doc]
 
-        self.treestack = {}
+        del self.treestack[-1]
         self.buildtree(self.category)
+        if not self.treestack:
+            self.revertbtn.hide()
 
 
     def buildtree(self, cat=None):
