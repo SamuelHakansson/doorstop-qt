@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import *
 from .markdownview import MarkdownView
 import doorstop
 from .documentview import DocumentTreeView
-from .createcatdiag import CreateCategoryDialog
 from .editcatdiag import EditCategoryDialog
 from .attributeview import AttributeView
 from .linkview import LinkView
@@ -64,7 +63,6 @@ def main():
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     v = MarkdownView()
-    createcatdiag = CreateCategoryDialog()
 
     attribview = AttributeView()
     linkview = LinkView(v, attribview)
@@ -73,7 +71,6 @@ def main():
     editcatdiag = EditCategoryDialog()
     tree.connectview(v)
     tree.connecteditcatdiag(editcatdiag)
-    tree.connectcreatecatdiag(createcatdiag)
     tree.post_init()
     def selectfunc(uid):
         if uid is None:
@@ -110,7 +107,7 @@ def main():
     v.readfunc = lambda uid: db.find(uid).text
     v.itemfunc = lambda uid: db.find(uid)
 
-    db.add_listeners([tree, editcatdiag, createcatdiag])
+    db.add_listeners([tree, editcatdiag])
 
     def modeclb(editmode):
         if editmode:

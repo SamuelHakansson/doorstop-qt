@@ -4,16 +4,31 @@ from PyQt5.QtWidgets import *
 from .icon import Icon
 from markdown import markdown
 
+class CustomTree(QTreeView):
+    def __init__(self):
+        super(CustomTree, self).__init__()
+        self.setIndentation(20)
+        self.setAlternatingRowColors(True)
+        self.setDragDropMode(self.InternalMove)
+        self.setSelectionBehavior(self.SelectRows)
+
+    def dropEvent(self, a0: QDropEvent) -> None:
+        position = a0.pos()
+        index = self.indexAt(position)
+        print(index.data(Qt.UserRole), flush=True)
+        if index.column() == 0:
+            super().dropEvent(a0)
+
+
+
+
+
 class DocumentTreeView(QWidget):
     def __init__(self, parent=None, attributeview=None):
         super(DocumentTreeView, self).__init__(parent)
 
-        self.tree = QTreeView()
-        self.tree.setDragDropMode(QAbstractItemView.InternalMove)
-        self.tree.setIndentation(20)
-        self.tree.setAlternatingRowColors(True)
-        self.tree.setAcceptDrops(True)
-        self.tree.setDragEnabled(True)
+        self.tree = CustomTree()
+
         self.model = QStandardItemModel()
         self.attributeview = attributeview
 
@@ -27,12 +42,12 @@ class DocumentTreeView(QWidget):
 
         papirusicons = QIcon()
         papirusicons.setThemeName('Papirus')
-        newicon = papirusicons.fromTheme("folder-new")
+        reverticon = papirusicons.fromTheme("document-revert")
 
-        self.newcatbtn = QPushButton(newicon, '')
-        self.newcatbtn.hide()
-        self.newcatbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.newcatbtn.setToolTip('Create new category')
+        self.revertbtn = QPushButton(reverticon, '')
+        self.revertbtn.hide()
+        self.revertbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.revertbtn.setToolTip('Revert')
 
         self.setlinkfunc = None
         self.selectionclb = None
@@ -58,11 +73,12 @@ class DocumentTreeView(QWidget):
         self.tree.setModel(self.model)
 
         self.grid = QVBoxLayout()
-        self.grid.addWidget(self.tree)
+        self.hbox = QHBoxLayout()
+        self.revertbtn.setParent(self.tree)
+        self.revertbtn.move(self.tree.height(), self.tree.width())
 
+        self.grid.addWidget(self.tree)
         self.setLayout(self.grid)
-        #self.tree.setStyleSheet("border: 1px solid blue;")
-        #self.tree.setGraphicsEffect()
 
         self.lastselected = {}
         self.collapsed = set()
@@ -96,6 +112,8 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
         undoshortcut.activated.connect(self.applyoldlevels)
+
+
 
 
     def active_link(self, s):
@@ -170,14 +188,14 @@ class DocumentTreeView(QWidget):
         return currentobjects_list
 
     def onlayoutchanged(self):
-        self.savelevels()
 
+        self.savelevels()
         movedobject = self.tree.currentIndex()
 
+        movedobject = movedobject.siblingAtColumn(0)
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
-
         topindices = []
         for index in currentobjects_list:
             if self.itemtouid(self.model.itemFromIndex(index).parent()) == None:
@@ -189,7 +207,9 @@ class DocumentTreeView(QWidget):
             treeofitems.append(branch)
 
         self.rename(treeofitems)
+
         self.setupHeaders()
+
 
     def rename(self, tree):
         for i, t in enumerate(tree):
@@ -340,6 +360,8 @@ class DocumentTreeView(QWidget):
         menu.popup(self.tree.mapToGlobal(pos))
 
     def savelevels(self):
+        self.revertbtn.move(self.tree.width()-37, self.tree.height()-self.tree.horizontalScrollBar().height()-30)
+        self.revertbtn.show()
         self.treestack = {}
         c = [x for x in self.db.root if x.prefix == self.category][0]
 
@@ -418,7 +440,7 @@ class DocumentTreeView(QWidget):
         checkboxnames = ['active', 'derived', 'normative', 'heading']
         for i, checkbox in enumerate(checkboxrow):
             checkbox.setData(checkboxnames[i])
-            checkbox.setData(uid, role=Qt.UserRole)
+            checkbox.setData(data, role=Qt.UserRole)
             checkbox.setCheckState(Qt.Checked if checkboxattributes[i] else Qt.Unchecked)
             checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled)
         return checkboxrow
@@ -431,12 +453,11 @@ class DocumentTreeView(QWidget):
         checkboxinfo = s.data()
         if checkboxinfo is None:
             return
-        uid = s.data(role=Qt.UserRole)
+        data = s.data(role=Qt.UserRole)
+        uid = data.uid
         checkboxtype = s.data()
-        data = self.db.find(uid)
 
         item = self.uidtoitem(uid)
-
         if item:
             if checkboxtype == 'active':
 
@@ -495,17 +516,13 @@ class DocumentTreeView(QWidget):
         self.model.itemChanged.connect(self.updatecheckbox)
 
 
+
     def connectview(self, view):
         self.editview = view
 
     def connecteditcatdiag(self, editcatdiag):
         self.editcatdiag = editcatdiag
         self.editcatdiag.callback(self.buildtree)
-
-    def connectcreatecatdiag(self, createcatdiag):
-        self.createcatdiag = createcatdiag
-        self.newcatbtn.clicked.connect(self.createcatdiag.show)
-
 
     def uidfromindex(self, index):
         data = self.model.data(index, role=Qt.UserRole)
