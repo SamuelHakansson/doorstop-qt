@@ -30,15 +30,14 @@ class EditCategoryDialog(QWidget):
         self.removemessage.hide()
 
 
-        self.apply = QPushButton('Apply')
-        self.apply.hide()
-        self.revert = QPushButton('Revert')
-        self.revert.hide()
-
         papirusicons = QIcon()
         papirusicons.setThemeName('Papirus')
         searchicon = papirusicons.fromTheme("search")
         clearicon = papirusicons.fromTheme("edit-clear-all")
+        reverticon = papirusicons.fromTheme("document-revert")
+
+        self.revert = QPushButton(reverticon, '')
+        self.revert.hide()
 
         self.db = None
 
@@ -65,18 +64,13 @@ class EditCategoryDialog(QWidget):
 
         self.tree.setModel(self.model)
 
-        self.apply.clicked.connect(self.onapply)
-        self.revert.clicked.connect(self.onrevert)
         self.model.layoutChanged.connect(self.onlayoutchanged)
-        self.hbox = QHBoxLayout()
 
-        self.hbox.addWidget(self.revert)
-        self.hbox.addWidget(self.apply)
-        self.vbox.addLayout(self.hbox)
+        self.revert.setParent(self.tree)
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
 
-        self.model.itemChanged.connect(self.namechanged)
+        #self.model.itemChanged.connect(self.namechanged)
         self.documentstodelete = []
         self.namechangeditems = []
         self.doctonewname = {}
@@ -87,6 +81,12 @@ class EditCategoryDialog(QWidget):
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
         self.clearbutton.clicked.connect(self.clearsearchbox)
+
+        self.treestack = []
+        self.revert.clicked.connect(self.undo)
+        self.docsdict = {}
+
+
 
     def clearsearchbox(self):
         self.searchbox.setText('')
@@ -160,13 +160,13 @@ class EditCategoryDialog(QWidget):
     def connectdb(self, db):
         self.db = db
         self.docs = [x for x in self.db.root]
-        self.docsdict = {}
         for d in self.docs:
             self.docsdict[str(d)] = d
         self.model.blockSignals(True)
         self.buildlist()
         self.model.blockSignals(False)
         self.updateCompleter()
+        self.moverevertbutton()
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
@@ -294,52 +294,41 @@ class EditCategoryDialog(QWidget):
             previtem = item
         self.tree.expandAll()
 
-    def onapply(self):
-        self.setnewnames()
-        self.changehierarchy()
-        self.db.reload()
-        self.hidebuttons()
 
-    def onrevert(self):
-        self.db.reload()
-        self.hidebuttons()
+    def undo(self):
+        old_data = self.treestack[-1]
+        for obj in old_data:
+            pardata, category = obj
 
-    def showbuttons(self):
-        self.apply.show()
-        self.revert.show()
-
-    def hidebuttons(self):
-        self.apply.hide()
-        self.revert.hide()
-
-
-    def changehierarchy(self):
-        movedobject = self.tree.currentIndex()
-
-        nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + [movedobject] + nextlist
-        nrroots = 0
-        for obj in currentobjects_list:
-            parindex = obj.parent()
-            pardata = self.model.data(parindex, role=Qt.UserRole)
-            if pardata == None:
-                nrroots += 1
-        if nrroots != 1:
-            return
-
-        for obj in currentobjects_list:
-            data = self.model.data(obj, role=Qt.UserRole)
-            parindex = obj.parent()
-
-            pardata = self.model.data(parindex, role=Qt.UserRole)
-            category = self.docsdict[data]
             if category.parent != pardata:
                 if pardata is not None:
                     category.parent = pardata
                 else:
                     category._data['parent'] = None
                     category.save()
+
+        self.buildlist()
+
+
+    def changehierarchy(self, currentobjects_list):
+
+        tempdict = []
+        for obj in currentobjects_list:
+            data = self.model.data(obj, role=Qt.UserRole)
+            parindex = obj.parent()
+
+            pardata = self.model.data(parindex, role=Qt.UserRole)
+            category = self.docsdict[data]
+            tempdict.append((pardata, category))
+            self.treestack.append(tempdict)
+            if category.parent != pardata:
+                if pardata is not None:
+                    category.parent = pardata
+                else:
+                    category._data['parent'] = None
+                    category.save()
+
+
 
         self.deletependingdocuments()
 
@@ -353,11 +342,13 @@ class EditCategoryDialog(QWidget):
         self.documentstodelete = []
 
     def onlayoutchanged(self):
+
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
+
 
         nrroots = 0
         for obj in currentobjects_list:
@@ -367,12 +358,11 @@ class EditCategoryDialog(QWidget):
                 nrroots += 1
         if nrroots != 1:
             self.warningmessage.show()
-            self.apply.setDisabled(True)
         else:
             self.warningmessage.hide()
-            self.apply.setDisabled(False)
-        self.tree.expandAll()
-        self.showbuttons()
+            self.changehierarchy(currentobjects_list)
+            self.moverevertbutton()
+            self.revert.show()
 
     def getnext(self, index, nextobjectslist):
         nextobject = self.tree.indexBelow(index)
@@ -426,5 +416,7 @@ class EditCategoryDialog(QWidget):
                 currentindex = index
                 self.tree.setCurrentIndex(currentindex)
 
+    def moverevertbutton(self):
+        self.revert.move(self.tree.width() - 37, self.tree.height() - 30)
 
 

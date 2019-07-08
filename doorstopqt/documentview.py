@@ -71,7 +71,7 @@ class DocumentTreeView(QWidget):
         self.grid = QVBoxLayout()
         self.hbox = QHBoxLayout()
         self.revertbtn.setParent(self.tree)
-        self.revertbtn.move(self.tree.height(), self.tree.width())
+
 
         self.grid.addWidget(self.tree)
         self.setLayout(self.grid)
@@ -357,7 +357,7 @@ class DocumentTreeView(QWidget):
         menu.popup(self.tree.mapToGlobal(pos))
 
     def savelevels(self):
-        self.revertbtn.move(self.tree.width()-37, self.tree.height()-self.tree.horizontalScrollBar().height()-30)
+
         self.revertbtn.show()
         stack = {}
         c = [x for x in self.db.root if x.prefix == self.category][0]
@@ -509,6 +509,8 @@ class DocumentTreeView(QWidget):
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-235)
+        #self.revertbtn.move(self.tree.height(), self.tree.width())
+        self.revertbtn.move(self.tree.width() - 37, self.tree.height() - self.tree.horizontalScrollBar().height() - 30)
 
 
     def post_init(self):

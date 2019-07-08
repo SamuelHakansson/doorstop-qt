@@ -137,6 +137,7 @@ def main():
     splitter.addWidget(tree)
     splitter.addWidget(rview)
     splitter.splitterMoved.connect(tree.setupHeaderwidth)
+    splitter.splitterMoved.connect(editcatdiag.moverevertbutton)
     splitter.setStretchFactor(0, 2)
     splitter.setStretchFactor(1, 5)
     splitter.setStretchFactor(2, 4)
