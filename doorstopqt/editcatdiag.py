@@ -389,6 +389,7 @@ class EditCategoryDialog(QWidget):
             try:
                 index = selectionmodel.indexes()[0]
                 cat = index.data(Qt.UserRole)
+                print('category', cat, flush=True)
             except IndexError:
                 cat = None
             func(cat)

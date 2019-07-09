@@ -96,6 +96,7 @@ class DocumentTreeView(QWidget):
         self.attributeview.heading.stateChanged.connect(self.heading_link)
 
         self.newitemtext = newitemtext
+        self.fullstack = {}
         self.treestack = []
         self.LEVELS = 0
         self.REMOVE = 1
@@ -401,8 +402,19 @@ class DocumentTreeView(QWidget):
         if not self.treestack:
             self.revertbtn.hide()
 
-    def buildtree(self, cat=None):
+    def loadstack(self, category):
+        if category:
+            if str(category) in self.fullstack:
+                self.treestack = self.fullstack[str(category)]
+            else:
+                self.treestack = []
 
+    def savestack(self, category):
+        if category:
+            self.fullstack[str(self.category)] = self.treestack
+
+    def buildtree(self, cat=None):
+        self.savestack(self.category)
         self.lastselected[str(self.category)] = self.selecteduid()
         self.model.clear()
         if self.db is None or len(self.db.root.documents) == 0:
@@ -413,6 +425,11 @@ class DocumentTreeView(QWidget):
             else:
                 cat = self.db.root.documents[0].prefix
         self.category = cat
+        self.loadstack(self.category)
+        if self.treestack:
+            self.revertbtn.show()
+        else:
+            self.revertbtn.hide()
         c = [x for x in self.db.root if x.prefix == cat][0]
 
         items = {}
