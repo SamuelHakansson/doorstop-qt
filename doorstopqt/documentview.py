@@ -329,6 +329,8 @@ class DocumentTreeView(QWidget):
             item.text = self.newitemtext
             self.db.reload()
             self.tree.setCurrentIndex(self.uidtoitem(item.uid).index())
+            self.treestack = []
+            self.revertbtn.hide()
 
         if len(si) > 0:
             data = self.model.data(si[0], Qt.UserRole)
