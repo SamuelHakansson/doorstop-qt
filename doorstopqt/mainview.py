@@ -45,6 +45,16 @@ class ReqDatabase(object):
         self.reload()
 
 
+class CustomSplitter(QSplitter):
+    def __init__(self):
+        super(CustomSplitter, self).__init__()
+        self.movebuttons = None
+
+    def resizeEvent(self, a0: QResizeEvent) -> None:
+        if self.movebuttons:
+            self.movebuttons()
+        super().resizeEvent(a0)
+
 
 def main():
     import sys
@@ -52,8 +62,8 @@ def main():
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
+    splitter = CustomSplitter()
 
-    splitter = QSplitter()
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
     width = int(screenwidth*11/16)
@@ -118,6 +128,12 @@ def main():
 
 
 
+    def movebuttons():
+        tree.setupHeaderwidth()
+        editcatdiag.moverevertbutton()
+
+    splitter.movebuttons = movebuttons
+
     editor = QWidget()
     editorgrid = QVBoxLayout()
     editorgrid.setContentsMargins(0, 0, 0, 0)
@@ -136,8 +152,7 @@ def main():
     splitter.addWidget(editcatdiag)
     splitter.addWidget(tree)
     splitter.addWidget(rview)
-    splitter.splitterMoved.connect(tree.setupHeaderwidth)
-    splitter.splitterMoved.connect(editcatdiag.moverevertbutton)
+    splitter.splitterMoved.connect(movebuttons)
     splitter.setStretchFactor(0, 2)
     splitter.setStretchFactor(1, 5)
     splitter.setStretchFactor(2, 4)

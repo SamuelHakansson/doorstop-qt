@@ -97,6 +97,9 @@ class DocumentTreeView(QWidget):
 
         self.newitemtext = newitemtext
         self.treestack = []
+        self.LEVELS = 0
+        self.REMOVE = 1
+        self.NEW = 2
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         #undoshortcut = QShortcut(QKeySequence("Ctrl+Z"), self.tree)
@@ -108,8 +111,6 @@ class DocumentTreeView(QWidget):
         copyshortcut.activated.connect(copy)
         #undoshortcut.activated.connect(self.applyoldlevels)
         self.revertbtn.clicked.connect(self.applyoldlevels)
-
-
 
 
     def active_link(self, s):
@@ -329,8 +330,8 @@ class DocumentTreeView(QWidget):
             item.text = self.newitemtext
             self.db.reload()
             self.tree.setCurrentIndex(self.uidtoitem(item.uid).index())
-            self.treestack = []
-            self.revertbtn.hide()
+            self.treestack.append((item.uid, self.NEW))
+            self.revertbtn.show()
 
         if len(si) > 0:
             data = self.model.data(si[0], Qt.UserRole)
@@ -343,9 +344,13 @@ class DocumentTreeView(QWidget):
 
             menu.addSeparator()
             act = menu.addAction('Remove item')
-            def removedocument(uid):
+            def removedocument(data):
+                backupfile = open(data.path, 'r').read()
+                self.treestack.append(((backupfile, data.path), self.REMOVE))
+                uid = data.uid
                 self.db.remove(uid)
-            act.triggered.connect(lambda: removedocument(data.uid))
+                self.revertbtn.show()
+            act.triggered.connect(lambda: removedocument(data))
         else:
             act = menu.addAction(self.icons.FileIcon, 'Create item')
             act.triggered.connect(lambda: createdocument())
@@ -365,21 +370,36 @@ class DocumentTreeView(QWidget):
 
         for doc in sorted(c, key=lambda x: x.level):
             stack[doc] = str(doc.level)
-        self.treestack.append(stack)
+        self.treestack.append((stack, self.LEVELS))
 
     def applyoldlevels(self):
         if not self.treestack:
+            self.revertbtn.hide()
             return
-        c = [x for x in self.db.root if x.prefix == self.category][0]
-        stack = self.treestack[-1]
-        for doc in sorted(c, key=lambda x: x.level):
-            doc.level = stack[doc]
+
+        stack = self.treestack[-1][0]
+        type = self.treestack[-1][1]
+        if type == self.LEVELS:
+            c = [x for x in self.db.root if x.prefix == self.category][0]
+
+            for doc in sorted(c, key=lambda x: x.level):
+                doc.level = stack[doc]
+            self.buildtree(self.category)
+
+        elif type == self.REMOVE:
+            data, path = stack
+            file = open(path, "w")
+            file.write(data)
+            file.close()
+            self.db.reload()
+
+        elif type == self.NEW:
+            uid = stack
+            self.db.remove(uid)
 
         del self.treestack[-1]
-        self.buildtree(self.category)
         if not self.treestack:
             self.revertbtn.hide()
-
 
     def buildtree(self, cat=None):
 
@@ -514,9 +534,9 @@ class DocumentTreeView(QWidget):
 
     def setposrevertbtn(self):
 
-        extrawidth = self.tree.verticalScrollBar().width()
+        #extrawidth = self.tree.verticalScrollBar().width()
         extraheight = self.tree.horizontalScrollBar().height()
-        self.revertbtn.move(self.tree.width() - extrawidth - 37, self.tree.height() - extraheight - 30)
+        self.revertbtn.move(self.tree.width() - 50, self.tree.height() - extraheight - 30)
 
 
     def post_init(self):

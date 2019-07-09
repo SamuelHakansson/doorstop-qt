@@ -125,7 +125,6 @@ class EditCategoryDialog(QWidget):
         for changeditem in self.namechangeditems:
             cat = changeditem.data(Qt.UserRole)
             newname = changeditem.text()
-
             if cat:
                 if cat != newname:
                     newname.replace(" ", "_")
@@ -146,14 +145,11 @@ class EditCategoryDialog(QWidget):
             else:
                 self.categoriestocreate.append(changeditem)
 
-
         self.namechangeditems = []
-
         self.createnew()
 
     def show(self):
         super(EditCategoryDialog, self).show()
-        self.raise_()
 
     def connectdb(self, db):
         self.db = db
@@ -188,7 +184,6 @@ class EditCategoryDialog(QWidget):
         item = self.model.itemFromIndex(indextoremove)
 
         def documenttoremove(itemtoremove):
-            self.showbuttons()
 
             data = itemtoremove.data(role=Qt.UserRole)
             self.willberemoved[data] = itemtoremove.background()
@@ -233,7 +228,8 @@ class EditCategoryDialog(QWidget):
             if not catitem:
                 return
             prefix = catitem.text()
-            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
+            #if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
+            if prefix == '':
                 self.model.removeRow(catitem.row(), catitem.parent().index())
                 self.categoriestocreate.remove(catitem)
                 return
@@ -246,17 +242,23 @@ class EditCategoryDialog(QWidget):
             path = self.path + prefix
             parent = catitem.parent().text()
             print('{} {} {}'.format(prefix, parent, path), flush=True)
-            self.db.root.create_document(path, prefix, parent=parent)
+            doc = self.db.root.create_document(path, prefix, parent=parent)
+            self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(catitem.index())
+            self.treestack = []
+            self.revert.hide()
 
         self.categoriestocreate = []
+
 
 
     def buildlist(self):
         if self.db is None or len(self.db.root.documents) == 0:
             return
         self.model.clear()
+        self.model.blockSignals(True)
         self.createhierarchy()
+        self.model.blockSignals(False)
 
     def createhierarchy(self):
         graph = self.db.root.draw().split('\n')
@@ -292,41 +294,35 @@ class EditCategoryDialog(QWidget):
             previtem = item
         self.tree.expandAll()
 
-
     def undo(self):
+
         old_data = self.treestack[-1]
         for obj in old_data:
-            pardata, category = obj
+            category, categoryparent = obj
 
-            if category.parent != pardata:
-                if pardata is not None:
-                    category.parent = pardata
-                else:
-                    category._data['parent'] = None
-                    category.save()
-
+            if category.parent != categoryparent:
+                category.parent = categoryparent
+            else:
+                category._data['parent'] = None
+                category.save()
         self.buildlist()
 
-
     def changehierarchy(self, currentobjects_list):
-
-        tempdict = []
         for obj in currentobjects_list:
+            temp = []
             data = self.model.data(obj, role=Qt.UserRole)
             parindex = obj.parent()
 
             pardata = self.model.data(parindex, role=Qt.UserRole)
             category = self.docsdict[data]
-            tempdict.append((pardata, category))
-            self.treestack.append(tempdict)
+            temp.append((category, category.parent))
+            self.treestack.append(temp)
             if category.parent != pardata:
                 if pardata is not None:
                     category.parent = pardata
                 else:
                     category._data['parent'] = None
                     category.save()
-
-
 
         self.deletependingdocuments()
 
@@ -340,7 +336,6 @@ class EditCategoryDialog(QWidget):
         self.documentstodelete = []
 
     def onlayoutchanged(self):
-
         movedobject = self.tree.currentIndex()
 
         nextlist = self.getnext(movedobject, [])
