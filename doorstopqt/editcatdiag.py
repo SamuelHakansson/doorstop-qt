@@ -299,13 +299,23 @@ class EditCategoryDialog(QWidget):
         old_data = self.treestack[-1]
         for obj in old_data:
             category, categoryparent = obj
-
             if category.parent != categoryparent:
-                category.parent = categoryparent
-            else:
-                category._data['parent'] = None
-                category.save()
+                if categoryparent:
+                    category.parent = categoryparent
+                else:
+                    category._data['parent'] = None
+                    category.save()
+        
+        docs = self.db.root.documents
+        root = self.db.root.root
+        newtree = self.db.root.from_list(docs, root)
+        self.db.root = newtree
+
         self.buildlist()
+        del self.treestack[-1]
+        if not self.treestack:
+            self.revert.hide()
+
 
     def changehierarchy(self, currentobjects_list):
         for obj in currentobjects_list:
@@ -315,9 +325,9 @@ class EditCategoryDialog(QWidget):
 
             pardata = self.model.data(parindex, role=Qt.UserRole)
             category = self.docsdict[data]
-            temp.append((category, category.parent))
-            self.treestack.append(temp)
             if category.parent != pardata:
+                temp.append((category, category.parent))
+                self.treestack.append(temp)
                 if pardata is not None:
                     category.parent = pardata
                 else:
@@ -356,6 +366,7 @@ class EditCategoryDialog(QWidget):
             self.changehierarchy(currentobjects_list)
             self.moverevertbutton()
             self.revert.show()
+        self.tree.expandAll()
 
     def getnext(self, index, nextobjectslist):
         nextobject = self.tree.indexBelow(index)
