@@ -86,8 +86,6 @@ class EditCategoryDialog(QWidget):
         self.revert.clicked.connect(self.undo)
         self.docsdict = {}
 
-
-
     def clearsearchbox(self):
         self.searchbox.setText('')
 
@@ -258,7 +256,7 @@ class EditCategoryDialog(QWidget):
             return
         self.model.clear()
         self.createhierarchy()
-        self.tree.setCurrentIndex(self.model.index(0, 0))
+        #self.tree.setCurrentIndex(self.model.index(0, 0))
 
     def createhierarchy(self):
         graph = self.db.root.draw().split('\n')
@@ -406,7 +404,7 @@ class EditCategoryDialog(QWidget):
 
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + nextlist
+        currentobjects_list = previouslist + [movedobject] + nextlist
         if category is None:
             currentindex = previouslist[0]
             self.tree.setCurrentIndex(currentindex)
@@ -415,6 +413,7 @@ class EditCategoryDialog(QWidget):
             if index.data() == category:
                 currentindex = index
                 self.tree.setCurrentIndex(currentindex)
+                return
 
     def moverevertbutton(self):
         self.revert.move(self.tree.width() - 37, self.tree.height() - 30)

@@ -3,6 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
 from markdown import markdown
+from .requirement_template import newitemtext
+
 
 class CustomTree(QTreeView):
     def __init__(self):
@@ -93,10 +95,7 @@ class DocumentTreeView(QWidget):
         self.attributeview.normative.stateChanged.connect(self.normative_link)
         self.attributeview.heading.stateChanged.connect(self.heading_link)
 
-        self.newitemtext = "**Feature name:** \n\n" \
-                           "**Feature requirement:** \n\n" \
-                           "**Feature benefit:** \n\n" \
-                           "**User:**"
+        self.newitemtext = newitemtext
         self.treestack = []
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
@@ -387,7 +386,7 @@ class DocumentTreeView(QWidget):
         if self.db is None or len(self.db.root.documents) == 0:
             return
         if cat is None:
-            if self.category is not None and self.category in self.db.root.documents:
+            if self.category is not None and self.category in list(map(lambda x: x.prefix, self.db.root.documents)):
                 cat = self.category
             else:
                 cat = self.db.root.documents[0].prefix
@@ -509,13 +508,11 @@ class DocumentTreeView(QWidget):
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-235)
-        #self.revertbtn.move(self.tree.height(), self.tree.width())
         self.revertbtn.move(self.tree.width() - 37, self.tree.height() - self.tree.horizontalScrollBar().height() - 30)
 
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
-
 
 
     def connectview(self, view):
