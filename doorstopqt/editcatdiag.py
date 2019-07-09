@@ -70,7 +70,7 @@ class EditCategoryDialog(QWidget):
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
 
-        #self.model.itemChanged.connect(self.namechanged)
+        self.model.itemChanged.connect(self.namechanged)
         self.documentstodelete = []
         self.namechangeditems = []
         self.doctonewname = {}
@@ -247,6 +247,7 @@ class EditCategoryDialog(QWidget):
             parent = catitem.parent().text()
             print('{} {} {}'.format(prefix, parent, path), flush=True)
             self.db.root.create_document(path, prefix, parent=parent)
+            self.tree.setCurrentIndex(catitem.index())
 
         self.categoriestocreate = []
 
@@ -256,7 +257,6 @@ class EditCategoryDialog(QWidget):
             return
         self.model.clear()
         self.createhierarchy()
-        #self.tree.setCurrentIndex(self.model.index(0, 0))
 
     def createhierarchy(self):
         graph = self.db.root.draw().split('\n')

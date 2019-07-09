@@ -508,7 +508,13 @@ class DocumentTreeView(QWidget):
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-235)
-        self.revertbtn.move(self.tree.width() - 37, self.tree.height() - self.tree.horizontalScrollBar().height() - 30)
+        self.setposrevertbtn()
+
+    def setposrevertbtn(self):
+
+        extrawidth = self.tree.verticalScrollBar().width()
+        extraheight = self.tree.horizontalScrollBar().height()
+        self.revertbtn.move(self.tree.width() - extrawidth - 37, self.tree.height() - extraheight - 30)
 
 
     def post_init(self):
