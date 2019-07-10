@@ -166,68 +166,54 @@ class EditCategoryDialog(QWidget):
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
-        index = self.tree.indexAt(pos)
-        data = self.model.data(index)
         addaction = menu.addAction("Create child document")
         addaction.triggered.connect(lambda: addnewdocument(item))
         menu.addSeparator()
         renameaction = menu.addAction("Rename")
         renameaction.triggered.connect(lambda: rename(item))
         menu.addSeparator()
-        if data not in self.willberemoved:
-            removeaction = menu.addAction('Remove')
-            removeaction.triggered.connect(lambda: documenttoremove(item))
-        else:
-            notremoveaction = menu.addAction('Do not remove')
-            notremoveaction.triggered.connect(lambda: documenttonotremove(item))
+
+        removeaction = menu.addAction('Remove')
+        removeaction.triggered.connect(lambda: remove(item))
 
         si = self.tree.selectedIndexes()
         indextoremove = si[0]
         item = self.model.itemFromIndex(indextoremove)
 
+        def remove(item):
+            documenttoremove(item)
+            removereload()
+
         def documenttoremove(itemtoremove):
             data = itemtoremove.data(role=Qt.UserRole)
-            self.willberemoved[data] = itemtoremove.background()
-            itemtoremove.setBackground(QBrush(QColor("red")))
-            itemtoremove.setData(False)
+            print(data, flush=True)
             self.documentstodelete.append(data)
             children = self.findallchildren(itemtoremove)
             if children:
                 for child in children:
                     documenttoremove(child)
-            doc = self.docsdict[str(data)]
 
+            doc = self.docsdict[str(data)]
             listdir = os.listdir(doc.path)
 
             itemsindoc = []
+            itemsindoc.append(doc.path)
             for file in listdir:
-                backupfile = open(doc.path+"\\"+file, 'r').read()
-                itemsindoc.append(backupfile)
+                filepath = doc.path+"\\"+file
+                backupfile = open(filepath, 'rb').read()
+                itemsindoc.append((backupfile, filepath))
 
             self.treestack.append((itemsindoc, self.REMOVE))
+            print('removing', data, flush=True)
 
-            doc.delete()
+        def removereload():
+            for data in self.documentstodelete:
+                doc = self.docsdict[str(data)]
+                doc.delete()
             self.revert.show()
             self.db.reload()
 
 
-
-        def documenttonotremove(itemtonotremove):
-            parentname = itemtonotremove.parent().data(Qt.UserRole)
-            if parentname not in self.willberemoved:
-                data = itemtonotremove.data(role=Qt.UserRole)
-                oldbrush = self.willberemoved[data]
-                del self.willberemoved[data]
-                itemtonotremove.setBackground(QBrush(oldbrush))
-                itemtonotremove.setData(True)
-                self.documentstodelete.remove(data)
-                children = self.findallchildren(itemtonotremove)
-                if children:
-                    for child in children:
-                        documenttonotremove(child)
-                self.removemessage.hide()
-            else:
-                self.removemessage.show()
 
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
@@ -265,7 +251,6 @@ class EditCategoryDialog(QWidget):
             self.revert.hide()
 
         self.categoriestocreate = []
-
 
 
     def buildlist(self):
@@ -324,22 +309,28 @@ class EditCategoryDialog(QWidget):
                         category._data['parent'] = None
                         category.save()
 
-            docs = self.db.root.documents
-            root = self.db.root.root
-            newtree = self.db.root.from_list(docs, root)
-            self.db.root = newtree
-
-            self.buildlist()
-            del self.treestack[-1]
-            if not self.treestack:
-                self.revert.hide()
         elif type == self.REMOVE:
-            for oldfile in stack:
+            folder = stack[0]
+            print(folder, flush=True)
+            os.mkdir(folder)
+            for oldfile in stack[1:]:
                 data, path = oldfile
-                file = open(path, "w")
+                file = open(path, "wb+")
                 file.write(data)
                 file.close()
+            self.db.reload()
 
+        self.reloadtree()
+        self.buildlist()
+        del self.treestack[-1]
+        if not self.treestack:
+            self.revert.hide()
+
+    def reloadtree(self):
+        docs = self.db.root.documents
+        root = self.db.root.root
+        newtree = self.db.root.from_list(docs, root)
+        self.db.root = newtree
 
     def changehierarchy(self, currentobjects_list):
         for obj in currentobjects_list:

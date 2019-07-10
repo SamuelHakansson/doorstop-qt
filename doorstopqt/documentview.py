@@ -346,7 +346,7 @@ class DocumentTreeView(QWidget):
             menu.addSeparator()
             act = menu.addAction('Remove item')
             def removedocument(data):
-                backupfile = open(data.path, 'r').read()
+                backupfile = open(data.path, 'rb').read()
                 self.treestack.append(((backupfile, data.path), self.REMOVE))
                 uid = data.uid
                 self.db.remove(uid)
@@ -389,7 +389,7 @@ class DocumentTreeView(QWidget):
 
         elif type == self.REMOVE:
             data, path = stack
-            file = open(path, "w")
+            file = open(path, "wb+")
             file.write(data)
             file.close()
             self.db.reload()
