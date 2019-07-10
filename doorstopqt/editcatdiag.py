@@ -249,7 +249,6 @@ class EditCategoryDialog(QWidget):
             doc = self.db.root.create_document(path, prefix, parent=parent)
             self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(catitem.index())
-            print('storing', doc, doc.path, flush=True)
             self.treestack.append((doc, self.NEW))
             self.moverevertbutton()
             self.revert.show()
@@ -370,7 +369,6 @@ class EditCategoryDialog(QWidget):
             if category.parent != pardata:
                 temp.append((category, category.parent))
                 self.treestack.append((temp, self.LEVELS))
-                print(category, 'new parent', pardata, flush=True)
                 if pardata is not None:
                     category.parent = pardata
                 else:
@@ -393,18 +391,12 @@ class EditCategoryDialog(QWidget):
             if pardata == None:
                 nrroots += 1
         if nrroots != 1:
-            print(self.tree.height(), flush=True)
             self.warningmessage.show()
-            print(self.tree.height(), flush=True)
             self.moverevertbutton()
 
         else:
-            print(self.tree.height(), flush=True)
-            print(self.revert.pos(), flush=True)
             self.warningmessage.hide()
-            print(self.tree.height(), flush=True)
             self.changehierarchy(currentobjects_list)
-            print(self.revert.pos(), flush=True)
             self.revert.show()
         self.tree.expandAll()
 
@@ -454,11 +446,9 @@ class EditCategoryDialog(QWidget):
         if category is None:
             currentindex = self.model.index(0, 0)
             self.tree.setCurrentIndex(currentindex)
-            print('selected category: root', flush=True)
             return
         for index in currentobjects_list:
             if index.data() == category:
-                print('selected category:', category, flush=True)
                 self.tree.setCurrentIndex(index)
                 return
 
