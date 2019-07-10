@@ -299,14 +299,14 @@ class DocumentTreeView(QWidget):
             level = None
             lastsibling = None
             if len(si) > 0:
+                cur = self.model.itemFromIndex(si[0])
                 if sibling:
-                    parent = self.model.itemFromIndex(si[0]).parent()
+                    parent = cur.parent()
                     if parent is not None:
                         data = self.model.data(self.model.indexFromItem(parent), Qt.UserRole)
                         level = str(data.level).split('.')
                         lastsibling = parent.child(parent.rowCount() - 1)
                 else:
-                    cur = self.model.itemFromIndex(si[0])
                     rows = cur.rowCount()
                     if rows == 0:
                         lastsibling = cur

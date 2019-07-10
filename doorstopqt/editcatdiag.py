@@ -83,6 +83,7 @@ class EditCategoryDialog(QWidget):
         self.LEVELS = 0
         self.REMOVE = 1
         self.NEW = 2
+        self.currentcategory = None
 
     def clearsearchbox(self):
         self.searchbox.setText('')
@@ -156,7 +157,7 @@ class EditCategoryDialog(QWidget):
             self.docsdict[str(d)] = d
         #self.model.blockSignals(True)
         self.buildlist()
-        self.select()
+        self.select(self.currentcategory)
         #self.model.blockSignals(False)
         self.updateCompleter()
         self.moverevertbutton()
@@ -439,8 +440,10 @@ class EditCategoryDialog(QWidget):
             try:
                 index = selectionmodel.indexes()[0]
                 cat = index.data(Qt.UserRole)
+                self.currentcategory = cat
             except IndexError:
                 cat = None
+
             func(cat)
         self.tree.selectionModel().selectionChanged.connect(clb)
 
@@ -451,11 +454,12 @@ class EditCategoryDialog(QWidget):
         if category is None:
             currentindex = self.model.index(0, 0)
             self.tree.setCurrentIndex(currentindex)
+            print('selected category: root', flush=True)
             return
         for index in currentobjects_list:
             if index.data() == category:
-                currentindex = index
-                self.tree.setCurrentIndex(currentindex)
+                print('selected category:', category, flush=True)
+                self.tree.setCurrentIndex(index)
                 return
 
     def moverevertbutton(self):
