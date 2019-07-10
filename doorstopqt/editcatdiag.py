@@ -82,7 +82,7 @@ class EditCategoryDialog(QWidget):
         self.clearbutton.clicked.connect(self.clearsearchbox)
 
         self.treestack = []
-        self.revert.clicked.connect(self.undo)
+        self.revert.clicked.connect(self.undowrap)
         self.docsdict = {}
         self.LEVELS = 0
         self.REMOVE = 1
@@ -299,6 +299,10 @@ class EditCategoryDialog(QWidget):
             previtem = item
         self.tree.expandAll()
 
+    def undowrap(self):
+        self.undo()
+        self.undoreload()
+
     def undo(self):
 
         stack = self.treestack[-1][0]
@@ -313,15 +317,28 @@ class EditCategoryDialog(QWidget):
                         category._data['parent'] = None
                         category.save()
 
+                nrroots = 0
+                for obj in self.docs:
+                    pardata = obj.parent
+                    if pardata == None:
+                        nrroots += 1
+                if nrroots != 1:
+                    del self.treestack[-1]
+                    self.undo()
+
+
         elif type == self.REMOVE:
             folder = stack[0]
-            os.mkdir(folder)
+            if not os.path.exists(folder):
+                os.mkdir(folder)
             for oldfile in stack[1:]:
                 data, path = oldfile
                 file = open(path, "wb+")
                 file.write(data)
                 file.close()
-            self.db.reload()
+
+    def undoreload(self):
+        self.db.reload()
         self.reloadtree()
         self.buildlist()
         del self.treestack[-1]
@@ -345,22 +362,13 @@ class EditCategoryDialog(QWidget):
             if category.parent != pardata:
                 temp.append((category, category.parent))
                 self.treestack.append((temp, self.LEVELS))
+                print(category, 'new parent', pardata, flush=True)
                 if pardata is not None:
                     category.parent = pardata
                 else:
                     category._data['parent'] = None
                     category.save()
 
-        #self.deletependingdocuments()
-
-
-    def deletependingdocuments(self):
-        if len(self.documentstodelete) == 0:
-            return
-        for data in self.documentstodelete:
-            self.docsdict[str(data)].delete()
-            del self.docsdict[str(data)]
-        self.documentstodelete = []
 
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
@@ -378,6 +386,7 @@ class EditCategoryDialog(QWidget):
                 nrroots += 1
         if nrroots != 1:
             self.warningmessage.show()
+
         else:
             self.warningmessage.hide()
             self.changehierarchy(currentobjects_list)
