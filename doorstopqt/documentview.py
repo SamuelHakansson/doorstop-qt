@@ -57,6 +57,7 @@ class DocumentTreeView(QWidget):
                     currentuid = self.tree.currentIndex().data(Qt.UserRole)
                     linkuid = self.setlinkfunc(currentuid)
                     if linkuid:
+                        print('changing selection from docview', flush=True)
                         uid = self.db.find(linkuid)
                         self.editcatdiag.select(str(uid.document))
                         item = self.uidtoitem(linkuid)
@@ -111,7 +112,7 @@ class DocumentTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
         #undoshortcut.activated.connect(self.applyoldlevels)
-        self.revertbtn.clicked.connect(self.applyoldlevels)
+        self.revertbtn.clicked.connect(self.undo)
 
 
     def active_link(self, s):
@@ -373,7 +374,7 @@ class DocumentTreeView(QWidget):
             stack[doc] = str(doc.level)
         self.treestack.append((stack, self.LEVELS))
 
-    def applyoldlevels(self):
+    def undo(self):
         if not self.treestack:
             self.revertbtn.hide()
             return
@@ -414,6 +415,7 @@ class DocumentTreeView(QWidget):
             self.fullstack[str(self.category)] = self.treestack
 
     def buildtree(self, cat=None):
+        print('building tree', flush=True)
         self.savestack(self.category)
         self.lastselected[str(self.category)] = self.selecteduid()
         self.model.clear()
@@ -484,7 +486,8 @@ class DocumentTreeView(QWidget):
 
     def connectdb(self, db):
         self.db = db
-        self.buildtree()
+        print('connecting db', flush=True)
+        #self.buildtree()
 
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
@@ -663,6 +666,6 @@ class DocumentTreeView(QWidget):
         item = self.db.find(uid)
         cat = str(item.parent_documents[0])
         self.lastselected[cat] = str(uid)
-        self.editcatdiag.select(cat)
+        #self.editcatdiag.select(cat)
         self.setupHeaders()
 

@@ -89,6 +89,7 @@ def main():
         linkview.read(uid)
         v.read(uid)
         tree.read(uid)
+        editcatdiag.read(uid)
 
 
     def setlink(uid):
@@ -98,7 +99,6 @@ def main():
     linkview.gotoclb = selectfunc
     editcatdiag.gotoclb = selectfunc
     tree.setlinkfunc = setlink
-
 
     tree.clipboard = lambda x: app.clipboard().setText(x)
 
@@ -125,7 +125,6 @@ def main():
         else:
             attribview.showref(False)
     v.modeclb = modeclb
-
 
 
     def movebuttons():

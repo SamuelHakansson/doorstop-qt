@@ -2,6 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .customcompleter import CustomQCompleter
+import os
 
 class EditCategoryDialog(QWidget):
     def __init__(self, parent=None):
@@ -41,9 +42,6 @@ class EditCategoryDialog(QWidget):
 
         self.db = None
 
-        #g = QWidget()
-        #g.setLayout(grid)
-        #self.vbox.addWidget(g)
         self.searchbox = QLineEdit()
         self.searchbox.setStyleSheet("background-color: white; border: 0px;")
         self.searchlabel = QLabel()
@@ -85,6 +83,9 @@ class EditCategoryDialog(QWidget):
         self.treestack = []
         self.revert.clicked.connect(self.undo)
         self.docsdict = {}
+        self.LEVELS = 0
+        self.REMOVE = 1
+        self.NEW = 2
 
     def clearsearchbox(self):
         self.searchbox.setText('')
@@ -156,9 +157,10 @@ class EditCategoryDialog(QWidget):
         self.docs = [x for x in self.db.root]
         for d in self.docs:
             self.docsdict[str(d)] = d
-        self.model.blockSignals(True)
+        #self.model.blockSignals(True)
         self.buildlist()
-        self.model.blockSignals(False)
+        self.select()
+        #self.model.blockSignals(False)
         self.updateCompleter()
         self.moverevertbutton()
 
@@ -184,7 +186,6 @@ class EditCategoryDialog(QWidget):
         item = self.model.itemFromIndex(indextoremove)
 
         def documenttoremove(itemtoremove):
-
             data = itemtoremove.data(role=Qt.UserRole)
             self.willberemoved[data] = itemtoremove.background()
             itemtoremove.setBackground(QBrush(QColor("red")))
@@ -194,6 +195,21 @@ class EditCategoryDialog(QWidget):
             if children:
                 for child in children:
                     documenttoremove(child)
+            doc = self.docsdict[str(data)]
+
+            listdir = os.listdir(doc.path)
+
+            itemsindoc = []
+            for file in listdir:
+                backupfile = open(doc.path+"\\"+file, 'r').read()
+                itemsindoc.append(backupfile)
+
+            self.treestack.append((itemsindoc, self.REMOVE))
+
+            doc.delete()
+            self.revert.show()
+            self.db.reload()
+
 
 
         def documenttonotremove(itemtonotremove):
@@ -296,25 +312,33 @@ class EditCategoryDialog(QWidget):
 
     def undo(self):
 
-        old_data = self.treestack[-1]
-        for obj in old_data:
-            category, categoryparent = obj
-            if category.parent != categoryparent:
-                if categoryparent:
-                    category.parent = categoryparent
-                else:
-                    category._data['parent'] = None
-                    category.save()
-        
-        docs = self.db.root.documents
-        root = self.db.root.root
-        newtree = self.db.root.from_list(docs, root)
-        self.db.root = newtree
+        stack = self.treestack[-1][0]
+        type = self.treestack[-1][1]
+        if type == self.LEVELS:
+            for obj in stack:
+                category, categoryparent = obj
+                if category.parent != categoryparent:
+                    if categoryparent:
+                        category.parent = categoryparent
+                    else:
+                        category._data['parent'] = None
+                        category.save()
 
-        self.buildlist()
-        del self.treestack[-1]
-        if not self.treestack:
-            self.revert.hide()
+            docs = self.db.root.documents
+            root = self.db.root.root
+            newtree = self.db.root.from_list(docs, root)
+            self.db.root = newtree
+
+            self.buildlist()
+            del self.treestack[-1]
+            if not self.treestack:
+                self.revert.hide()
+        elif type == self.REMOVE:
+            for oldfile in stack:
+                data, path = oldfile
+                file = open(path, "w")
+                file.write(data)
+                file.close()
 
 
     def changehierarchy(self, currentobjects_list):
@@ -327,7 +351,7 @@ class EditCategoryDialog(QWidget):
             category = self.docsdict[data]
             if category.parent != pardata:
                 temp.append((category, category.parent))
-                self.treestack.append(temp)
+                self.treestack.append((temp, self.LEVELS))
                 if pardata is not None:
                     category.parent = pardata
                 else:
@@ -397,6 +421,7 @@ class EditCategoryDialog(QWidget):
 
     def callback(self, func):
         def clb(selectionmodel):
+            print('in clb', flush=True)
             try:
                 index = selectionmodel.indexes()[0]
                 cat = index.data(Qt.UserRole)
@@ -407,22 +432,29 @@ class EditCategoryDialog(QWidget):
         self.tree.selectionModel().selectionChanged.connect(clb)
 
     def select(self, category=None):
-        movedobject = self.tree.currentIndex()
-
+        print('about to select', flush=True)
+        movedobject = self.model.index(0, 0)
         nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + [movedobject] + nextlist
+        currentobjects_list = [movedobject] + nextlist
         if category is None:
-            currentindex = previouslist[0]
+            currentindex = self.model.index(0, 0)
             self.tree.setCurrentIndex(currentindex)
             return
         for index in currentobjects_list:
             if index.data() == category:
+                print('selecting', category, flush=True)
                 currentindex = index
                 self.tree.setCurrentIndex(currentindex)
                 return
 
     def moverevertbutton(self):
         self.revert.move(self.tree.width() - 37, self.tree.height() - 30)
+
+    def read(self, uid):
+        if self.db is None:
+            return
+        item = self.db.find(uid)
+        cat = str(item.parent_documents[0])
+        self.select(cat)
 
 
