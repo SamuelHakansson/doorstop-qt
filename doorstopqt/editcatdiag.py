@@ -21,15 +21,9 @@ class EditCategoryDialog(QWidget):
 
         grid.addWidget(self.tree)
 
-        self.warningmessage = QLabel('Warning: only one root allowed')
+        self.warningmessage = QLabel('Warning: only one root allowed. \n          Layout is not saved')
         self.warningmessage.setStyleSheet('color: red')
-        grid.addWidget(self.warningmessage)
         self.warningmessage.hide()
-
-        self.removemessage = QLabel('Sub document will be removed if its parent is removed')
-        self.removemessage.setStyleSheet('color: red')
-        grid.addWidget(self.removemessage)
-        self.removemessage.hide()
 
 
         papirusicons = QIcon()
@@ -40,6 +34,7 @@ class EditCategoryDialog(QWidget):
 
         self.revert = QPushButton(reverticon, '')
         self.revert.hide()
+        self.revert.setToolTip('Revert')
 
         self.db = None
 
@@ -66,6 +61,7 @@ class EditCategoryDialog(QWidget):
         self.model.layoutChanged.connect(self.onlayoutchanged)
 
         self.revert.setParent(self.tree)
+        self.warningmessage.setParent(self.tree)
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.contextmenu)
 
@@ -214,6 +210,7 @@ class EditCategoryDialog(QWidget):
                 doc.delete()
                 del self.docsdict[str(data)]
             self.documentstodelete = []
+            self.moverevertbutton()
             self.revert.show()
             self.db.reload()
 
@@ -251,8 +248,10 @@ class EditCategoryDialog(QWidget):
             doc = self.db.root.create_document(path, prefix, parent=parent)
             self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(catitem.index())
-            self.treestack = []
-            self.revert.hide()
+            print('storing', doc, doc.path, flush=True)
+            self.treestack.append((doc, self.NEW))
+            self.moverevertbutton()
+            self.revert.show()
 
         self.categoriestocreate = []
 
@@ -325,6 +324,9 @@ class EditCategoryDialog(QWidget):
                 if nrroots != 1:
                     del self.treestack[-1]
                     self.undo()
+                else:
+                    self.warningmessage.hide()
+                    self.moverevertbutton()
 
 
         elif type == self.REMOVE:
@@ -336,6 +338,11 @@ class EditCategoryDialog(QWidget):
                 file = open(path, "wb+")
                 file.write(data)
                 file.close()
+
+        elif type == self.NEW:
+            doc = stack
+            doc.delete()
+
 
     def undoreload(self):
         self.db.reload()
@@ -385,12 +392,18 @@ class EditCategoryDialog(QWidget):
             if pardata == None:
                 nrroots += 1
         if nrroots != 1:
+            print(self.tree.height(), flush=True)
             self.warningmessage.show()
+            print(self.tree.height(), flush=True)
+            self.moverevertbutton()
 
         else:
+            print(self.tree.height(), flush=True)
+            print(self.revert.pos(), flush=True)
             self.warningmessage.hide()
+            print(self.tree.height(), flush=True)
             self.changehierarchy(currentobjects_list)
-            self.moverevertbutton()
+            print(self.revert.pos(), flush=True)
             self.revert.show()
         self.tree.expandAll()
 
@@ -446,7 +459,9 @@ class EditCategoryDialog(QWidget):
                 return
 
     def moverevertbutton(self):
-        self.revert.move(self.tree.width() - 37, self.tree.height() - 30)
+        self.revert.move(self.tree.width() - 35, self.tree.height() - 30)
+        warnwidth = self.warningmessage.width()
+        self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
 
     def read(self, uid):
         if self.db is None:
