@@ -421,18 +421,15 @@ class EditCategoryDialog(QWidget):
 
     def callback(self, func):
         def clb(selectionmodel):
-            print('in clb', flush=True)
             try:
                 index = selectionmodel.indexes()[0]
                 cat = index.data(Qt.UserRole)
-                print('category', cat, flush=True)
             except IndexError:
                 cat = None
             func(cat)
         self.tree.selectionModel().selectionChanged.connect(clb)
 
     def select(self, category=None):
-        print('about to select', flush=True)
         movedobject = self.model.index(0, 0)
         nextlist = self.getnext(movedobject, [])
         currentobjects_list = [movedobject] + nextlist
@@ -442,7 +439,6 @@ class EditCategoryDialog(QWidget):
             return
         for index in currentobjects_list:
             if index.data() == category:
-                print('selecting', category, flush=True)
                 currentindex = index
                 self.tree.setCurrentIndex(currentindex)
                 return

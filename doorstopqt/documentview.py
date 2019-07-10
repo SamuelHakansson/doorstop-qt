@@ -57,7 +57,6 @@ class DocumentTreeView(QWidget):
                     currentuid = self.tree.currentIndex().data(Qt.UserRole)
                     linkuid = self.setlinkfunc(currentuid)
                     if linkuid:
-                        print('changing selection from docview', flush=True)
                         uid = self.db.find(linkuid)
                         self.editcatdiag.select(str(uid.document))
                         item = self.uidtoitem(linkuid)
@@ -415,7 +414,6 @@ class DocumentTreeView(QWidget):
             self.fullstack[str(self.category)] = self.treestack
 
     def buildtree(self, cat=None):
-        print('building tree', flush=True)
         self.savestack(self.category)
         self.lastselected[str(self.category)] = self.selecteduid()
         self.model.clear()
@@ -486,8 +484,6 @@ class DocumentTreeView(QWidget):
 
     def connectdb(self, db):
         self.db = db
-        print('connecting db', flush=True)
-        #self.buildtree()
 
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
