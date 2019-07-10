@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .customcompleter import CustomQCompleter
 import os
+from pathlib import Path, PurePath
 
 class EditCategoryDialog(QWidget):
     def __init__(self, parent=None):
@@ -182,11 +183,10 @@ class EditCategoryDialog(QWidget):
 
         def remove(item):
             documenttoremove(item)
-            removereload()
+            removeandreload()
 
         def documenttoremove(itemtoremove):
             data = itemtoremove.data(role=Qt.UserRole)
-            print(data, flush=True)
             self.documentstodelete.append(data)
             children = self.findallchildren(itemtoremove)
             if children:
@@ -194,22 +194,26 @@ class EditCategoryDialog(QWidget):
                     documenttoremove(child)
 
             doc = self.docsdict[str(data)]
+            docpath = Path(doc.path)
             listdir = os.listdir(doc.path)
-
             itemsindoc = []
-            itemsindoc.append(doc.path)
+            itemsindoc.append(Path(docpath))
             for file in listdir:
-                filepath = doc.path+"\\"+file
+                path = Path(doc.path)
+                filepath = path / file
                 backupfile = open(filepath, 'rb').read()
                 itemsindoc.append((backupfile, filepath))
-
             self.treestack.append((itemsindoc, self.REMOVE))
-            print('removing', data, flush=True)
 
-        def removereload():
+        def removeandreload():
+
             for data in self.documentstodelete:
                 doc = self.docsdict[str(data)]
+                doccommand = "git add ."
+                os.system(doccommand)
                 doc.delete()
+                del self.docsdict[str(data)]
+            self.documentstodelete = []
             self.revert.show()
             self.db.reload()
 
@@ -311,7 +315,6 @@ class EditCategoryDialog(QWidget):
 
         elif type == self.REMOVE:
             folder = stack[0]
-            print(folder, flush=True)
             os.mkdir(folder)
             for oldfile in stack[1:]:
                 data, path = oldfile
@@ -319,7 +322,6 @@ class EditCategoryDialog(QWidget):
                 file.write(data)
                 file.close()
             self.db.reload()
-
         self.reloadtree()
         self.buildlist()
         del self.treestack[-1]
@@ -349,7 +351,7 @@ class EditCategoryDialog(QWidget):
                     category._data['parent'] = None
                     category.save()
 
-        self.deletependingdocuments()
+        #self.deletependingdocuments()
 
 
     def deletependingdocuments(self):
