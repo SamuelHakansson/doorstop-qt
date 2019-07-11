@@ -60,7 +60,6 @@ class ItemView(QVBoxLayout):
 
         def textChanged():
             if self.currentuid is not None:
-                print('textchanged', flush=True)
                 self.cache[self.currentuid]['changed'] = True
                 self.savebtn.setVisible(True)
                 self.discardbtn.setVisible(True)
@@ -124,8 +123,7 @@ class ItemView(QVBoxLayout):
         view.setPlainText(text)
 
     def read(self, uid):
-        self.savebtn.setVisible(False)
-        self.discardbtn.setVisible(False)
+
 
         if self.currentuid is not None:
             if self.currentuid in self.cache and self.cache[self.currentuid]['changed']:
@@ -135,6 +133,8 @@ class ItemView(QVBoxLayout):
         for view in self.views:
             self.readfromcache(view, uid)
 
+        self.savebtn.setVisible(False)
+        self.discardbtn.setVisible(False)
         if uid in self.cache:
             if self.cache[uid]['changed']:
                 self.savebtn.setVisible(True)
@@ -178,7 +178,6 @@ class ItemView(QVBoxLayout):
     def saveview(self, view, uid):
         text = view.text()
         item = self.itemfunc(uid)
-        print(text, flush=True)
         item.set(view.name, text)
         item.save()
 

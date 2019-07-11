@@ -6,7 +6,7 @@ class DecisiontakersView(ExtratextView):
         super().__init__(name)
         self.text = self.getdecisiontakerslist
 
-    def settextlist(self, decisiontakers):
+    def setPlainText(self, decisiontakers):
         if type(decisiontakers) is list:
             decisiontakers = ', '.join(decisiontakers)
         self.setText(decisiontakers)
