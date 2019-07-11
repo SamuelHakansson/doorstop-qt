@@ -3,13 +3,15 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from .markdownview import MarkdownView
 import doorstop
 from .requirementview import RequirementTreeView
 from .documentview import DocumentView
 from .attributeview import AttributeView
 from .linkview import LinkView
 from .version import VERSION
+import os
+from pathlib import Path
+from .itemview import ItemView
 import resources # resources fetches icons
 
 class ReqDatabase(object):
@@ -45,6 +47,22 @@ class ReqDatabase(object):
         self.reload()
 
 
+class TestDatabase(ReqDatabase):
+    def __init__(self):
+        currentdir = os.getcwd()
+        os.chdir("..")
+        self.folder = '/tests/'
+        self.path = Path(os.getcwd()+self.folder)
+        super().__init__()
+        os.chdir(currentdir)
+
+    def reload(self):
+        self.root = doorstop.core.builder.build(root=self.path)
+        for l in self.listeners:
+            l.connectdb(self)
+
+
+
 class CustomSplitter(QSplitter):
     def __init__(self):
         super(CustomSplitter, self).__init__()
@@ -58,7 +76,6 @@ class CustomSplitter(QSplitter):
 
 def main():
     import sys
-
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
@@ -66,13 +83,13 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*11/16)
-    height = int(screenheight*11/16)
+    width = int(screenwidth*13/16)
+    height = int(screenheight*13/16)
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
-
-    markdownview = MarkdownView()
+    itemview = ItemView()
+    markdownview = itemview.markdownview
 
     attribview = AttributeView()
     linkview = LinkView(markdownview, attribview)
@@ -82,15 +99,16 @@ def main():
     tree.connectview(markdownview)
     tree.connectdocview(docview)
     tree.post_init()
-    def selectfunc(uid):
+
+    def readuid(views, uid):
         if uid is None:
             return
-        attribview.read(uid)
-        linkview.read(uid)
-        markdownview.read(uid)
-        tree.read(uid)
-        docview.read(uid)
+        for view in views:
+            view.read(uid)
 
+    def selectfunc(uid):
+        views = [attribview, linkview, itemview, tree, docview]
+        readuid(views, uid)
 
     def setlink(uid):
         return linkview.setlinkingitem(uid)
@@ -102,11 +120,14 @@ def main():
 
     tree.clipboard = lambda x: app.clipboard().setText(x)
 
+
+
     has_started = False
     while not has_started:
         try:
             db = ReqDatabase()
             has_started = True
+
         except:
             import os
             f = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
@@ -114,8 +135,8 @@ def main():
                 f = os.path.dirname(f)
             os.chdir(f)
     db.add_listeners([attribview, linkview])
-    markdownview.readfunc = lambda uid: db.find(uid).text
-    markdownview.itemfunc = lambda uid: db.find(uid)
+    itemview.readfunc = lambda uid: db.find(uid).text
+    itemview.itemfunc = lambda uid: db.find(uid)
 
     db.add_listeners([tree, docview])
 
@@ -125,6 +146,8 @@ def main():
         else:
             attribview.showref(False)
     markdownview.modeclb = modeclb
+
+
 
 
     def movebuttons():
@@ -137,7 +160,7 @@ def main():
     editorgrid = QVBoxLayout()
     editorgrid.setContentsMargins(0, 0, 0, 0)
     editorgrid.addWidget(attribview)
-    editorgrid.addWidget(markdownview)
+    editorgrid.addLayout(itemview)
     editor.setLayout(editorgrid)
 
     rview = QWidget()
@@ -155,6 +178,39 @@ def main():
     splitter.setStretchFactor(0, 2)
     splitter.setStretchFactor(1, 5)
     splitter.setStretchFactor(2, 4)
+
+    def setuptestviews(testdb):
+
+        testattrview = AttributeView()
+        testdocview = DocumentView()
+        testtree = RequirementTreeView(attributeview=testattrview)
+        testtree.setheaderlabel('Test')
+        testtree.connectdocview(testdocview)
+        testtree.post_init()
+
+        def testselectfunc(uid):
+            views = [testtree, testdocview, attribview]
+            readuid(views, uid)
+
+        testtree.selectionclb = testselectfunc
+        testdocview.gotoclb = testselectfunc
+
+        testdb.add_listeners([testdocview, testtree, testattrview])
+
+        testtree.clipboard = lambda x: app.clipboard().setText(x)
+
+        testsplitter = QSplitter(Qt.Horizontal)
+        testsplitter.addWidget(testdocview)
+        testsplitter.addWidget(testtree)
+
+        splitter.addWidget(testsplitter)
+
+    try:
+        testdb = TestDatabase()
+        setuptestviews(testdb)
+    except:
+        pass
+
 
     splitter.show()
     tree.setupHeaderwidth()

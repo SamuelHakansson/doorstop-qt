@@ -231,8 +231,7 @@ class DocumentView(QWidget):
             if not docitem:
                 return
             prefix = docitem.text()
-            #if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
-            if prefix == '':
+            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
                 self.model.removeRow(docitem.row(), docitem.parent().index())
                 self.documentstocreate.remove(docitem)
                 return
@@ -434,7 +433,6 @@ class DocumentView(QWidget):
                 self.currentdocument = doc
             except IndexError:
                 doc = None
-
             func(doc)
         self.tree.selectionModel().selectionChanged.connect(clb)
 

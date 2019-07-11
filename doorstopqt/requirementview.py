@@ -81,15 +81,15 @@ class RequirementTreeView(QWidget):
         self.REMOVE = 1
         self.NEW = 2
 
+        self.headerlabel = ['Requirement', 'Active', 'Derived', 'Normative', 'Heading']
+
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
-        #undoshortcut = QShortcut(QKeySequence("Ctrl+Z"), self.tree)
         def copy():
             if self.clipboard is None:
                 return
             return self.clipboard(str(self.selecteduid()))
 
         copyshortcut.activated.connect(copy)
-        #undoshortcut.activated.connect(self.applyoldlevels)
         self.revertbtn.clicked.connect(self.undo)
 
 
@@ -464,6 +464,7 @@ class RequirementTreeView(QWidget):
     def connectdb(self, db):
         self.db = db
 
+
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
         if checkboxinfo is None:
@@ -514,7 +515,7 @@ class RequirementTreeView(QWidget):
 
 
     def setupHeaders(self):
-        self.model.setHorizontalHeaderLabels(['Requirement', 'Active', 'Derived', 'Normative', 'Heading'])
+        self.model.setHorizontalHeaderLabels(self.headerlabel)
         header = self.tree.header()
         header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -522,6 +523,9 @@ class RequirementTreeView(QWidget):
         header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.setupHeaderwidth()
+
+    def setheaderlabel(self, label):
+        self.headerlabel = [label, 'Active', 'Derived', 'Normative', 'Heading']
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-235)
