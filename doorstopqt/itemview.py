@@ -30,7 +30,7 @@ class ItemView(QVBoxLayout):
         self.views = [self.markdownview, self.decisionlog, self.decisiontakers, self.lastupdatedtext]
 
 
-        self.decisionlog.selectionChanged.connect(self.vieweditor)
+        self.decisionlog.textview.selectionChanged.connect(self.vieweditor)
         self.currentuid = None
 
         papirusicons = Icon()
@@ -65,10 +65,10 @@ class ItemView(QVBoxLayout):
                 self.discardbtn.setVisible(True)
 
         self.markdownview.editview.textChanged.connect(textChanged)
-        self.decisionlog.textChanged.connect(textChanged)
-        self.decisiontakers.textChanged.connect(textChanged)
+        self.decisionlog.textview.textChanged.connect(textChanged)
+        self.decisiontakers.textview.textChanged.connect(textChanged)
 
-        self.decisiontakers.selectionChanged.connect(self.vieweditor)
+        self.decisiontakers.textview.selectionChanged.connect(self.vieweditor)
 
         saveshortcut = QShortcut(QKeySequence("Ctrl+S"), self.markdownview.editview)
         saveshortcut.activated.connect(lambda: self.save())
@@ -110,7 +110,6 @@ class ItemView(QVBoxLayout):
         self.currentuid = None
         self.read(uid)
 
-
     def readtocache(self, view):
         self.cache[self.currentuid][view.name] = view.toPlainText()
 
@@ -123,8 +122,6 @@ class ItemView(QVBoxLayout):
         view.setPlainText(text)
 
     def read(self, uid):
-
-
         if self.currentuid is not None:
             if self.currentuid in self.cache and self.cache[self.currentuid]['changed']:
                 for view in self.views:

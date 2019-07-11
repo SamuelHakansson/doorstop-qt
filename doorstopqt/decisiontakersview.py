@@ -9,7 +9,7 @@ class DecisiontakersView(ExtratextView):
     def setPlainText(self, decisiontakers):
         if type(decisiontakers) is list:
             decisiontakers = ', '.join(decisiontakers)
-        self.setText(decisiontakers)
+        super().setPlainText(decisiontakers)
 
     def getdecisiontakerslist(self):
         decisiontakers = self.document().toPlainText()
