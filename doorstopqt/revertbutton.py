@@ -1,5 +1,4 @@
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
 
@@ -19,7 +18,6 @@ class RevertButton(QPushButton):
         self.setToolTip('Revert')
 
         op = QGraphicsOpacityEffect()
-        color = QGraphicsColorizeEffect()
         self.setGraphicsEffect(op)
         self.fadeoutanimation = QPropertyAnimation(op, b"opacity")
         self.fadeoutanimation.setDuration(1000)

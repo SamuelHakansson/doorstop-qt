@@ -155,9 +155,7 @@ def main():
     splitter.setStretchFactor(0, 2)
     splitter.setStretchFactor(1, 5)
     splitter.setStretchFactor(2, 4)
-    #app.setStyleSheet("QWidget{background-color: black; color: white;}")
-    #splitter.setStyleSheet("QWidget{background-color: black};")
-    #splitter.setStyleSheet("border: 0px;")
+
     splitter.show()
     tree.setupHeaderwidth()
 
