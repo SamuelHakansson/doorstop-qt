@@ -5,8 +5,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .markdownview import MarkdownView
 import doorstop
-from .documentview import DocumentTreeView
-from .editcatdiag import EditCategoryDialog
+from .requirementview import RequirementTreeView
+from .documentview import DocumentView
 from .attributeview import AttributeView
 from .linkview import LinkView
 from .version import VERSION
@@ -72,24 +72,24 @@ def main():
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
-    v = MarkdownView()
+    markdownview = MarkdownView()
 
     attribview = AttributeView()
-    linkview = LinkView(v, attribview)
+    linkview = LinkView(markdownview, attribview)
 
-    tree = DocumentTreeView(attributeview=attribview)
-    editcatdiag = EditCategoryDialog()
-    tree.connectview(v)
-    tree.connecteditcatdiag(editcatdiag)
+    tree = RequirementTreeView(attributeview=attribview)
+    docview = DocumentView()
+    tree.connectview(markdownview)
+    tree.connectdocview(docview)
     tree.post_init()
     def selectfunc(uid):
         if uid is None:
             return
         attribview.read(uid)
         linkview.read(uid)
-        v.read(uid)
+        markdownview.read(uid)
         tree.read(uid)
-        editcatdiag.read(uid)
+        docview.read(uid)
 
 
     def setlink(uid):
@@ -97,7 +97,7 @@ def main():
 
     tree.selectionclb = selectfunc
     linkview.gotoclb = selectfunc
-    editcatdiag.gotoclb = selectfunc
+    docview.gotoclb = selectfunc
     tree.setlinkfunc = setlink
 
     tree.clipboard = lambda x: app.clipboard().setText(x)
@@ -114,22 +114,22 @@ def main():
                 f = os.path.dirname(f)
             os.chdir(f)
     db.add_listeners([attribview, linkview])
-    v.readfunc = lambda uid: db.find(uid).text
-    v.itemfunc = lambda uid: db.find(uid)
+    markdownview.readfunc = lambda uid: db.find(uid).text
+    markdownview.itemfunc = lambda uid: db.find(uid)
 
-    db.add_listeners([tree, editcatdiag])
+    db.add_listeners([tree, docview])
 
     def modeclb(editmode):
         if editmode:
             attribview.showref(True)
         else:
             attribview.showref(False)
-    v.modeclb = modeclb
+    markdownview.modeclb = modeclb
 
 
     def movebuttons():
         tree.setupHeaderwidth()
-        editcatdiag.moverevertbutton()
+        docview.moverevertbutton()
 
     splitter.movebuttons = movebuttons
 
@@ -137,7 +137,7 @@ def main():
     editorgrid = QVBoxLayout()
     editorgrid.setContentsMargins(0, 0, 0, 0)
     editorgrid.addWidget(attribview)
-    editorgrid.addWidget(v)
+    editorgrid.addWidget(markdownview)
     editor.setLayout(editorgrid)
 
     rview = QWidget()
@@ -148,7 +148,7 @@ def main():
     vsplitter.addWidget(linkview)
     rviewgrid.addWidget(vsplitter)
 
-    splitter.addWidget(editcatdiag)
+    splitter.addWidget(docview)
     splitter.addWidget(tree)
     splitter.addWidget(rview)
     splitter.splitterMoved.connect(movebuttons)
