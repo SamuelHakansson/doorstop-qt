@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import *
 from .customcompleter import CustomQCompleter
 import os
 from pathlib import Path
+from .revertbutton import RevertButton
+from .icon import Icon
 
 
 class DocumentView(QWidget):
@@ -27,15 +29,11 @@ class DocumentView(QWidget):
         self.warningmessage.hide()
 
 
-        papirusicons = QIcon()
-        papirusicons.setThemeName('Papirus')
+        papirusicons = Icon()
         searchicon = papirusicons.fromTheme("search")
         clearicon = papirusicons.fromTheme("edit-clear-all")
-        reverticon = papirusicons.fromTheme("document-revert")
 
-        self.revert = QPushButton(reverticon, '')
-        self.revert.hide()
-        self.revert.setToolTip('Revert')
+        self.revert = RevertButton()
 
         self.db = None
 

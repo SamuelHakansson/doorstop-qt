@@ -5,7 +5,7 @@ from .icon import Icon
 from markdown import markdown
 from .requirement_template import newitemtext
 from .customtree import CustomTree
-
+from .revertbutton import RevertButton
 
 class RequirementTreeView(QWidget):
     def __init__(self, parent=None, attributeview=None):
@@ -23,15 +23,8 @@ class RequirementTreeView(QWidget):
         self.icons = Icon()
         self.lastdocument = None
 
+        self.revertbtn = RevertButton()
 
-        papirusicons = QIcon()
-        papirusicons.setThemeName('Papirus')
-        reverticon = papirusicons.fromTheme("document-revert")
-
-        self.revertbtn = QPushButton(reverticon, '')
-        self.revertbtn.hide()
-        self.revertbtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.revertbtn.setToolTip('Revert')
 
         self.setlinkfunc = None
         self.selectionclb = None
