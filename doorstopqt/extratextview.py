@@ -13,6 +13,7 @@ class ExtratextView(QWidget):
         self.text = self.document().toPlainText
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.textview)
+        self.weight = 1
 
     def document(self):
         return self.textview.document()
@@ -20,6 +21,8 @@ class ExtratextView(QWidget):
     def setPlainText(self, text):
         self.textview.setPlainText(text)
 
+    def toPlainText(self):
+        self.textview.toPlainText()
 
 
 

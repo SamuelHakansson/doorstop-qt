@@ -1,36 +1,19 @@
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from .extratextview import ExtratextView
+
 from .markdownview import MarkdownView
 from .icon import Icon
-from .lastupdatedtext import LastUpdatedText
-from .decisiontakersview import DecisiontakersView
 import sys
 
-
 class ItemView(QVBoxLayout):
-    def __init__(self):
+    def __init__(self, views):
         super().__init__()
         self.markdownview = MarkdownView()
-        self.decisionlog = ExtratextView('Decision log')
-        self.decisiontakers = DecisiontakersView('Decision takers')
-        self.lastupdatedtext = LastUpdatedText()
         self.markdownview.name = 'text'
-        self.decisionlog.name = 'decisionlog'
-        self.decisiontakers.name = 'decisiontakers'
-        self.lastupdatedtext.name = 'lastupdated'
+        self.views = [self.markdownview] + views
+        for view in self.views:
+            self.addWidget(view, view.weight)
 
-        textviewweight = 30
-        self.addWidget(self.markdownview, textviewweight)
-        self.addWidget(self.decisionlog, 10)
-        self.addWidget(self.decisiontakers)
-        self.addWidget(self.lastupdatedtext)
-
-        self.views = [self.markdownview, self.decisionlog, self.decisiontakers, self.lastupdatedtext]
-
-
-        self.decisionlog.textview.selectionChanged.connect(self.vieweditor)
         self.currentuid = None
 
         papirusicons = Icon()
@@ -58,17 +41,10 @@ class ItemView(QVBoxLayout):
             self.discardbtn.setFixedSize(savebtnsize)
             self.savebtn.setFixedSize(savebtnsize)
 
-        def textChanged():
-            if self.currentuid is not None:
-                self.cache[self.currentuid]['changed'] = True
-                self.savebtn.setVisible(True)
-                self.discardbtn.setVisible(True)
 
-        self.markdownview.editview.textChanged.connect(textChanged)
-        self.decisionlog.textview.textChanged.connect(textChanged)
-        self.decisiontakers.textview.textChanged.connect(textChanged)
+        self.markdownview.editview.textChanged.connect(self.textChanged)
+        self.markdownview.htmlview.selectionChanged.connect(self.vieweditor)
 
-        self.decisiontakers.textview.selectionChanged.connect(self.vieweditor)
 
         saveshortcut = QShortcut(QKeySequence("Ctrl+S"), self.markdownview.editview)
         saveshortcut.activated.connect(lambda: self.save())
@@ -89,6 +65,12 @@ class ItemView(QVBoxLayout):
         self.cache = {}
         self.itemfunc = None
         self.readfunc = None
+
+    def textChanged(self):
+        if self.currentuid is not None:
+            self.cache[self.currentuid]['changed'] = True
+            self.savebtn.setVisible(True)
+            self.discardbtn.setVisible(True)
 
     def viewhtml(self):
         self.markdownview.viewhtml()
@@ -116,10 +98,10 @@ class ItemView(QVBoxLayout):
     def readfromcache(self, view, uid):
         name = view.name
         if uid in self.cache and name in self.cache[uid]:
-                text = self.cache[uid][name]
+            text = self.cache[uid][name]
         else:
             text = self.getiteminfo(uid, name)
-        view.setPlainText(text)
+        view.storedtext = text
 
     def read(self, uid):
         if self.currentuid is not None:
@@ -132,6 +114,7 @@ class ItemView(QVBoxLayout):
 
         self.savebtn.setVisible(False)
         self.discardbtn.setVisible(False)
+
         if uid in self.cache:
             if self.cache[uid]['changed']:
                 self.savebtn.setVisible(True)
@@ -141,11 +124,8 @@ class ItemView(QVBoxLayout):
 
         self.currentuid = None
 
-
-        lastupdated = self.getiteminfo(uid, 'lastupdated')
-        if lastupdated is None:
-            lastupdated = ''
-        self.lastupdatedtext.setText('Last updated:' + lastupdated)
+        for view in self.views:
+            view.setPlainText(view.storedtext)
 
         self.currentuid = uid
         self.viewhtml()

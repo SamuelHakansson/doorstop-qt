@@ -94,7 +94,6 @@ class MarkdownView(QWidget):
         self.setLayout(self.layout)
 
         self.htmlview = QTextEdit()
-        self.htmlview.selectionChanged.connect(self.vieweditor)
 
         self.editview = MarkdownEditor()
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
@@ -111,6 +110,7 @@ class MarkdownView(QWidget):
         self.viewhtml()
 
         self.itemfunc = None
+        self.weight = 30
 
 
     def viewhtml(self):

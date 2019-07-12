@@ -34,12 +34,13 @@ class RequirementTreeView(QWidget):
                 self.selectionclb(self.selecteduid())
                 if self.document == self.lastdocument:
                     currentuid = self.tree.currentIndex().data(Qt.UserRole)
-                    linkuid = self.setlinkfunc(currentuid)
-                    if linkuid:
-                        uid = self.db.find(linkuid)
-                        self.docview.select(str(uid.document))
-                        item = self.uidtoitem(linkuid)
-                        self.tree.setCurrentIndex(self.model.indexFromItem(item))
+                    if self.setlinkfunc:
+                        linkuid = self.setlinkfunc(currentuid)
+                        if linkuid:
+                            uid = self.db.find(linkuid)
+                            self.docview.select(str(uid.document))
+                            item = self.uidtoitem(linkuid)
+                            self.tree.setCurrentIndex(self.model.indexFromItem(item))
                 self.lastdocument = self.document
             oldSelectionChanged(selected, deselected)
 

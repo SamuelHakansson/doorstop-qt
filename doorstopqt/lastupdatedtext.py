@@ -8,9 +8,13 @@ class LastUpdatedText(QLabel):
         super().__init__()
         self.name = None
         self.text = self.getcurrenttime
+        self.weight = 1
+        self.defaulttext = "Last updated: "
 
     def setPlainText(self, text):
-        self.setText(text)
+        if text is None:
+            text = ''
+        self.setText(self.defaulttext + text)
 
     def toPlainText(self):
         return self.text()

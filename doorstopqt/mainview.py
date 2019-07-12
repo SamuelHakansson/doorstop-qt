@@ -8,10 +8,12 @@ from .requirementview import RequirementTreeView
 from .documentview import DocumentView
 from .attributeview import AttributeView
 from .linkview import LinkView
+from .itemview import ItemView
+from .itemtestview import ItemTestView
 from .version import VERSION
 import os
 from pathlib import Path
-from .itemview import ItemView
+from .itemreqview import ItemReqView
 import resources # resources fetches icons
 
 class ReqDatabase(object):
@@ -88,7 +90,7 @@ def main():
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
-    itemview = ItemView()
+    itemview = ItemReqView()
     markdownview = itemview.markdownview
 
     attribview = AttributeView()
@@ -148,8 +150,6 @@ def main():
     markdownview.modeclb = modeclb
 
 
-
-
     def movebuttons():
         tree.setupHeaderwidth()
         docview.moverevertbutton()
@@ -184,18 +184,25 @@ def main():
         testattrview = AttributeView()
         testdocview = DocumentView()
         testtree = RequirementTreeView(attributeview=testattrview)
+        testmarkdown = ItemTestView()
         testtree.setheaderlabel('Test')
+        testtree.connectview(testmarkdown)
         testtree.connectdocview(testdocview)
         testtree.post_init()
 
         def testselectfunc(uid):
-            views = [testtree, testdocview, attribview]
+            views = [testtree, testdocview, testattrview, testmarkdown]
             readuid(views, uid)
 
         testtree.selectionclb = testselectfunc
         testdocview.gotoclb = testselectfunc
 
-        testdb.add_listeners([testdocview, testtree, testattrview])
+        testdb.add_listeners([testattrview])
+
+        testmarkdown.readfunc = lambda uid: db.find(uid).text
+        testmarkdown.itemfunc = lambda uid: db.find(uid)
+
+        testdb.add_listeners([testdocview, testtree])
 
         testtree.clipboard = lambda x: app.clipboard().setText(x)
 
@@ -203,15 +210,21 @@ def main():
         testsplitter.addWidget(testdocview)
         testsplitter.addWidget(testtree)
 
+        editor = QWidget()
+        editorgrid = QVBoxLayout()
+        editorgrid.setContentsMargins(0, 0, 0, 0)
+        editorgrid.addLayout(testmarkdown)
+        editor.setLayout(editorgrid)
+        testsplitter.addWidget(editor)
+
         splitter.addWidget(testsplitter)
 
     try:
         testdb = TestDatabase()
-        setuptestviews(testdb)
     except:
         pass
 
-
+    setuptestviews(testdb)
     splitter.show()
     tree.setupHeaderwidth()
 
