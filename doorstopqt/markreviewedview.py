@@ -2,27 +2,21 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
+from doorstop.core import publisher
 import os
 from .icon import Icon
+from pathlib import Path
 
 
-class AttributeView(QWidget):
+class MarkReviewedView(QWidget):
     def __init__(self, parent=None):
-        super(AttributeView, self).__init__(parent)
+        super(MarkReviewedView, self).__init__(parent)
 
         self.db = None
         self.currentuid = None
 
         grid = QHBoxLayout()
         grid.setContentsMargins(0, 0, 0, 0)
-        self.active = QCheckBox('Active')
-        self.derived = QCheckBox('Derived')
-        self.normative = QCheckBox('Normative')
-        self.heading = QCheckBox('Heading')
-        self.active.hide()
-        self.derived.hide()
-        self.normative.hide()
-        self.heading.hide()
         self.reflabel = QLabel('External ref:')
         self.refloc = QLabel('')
         self.ref = QLineEdit()
@@ -37,40 +31,7 @@ class AttributeView(QWidget):
         sendicon = papirusicons.fromTheme("document-send-symbolic")
         self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
-        self.locked = False
         self.readlinkview = None
-
-        def active(s):
-            if self.currentuid is None:
-                return
-            data = self.db.find(self.currentuid)
-            data.active = True if s == Qt.Checked else False
-            self.read(self.currentuid)
-        self.active.stateChanged.connect(active)
-        
-        def derived(s):
-            if self.currentuid is None:
-                return
-            data = self.db.find(self.currentuid)
-            data.derived = True if s == Qt.Checked else False
-            self.read(self.currentuid)
-        self.derived.stateChanged.connect(derived)
-
-        def normative(s):
-            if self.currentuid is None:
-                return
-            data = self.db.find(self.currentuid)
-            data.normative = True if s == Qt.Checked else False
-            self.read(self.currentuid)
-        self.normative.stateChanged.connect(normative)
-
-        def heading(s):
-            if self.currentuid is None:
-                return
-            data = self.db.find(self.currentuid)
-            data.heading = True if s == Qt.Checked else False
-            self.read(self.currentuid)
-        self.heading.stateChanged.connect(heading)
 
         def ref():
             if self.currentuid is None:
@@ -94,13 +55,9 @@ class AttributeView(QWidget):
         self.markreviewed.clicked.connect(markreviewed)
 
         def publishdocs():
-            os.system("doorstop publish all ./public")
+            publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))
         self.publish.clicked.connect(publishdocs)
 
-        grid.addWidget(self.active)
-        grid.addWidget(self.derived)
-        grid.addWidget(self.normative)
-        grid.addWidget(self.heading)
         grid.addWidget(self.reflabel)
         grid.addWidget(self.ref)
         grid.addWidget(self.refloc)
@@ -122,11 +79,6 @@ class AttributeView(QWidget):
         data = self.db.find(uid)
         if data is None:
             return
-
-        self.active.setCheckState(Qt.Checked if data.active else Qt.Unchecked)
-        self.derived.setCheckState(Qt.Checked if data.derived else Qt.Unchecked)
-        self.normative.setCheckState(Qt.Checked if data.normative else Qt.Unchecked)
-        self.heading.setCheckState(Qt.Checked if data.heading else Qt.Unchecked)
 
         self.ref.setText(data.ref)
         self.refloc.setText('')
@@ -151,18 +103,9 @@ class AttributeView(QWidget):
             self.reflabel.setVisible(True)
             self.ref.setVisible(True)
             self.refloc.setVisible(True)
-            self.active.setVisible(False)
-            self.derived.setVisible(False)
-            self.normative.setVisible(False)
-            self.heading.setVisible(False)
         else:
             self.reflabel.setVisible(False)
             self.ref.setVisible(False)
             self.refloc.setVisible(False)
-            '''
-            self.active.setVisible(True)
-            self.derived.setVisible(True)
-            self.normative.setVisible(True)
-            self.heading.setVisible(True)
-            '''
+
 

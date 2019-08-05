@@ -3,6 +3,7 @@ from .lastupdatedtext import LastUpdatedText
 from .decisiontakersview import DecisiontakersView
 from .extratextview import ExtratextView
 
+
 class ItemReqView(ItemView):
     def __init__(self):
         self.decisionlog = ExtratextView('Decision log')

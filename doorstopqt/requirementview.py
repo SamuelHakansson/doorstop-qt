@@ -69,12 +69,12 @@ class RequirementTreeView(QWidget):
         self.model.layoutChanged.connect(self.layoutwrapper)
 
         self.layoutchange_cooldown = 0
-
+        '''
         self.attributeview.active.stateChanged.connect(self.active_link)
         self.attributeview.derived.stateChanged.connect(self.derived_link)
         self.attributeview.normative.stateChanged.connect(self.normative_link)
         self.attributeview.heading.stateChanged.connect(self.heading_link)
-
+        '''
         self.newitemtext = newitemtext
         self.fullstack = {}
         self.treestack = []

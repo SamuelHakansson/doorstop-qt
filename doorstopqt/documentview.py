@@ -9,7 +9,7 @@ from .icon import Icon
 
 
 class DocumentView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, header=''):
         super(DocumentView, self).__init__(parent)
 
         self.vbox = QVBoxLayout()
@@ -51,6 +51,11 @@ class DocumentView(QWidget):
         self.searchlayout.setSpacing(0)
         self.completer = CustomQCompleter()
         self.searchbox.setCompleter(self.completer)
+        self.header = QLabel(header)
+        font = QFont()
+        font.setBold(True)
+        self.header.setFont(font)
+        self.vbox.addWidget(self.header)
         self.vbox.addLayout(self.searchlayout)
         self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
@@ -192,8 +197,7 @@ class DocumentView(QWidget):
             doc = self.docsdict[str(data)]
             docpath = Path(doc.path)
             listdir = os.listdir(doc.path)
-            itemsindoc = []
-            itemsindoc.append(Path(docpath))
+            itemsindoc = [Path(docpath)]
             for file in listdir:
                 path = Path(doc.path)
                 filepath = path / file

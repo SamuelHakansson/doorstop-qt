@@ -5,12 +5,13 @@ from .markdownview import MarkdownView
 from .icon import Icon
 import sys
 
+
 class ItemView(QVBoxLayout):
-    def __init__(self, views):
+    def __init__(self, views=None):
         super().__init__()
         self.markdownview = MarkdownView()
         self.markdownview.name = 'text'
-        self.views = [self.markdownview] + views
+        self.views = [self.markdownview] + (views or [])
         for view in self.views:
             self.addWidget(view, view.weight)
 
@@ -104,6 +105,8 @@ class ItemView(QVBoxLayout):
         view.storedtext = text
 
     def read(self, uid):
+        if uid is None:
+            return
         if self.currentuid is not None:
             if self.currentuid in self.cache and self.cache[self.currentuid]['changed']:
                 for view in self.views:
@@ -130,7 +133,6 @@ class ItemView(QVBoxLayout):
         self.currentuid = uid
         self.viewhtml()
 
-
     def save(self):
         if self.currentuid is None:
             return
@@ -150,7 +152,6 @@ class ItemView(QVBoxLayout):
     def savefunc(self, uid):
         for view in self.views:
             self.saveview(view, uid)
-
 
     def saveview(self, view, uid):
         text = view.text()
