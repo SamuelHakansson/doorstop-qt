@@ -152,7 +152,8 @@ class LinkView(QWidget):
         if self.currentuid is None:
             return
         menu = QMenu(parent=self)
-        si = self.selectedIndexes()
+        si = self.listview.selectedIndexes()
+
 
         if len(si) == 0:
             return
@@ -226,7 +227,7 @@ class LinkView(QWidget):
             return
         if self.currentuid is None:
             return
-        si = self.selectedIndexes()
+        si = self.listview.selectedIndexes()
 
         if len(si) == 0:
             return

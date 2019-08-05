@@ -43,7 +43,6 @@ class TestDatabase(ReqDatabase):
         self.folder = '/tests/'
         self.path = Path(os.getcwd() + self.folder)
         super().__init__()
-        print(self.root.vcs.path, flush=True)
         os.chdir(currentdir)
 
 
