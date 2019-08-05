@@ -644,7 +644,8 @@ class RequirementTreeView(QWidget):
         if self.db is None:
             return
         item = self.db.find(uid)
-        cat = str(item.parent_documents[0])
+        cat = str(item.document)
         self.lastselected[cat] = str(uid)
+        self.tree.setCurrentIndex(self.uidtoitem(uid).index())
         self.setupHeaders()
 
