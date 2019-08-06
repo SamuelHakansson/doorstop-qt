@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 import datetime
 
+
 class LastUpdatedText(QLabel):
     def __init__(self):
         super().__init__()

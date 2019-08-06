@@ -51,11 +51,8 @@ def main():
                 if not os.path.isdir(f):
                     f = os.path.dirname(f)
                 os.chdir(f)
-        view.database.add_listeners([view.attribview, view.linkview])
-        view.itemview.readfunc = lambda uid: view.database.find(uid).text
-        view.itemview.itemfunc = lambda uid: view.database.find(uid)
+        view.database.add_listeners([view.attribview, view.linkview, view.tree, view.docview, view.itemview])
 
-        view.database.add_listeners([view.tree, view.docview])
 
         def modeclb(editmode):
             if editmode:
@@ -69,7 +66,6 @@ def main():
 
     splitter.setOrientation(Qt.Vertical)
     splitter.setStretchFactor(0, 2)
-    splitter.setStretchFactor(1, 4)
     splitter.show()
     for view in views:
         view.movebuttons()

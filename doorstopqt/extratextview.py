@@ -22,7 +22,7 @@ class ExtratextView(QWidget):
         self.textview.setPlainText(text)
 
     def toPlainText(self):
-        self.textview.toPlainText()
+        return self.textview.toPlainText()
 
 
 

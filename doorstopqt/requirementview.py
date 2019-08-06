@@ -465,7 +465,6 @@ class RequirementTreeView(QWidget):
     def connectdb(self, db):
         self.db = db
 
-
     def updatecheckbox(self, s):
         checkboxinfo = s.data()
         if checkboxinfo is None:
@@ -477,23 +476,12 @@ class RequirementTreeView(QWidget):
         item = self.uidtoitem(uid)
         if item:
             if checkboxtype == 'active':
-
-                if uid == self.attributeview.currentuid:
-                    self.attributeview.active.setCheckState(s.checkState())
-                    # data is set in attributeview to db
-                else:
-                    data.active = True if s.checkState() == Qt.Checked else False
+                data.active = True if s.checkState() == Qt.Checked else False
 
             elif checkboxtype == 'derived':
-                if uid == self.attributeview.currentuid:
-                    self.attributeview.derived.setCheckState(s.checkState())
-                else:
-                    data.derived = True if s.checkState() == Qt.Checked else False
+                data.derived = True if s.checkState() == Qt.Checked else False
 
             elif checkboxtype == 'normative':
-                if uid == self.attributeview.currentuid:
-                    self.attributeview.normative.setCheckState(s.checkState())
-
                 if s.checkState() == Qt.Checked:
                     data.normative = True
 
@@ -502,9 +490,6 @@ class RequirementTreeView(QWidget):
                 self.setcheckboxfromuid(Qt.Checked if data.heading else Qt.Unchecked, uid, attribute=4)
 
             elif checkboxtype == 'heading':
-
-                if uid == self.attributeview.currentuid:
-                    self.attributeview.heading.setCheckState(s.checkState())
 
                 if s.checkState() == Qt.Checked:
                     data.heading = True

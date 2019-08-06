@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import *
 
 from .requirementview import RequirementTreeView
 from .documentview import DocumentView
-from .attributeview import AttributeView
 from .markreviewedview import MarkReviewedView
 from .linkview import LinkView
 from .itemview import ItemView
@@ -49,6 +48,7 @@ class FullView(QSplitter):
         self.addWidget(self.docview)
         self.addWidget(self.tree)
         self.addWidget(rview)
+
         self.splitterMoved.connect(self.movebuttons)
 
         self.tree.selectionclb = self.selectfunc
@@ -77,7 +77,7 @@ class FullView(QSplitter):
     def setstretch(self):
         self.setStretchFactor(0, 2)
         self.setStretchFactor(1, 5)
-        self.setStretchFactor(2, 4)
+        self.setStretchFactor(2, 4 / self.stretchfac)
 
 
 class ReqView(FullView):
@@ -86,6 +86,7 @@ class ReqView(FullView):
         self.calldatabase = ReqDatabase
         self.database = None
         self.header = 'Requirement'
+        self.stretchfac = 1
         super().__init__(itemview=self.itemview, header=self.header)
 
 
@@ -95,6 +96,7 @@ class TestView(FullView):
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
+        self.stretchfac = 2
         super().__init__(itemview=self.itemview, header=self.header)
 
 

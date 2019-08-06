@@ -45,7 +45,6 @@ class TestDatabase(ReqDatabase):
         super().__init__()
         os.chdir(currentdir)
 
-
     def reload(self):
         self.root = doorstop.core.builder.build(root=self.path)
         for l in self.listeners:

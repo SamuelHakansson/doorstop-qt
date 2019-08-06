@@ -110,7 +110,7 @@ class MarkdownView(QWidget):
         self.viewhtml()
 
         self.itemfunc = None
-        self.weight = 30
+        self.weight = 5
 
 
     def viewhtml(self):
