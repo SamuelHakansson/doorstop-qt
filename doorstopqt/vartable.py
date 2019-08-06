@@ -6,12 +6,12 @@ from PyQt5.QtCore import *
 class VarTable(QWidget):
     def __init__(self, name=None, label=None):
         super().__init__()
-        rows = 1
-        columns = 3
+        self.rows = 1
+        self.columns = 3
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
-        self.table = QTableWidget(rows, columns)
+        self.table = QTableWidget(self.rows, self.columns)
         self.table.setAlternatingRowColors(True)
         self.weight = 1
         self.name = name
@@ -26,11 +26,12 @@ class VarTable(QWidget):
 
     def newrow(self):
         columns = self.table.columnCount()
+        rows = self.table.rowCount()
         for i in range(columns):
-            it = self.table.item(0, i)
+            it = self.table.item(rows-1, i)
             if not it or not it.text():
                 return
-        self.table.insertRow(0)
+        self.table.insertRow(rows)
 
     def tableastext(self):
         tables = []
@@ -41,12 +42,21 @@ class VarTable(QWidget):
                     entry[header] = self.table.item(i, j).text()
             if entry:
                 tables.append(entry)
-        print(tables, flush=True)
-        return ''.join(json.dumps(entry) for entry in tables)
+        text = json.dumps(tables)
+        return text
 
     def setPlainText(self, text):
-        pass
+        if text is not None and text != "":
+            data = json.loads(text)
+            j = 0
+            for i, vars in enumerate(data):
+                for key, value in vars.items():
+                    self.table.setItem(0, j, QTableWidgetItem(value))
+                    j += 1
+        else:
+            self.table.clearContents()
+            self.table.setRowCount(self.rows)
 
     def toPlainText(self):
-        return ""
+        return self.tableastext()
 
