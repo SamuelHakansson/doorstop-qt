@@ -16,7 +16,6 @@ class RequirementTreeView(QWidget):
         self.model = QStandardItemModel()
         self.attributeview = attributeview
 
-
         self.document = None
         self.db = None
         self.editview = None
@@ -25,10 +24,10 @@ class RequirementTreeView(QWidget):
 
         self.revertbtn = RevertButton()
 
-
         self.setlinkfunc = None
         self.selectionclb = None
         oldSelectionChanged = self.tree.selectionChanged
+
         def selectionChanged(selected, deselected):
             if self.selectionclb is not None:
                 self.selectionclb(self.selecteduid())
@@ -53,7 +52,6 @@ class RequirementTreeView(QWidget):
         self.grid = QVBoxLayout()
         self.hbox = QHBoxLayout()
         self.revertbtn.setParent(self.tree)
-
 
         self.grid.addWidget(self.tree)
         self.setLayout(self.grid)

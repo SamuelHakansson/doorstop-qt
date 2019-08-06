@@ -54,7 +54,6 @@ class LinkView(QWidget):
         self.model = LinkItemModel()
         self.listview.setModel(self.model)
         self.listview.setAlternatingRowColors(True)
-        self.locked = False
         self.currentitemedit = None
         self.currentindexedit = None
         self.markdownview = markdownview
@@ -84,7 +83,6 @@ class LinkView(QWidget):
             uid = item.text()
             doc = self.db.find(uid)
             if doc is not None:
-                self.setlock(False)
                 self.db.root.link_items(self.currentuid, uid)
 
             self.goto(self.currentuid)
@@ -95,11 +93,7 @@ class LinkView(QWidget):
             if item.isEditable():
                 self.currentitemedit = item
                 self.currentindexedit = index
-                self.setlock(True)
                 self.edit(index)
-            else:
-                self.setlock(False)
-
 
         self.listview.clicked.connect(clicked)
 
@@ -141,11 +135,6 @@ class LinkView(QWidget):
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
 
-    def setlock(self, lock):
-        self.locked = lock
-        self.markdownview.locked = lock
-        self.attribview.locked = lock
-
     def contextmenu(self, pos):
         if self.db is None:
             return
@@ -186,8 +175,6 @@ class LinkView(QWidget):
 
     def read(self, uid):
         if self.db is None:
-            return
-        if self.locked:
             return
         self.currentuid = None
 
@@ -260,18 +247,16 @@ class LinkView(QWidget):
             self.gotoclb(uid)
 
     def setlinkingitem(self, uid):
-        if self.locked and uid != self.currentuid and uid:
+        if uid != self.currentuid and uid:
             parentuid = self.currentuid
             uid = str(uid)
             self.model.blockSignals(True)
             self.db.root.link_items(self.currentuid, uid)
 
-            self.setlock(False)
             self.model.blockSignals(False)
             self.read(parentuid)
             return parentuid
 
     def createlinkingitem(self, text):
         uid = self.completerdict[text]
-        self.setlock(True)
         self.setlinkingitem(uid)
