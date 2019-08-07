@@ -7,6 +7,7 @@ from .requirement_template import newitemtext
 from .customtree import CustomTree
 from .revertbutton import RevertButton
 
+
 class RequirementTreeView(QWidget):
     def __init__(self, parent=None, attributeview=None):
         super(RequirementTreeView, self).__init__(parent)
@@ -108,7 +109,14 @@ class RequirementTreeView(QWidget):
         uid = self.attributeview.currentuid
         self.setcheckboxfromuid(s, uid, attribute)
 
+    def uidtoguiindex(self, uid):
+        treeindices = self.gettreeindices()
+        for index in treeindices:
+            if index.data(Qt.UserRole) == str(uid):
+                return index
+
     def uidtoitem(self, uid):
+
         if uid is None:
             return
         data = self.db.find(uid)
@@ -157,10 +165,9 @@ class RequirementTreeView(QWidget):
         self.layoutchange_cooldown %= 5
 
     def gettreeindices(self):
-        movedobject = self.tree.currentIndex()
+        movedobject = self.model.index(0, 0)
         nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + nextlist
+        currentobjects_list = nextlist
         return currentobjects_list
 
     def onlayoutchanged(self):
@@ -251,13 +258,12 @@ class RequirementTreeView(QWidget):
                 children.append(child)
         return children
 
-
-    def getnext(self, index, nextobjectslist):
-        nextobject = self.tree.indexBelow(index)
-        if self.uidfromindex(nextobject) != None:
-            nextobjectslist.append(nextobject)
-            self.getnext(nextobject, nextobjectslist)
-        return nextobjectslist
+    def getnext(self, index, nextindexlist):
+        nextindex = self.tree.indexBelow(index)
+        if self.uidfromindex(nextindex) is not None:
+            nextindexlist.append(nextindex)
+            self.getnext(nextindex, nextindexlist)
+        return nextindexlist
 
     def getprevious(self, index, nextobjectslist):
         previousobject = self.tree.indexAbove(index)

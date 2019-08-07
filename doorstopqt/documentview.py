@@ -117,6 +117,8 @@ class DocumentView(QWidget):
             self.gotoclb(uid)
 
     def gotocompleted(self, searchstr):
+        if searchstr not in self.completerdict:
+            return
         uid = self.completerdict[searchstr]
         self.goto(uid)
 
@@ -218,8 +220,6 @@ class DocumentView(QWidget):
             self.revert.show()
             self.db.reload()
 
-
-
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
@@ -256,7 +256,6 @@ class DocumentView(QWidget):
             self.revert.show()
 
         self.documentstocreate = []
-
 
     def buildlist(self):
         if self.db is None or len(self.db.root.documents) == 0:
@@ -330,7 +329,6 @@ class DocumentView(QWidget):
                     self.warningmessage.hide()
                     self.moverevertbutton()
 
-
         elif type == self.REMOVE:
             folder = stack[0]
             if not os.path.exists(folder):
@@ -344,7 +342,6 @@ class DocumentView(QWidget):
         elif type == self.NEW:
             doc = stack
             doc.delete()
-
 
     def undoreload(self):
         self.db.reload()
@@ -377,13 +374,11 @@ class DocumentView(QWidget):
                     document._data['parent'] = None
                     document.save()
 
-
     def onlayoutchanged(self):
-        movedobject = self.tree.currentIndex()
+        firstobject = self.model.index(0, 0)
 
-        nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + nextlist
+        nextlist = self.getnext(firstobject, [])
+        currentobjects_list = nextlist
 
 
         nrroots = 0
@@ -408,14 +403,6 @@ class DocumentView(QWidget):
         if data is not None:
             nextobjectslist.append(nextobject)
             self.getnext(nextobject, nextobjectslist)
-        return nextobjectslist
-
-    def getprevious(self, index, nextobjectslist):
-        previousobject = self.tree.indexAbove(index)
-        data = self.model.data(previousobject, role=Qt.UserRole)
-        if data is not None:
-            nextobjectslist.insert(0, previousobject)
-            self.getprevious(previousobject, nextobjectslist)
         return nextobjectslist
 
     def findallchildren(self, item):

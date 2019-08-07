@@ -28,7 +28,7 @@ class FullView(QSplitter):
         self.tree.connectview(self.markdownview)
         self.tree.connectdocview(self.docview)
         self.tree.post_init()
-        self.views = [self.attribview, self.linkview, self.itemview, self.tree, self.docview]
+        self.views = [self.attribview, self.linkview, self.docview, self.tree, self.itemview]
 
         editor = QWidget()
         editorgrid = QVBoxLayout()
