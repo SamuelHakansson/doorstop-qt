@@ -11,6 +11,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.otherdb = None
         self.model = SimpleLinkItemModel()
         self.listview.setModel(self.model)
+        self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', header, 'link>'))
 
         def dataChanged(index):
             if self.db is None:

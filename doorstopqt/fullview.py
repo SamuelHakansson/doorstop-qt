@@ -20,7 +20,7 @@ class FullView(QSplitter):
 
         self.attribview = MarkReviewedView()
         self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower()+"s")
-        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.header.lower()+"s")
+        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.otherheader.lower()+"s")
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
@@ -97,6 +97,7 @@ class ReqView(FullView):
         self.calldatabase = ReqDatabase
         self.database = None
         self.header = 'Requirement'
+        self.otherheader = 'test'
         self.stretchfac = 1
         super().__init__()
 
@@ -107,6 +108,7 @@ class TestView(FullView):
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
+        self.otherheader = 'requirement'
         self.stretchfac = 2
         super().__init__()
 
