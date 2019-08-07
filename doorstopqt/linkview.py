@@ -49,7 +49,6 @@ class LinkReqAndTestView(AbstractLinkView):
                 item.setData(str(link))
                 item.setEditable(False)
                 self.model.appendRow(item)
-
         self.currentuid = uid
 
     def contextmenu(self, pos):
@@ -73,7 +72,6 @@ class LinkReqAndTestView(AbstractLinkView):
         menu.popup(self.mapToGlobal(pos))
 
     def remove_selected_link(self):
-        #print(self.db, self.currentuid, flush=True)
         if self.db is None:
             return
         if self.currentuid is None:
@@ -89,8 +87,12 @@ class LinkReqAndTestView(AbstractLinkView):
         dbitem = self.db.find(self.currentuid)
         print(dbitem, flush=True)
         if self.key in dbitem._data:
-            print(dbitem._data[self.key], flush=True)
+            newdata = dbitem._data[self.key].replace(data, "")
+            print(newdata, flush=True)
+            dbitem._data[self.key] = newdata
+            dbitem.save()
         otherdbitem = self.otherdb.find(data)
+
         self.read(self.currentuid)
 
 

@@ -62,11 +62,6 @@ class AbstractLinkView(QWidget):
             self.goto(uid)
         self.listview.doubleClicked.connect(dblclicked)
 
-        self.listview.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.listview.customContextMenuRequested.connect(self.contextmenu)
-
-
-
     def setlock(self, lock):
         self.locked = lock
 
