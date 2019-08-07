@@ -98,7 +98,7 @@ class ReqView(FullView):
         self.database = None
         self.header = 'Requirement'
         self.otherheader = 'test'
-        self.stretchfac = 1
+        self.stretchfac = 2
         super().__init__()
 
 

@@ -1,23 +1,22 @@
 from .itemview import ItemView
 from .lastupdatedtext import LastUpdatedText
-from .decisiontakersview import DecisiontakersView
-from .extratextview import ExtratextView
+from.decisionview import DecisionView
 
 
 class ItemReqView(ItemView):
     def __init__(self):
-        self.decisionlog = ExtratextView('Decision log')
-        self.decisiontakers = DecisiontakersView('Decision takers')
-        self.lastupdatedtext = LastUpdatedText()
-        self.decisionlog.weight = 10
-        self.decisionlog.name = 'decisionlog'
-        self.decisiontakers.name = 'decisiontakers'
-        self.lastupdatedtext.name = 'lastupdated'
-        self.views = [self.decisionlog, self.decisiontakers, self.lastupdatedtext]
-        super().__init__(self.views)
 
-        self.decisionlog.textview.selectionChanged.connect(self.vieweditor)
-        self.decisionlog.textview.textChanged.connect(self.textChanged)
-        self.decisiontakers.textview.textChanged.connect(self.textChanged)
-        self.decisiontakers.textview.selectionChanged.connect(self.vieweditor)
+        self.lastupdatedtext = LastUpdatedText()
+        self.lastupdatedtext.name = 'lastupdated'
+        self.decisionview = DecisionView()
+        self.views = [self.decisionview, self.lastupdatedtext]
+        self.viewssplitted = self.decisionview.views + [self.lastupdatedtext]
+        super().__init__(self.views, self.viewssplitted)
+
+
+        self.decisionview.decisionlog.textview.selectionChanged.connect(self.vieweditor)
+        self.decisionview.decisionlog.textview.textChanged.connect(self.textChanged)
+        self.decisionview.decisiontakers.textview.textChanged.connect(self.textChanged)
+        self.decisionview.decisiontakers.textview.selectionChanged.connect(self.vieweditor)
+
 
