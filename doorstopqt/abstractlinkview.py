@@ -36,6 +36,9 @@ class AbstractLinkView(QWidget):
         self.completerdict = {}
         self.gotoclb = None
 
+        self.listview.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.listview.customContextMenuRequested.connect(self.contextmenu)
+        self.completer.activated.connect(self.createlinkingitem)
 
 
         def clicked(index):
@@ -61,6 +64,11 @@ class AbstractLinkView(QWidget):
                 uid = data[1]
             self.goto(uid)
         self.listview.doubleClicked.connect(dblclicked)
+
+    def createlinkingitem(self, text):
+        uid = self.completerdict[text]
+        self.setlock(True)
+        self.setlinkingitem(uid)
 
     def setlock(self, lock):
         self.locked = lock

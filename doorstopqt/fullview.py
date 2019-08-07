@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import *
 from .requirementview import RequirementTreeView
 from .documentview import DocumentView
 from .markreviewedview import MarkReviewedView
-from .linkview import LinkView, LinkReqAndTestView
+from .linkview import LinkView
+from .linkreqandtestview import LinkReqAndTestView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
@@ -32,7 +33,6 @@ class FullView(QSplitter):
         editor = QWidget()
         editorgrid = QVBoxLayout()
         editorgrid.setContentsMargins(0, 0, 0, 0)
-        editorgrid.addWidget(self.attribview)
         editorgrid.addLayout(self.itemview)
         editor.setLayout(editorgrid)
 
@@ -48,6 +48,7 @@ class FullView(QSplitter):
         rlinkview.setLayout(rlinkviewgrid)
 
         rightvsplitter = QSplitter(Qt.Vertical)
+        rightvsplitter.addWidget(self.attribview)
         rightvsplitter.addWidget(self.linkview)
         rightvsplitter.addWidget(self.reqtestlinkview)
         rlinkviewgrid.addWidget(rightvsplitter)
