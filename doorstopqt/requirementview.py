@@ -190,9 +190,7 @@ class RequirementTreeView(QWidget):
             treeofitems.append(branch)
 
         self.rename(treeofitems)
-
         self.setupHeaders()
-
 
     def rename(self, tree):
         for i, t in enumerate(tree):
@@ -267,13 +265,12 @@ class RequirementTreeView(QWidget):
 
     def getprevious(self, index, nextobjectslist):
         previousobject = self.tree.indexAbove(index)
-        if self.uidfromindex(previousobject) != None:
+        if self.uidfromindex(previousobject) is not None:
             nextobjectslist.insert(0, previousobject)
             self.getprevious(previousobject, nextobjectslist)
         else:
             self.tree.setRootIndex(previousobject)
         return nextobjectslist
-
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
@@ -329,6 +326,7 @@ class RequirementTreeView(QWidget):
 
             menu.addSeparator()
             act = menu.addAction('Remove item')
+
             def removerequirement(data):
                 backupfile = open(data.path, 'rb').read()
                 self.treestack.append(((backupfile, data.path), self.REMOVE))
@@ -341,6 +339,7 @@ class RequirementTreeView(QWidget):
             act.triggered.connect(lambda: createrequirement())
         menu.addSeparator()
         menu.addAction('Expand all').triggered.connect(lambda: self.tree.expandAll())
+
         def collapse():
             self.tree.collapseAll()
             self.tree.clearSelection()
@@ -503,7 +502,6 @@ class RequirementTreeView(QWidget):
                 self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
                 self.updateuidfromitem(item)
 
-
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(self.headerlabel)
         header = self.tree.header()
@@ -527,10 +525,8 @@ class RequirementTreeView(QWidget):
         extraheight = self.tree.horizontalScrollBar().height()
         self.revertbtn.move(self.tree.width() - 50, self.tree.height() - extraheight - 30)
 
-
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)
-
 
     def connectview(self, view):
         self.editview = view
@@ -635,6 +631,8 @@ class RequirementTreeView(QWidget):
         item = self.db.find(uid)
         cat = str(item.document)
         self.lastselected[cat] = str(uid)
-        self.tree.setCurrentIndex(self.uidtoitem(uid).index())
+        guiitem = self.uidtoitem(uid)
+        if guiitem:
+            self.tree.setCurrentIndex(self.uidtoitem(uid).index())
         self.setupHeaders()
 

@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import *
 from .requirementview import RequirementTreeView
 from .documentview import DocumentView
 from .markreviewedview import MarkReviewedView
-from .linkview import LinkView
-from .itemview import ItemView
+from .linkview import LinkView, LinkReqAndTestView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
@@ -14,21 +13,21 @@ from .databases import ReqDatabase, TestDatabase
 
 
 class FullView(QSplitter):
-    def __init__(self, itemview=None, header=''):
+    def __init__(self):
         super().__init__()
-        self.itemview = itemview or ItemView()
         self.markdownview = self.itemview.markdownview
 
         self.attribview = MarkReviewedView()
-        self.linkview = LinkView(self.markdownview, self.attribview)
+        self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower()+"s")
+        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.header.lower()+"s")
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
-        self.tree.setheaderlabel(header)
-        self.docview = DocumentView(header=header + 's')
+        self.tree.setheaderlabel(self.header)
+        self.docview = DocumentView(header=self.header + 's')
         self.tree.connectview(self.markdownview)
         self.tree.connectdocview(self.docview)
         self.tree.post_init()
-        self.views = [self.attribview, self.linkview, self.docview, self.tree, self.itemview]
+        self.views = [self.attribview, self.linkview, self.reqtestlinkview, self.docview, self.tree, self.itemview]
 
         editor = QWidget()
         editorgrid = QVBoxLayout()
@@ -42,17 +41,27 @@ class FullView(QSplitter):
         rview.setLayout(rviewgrid)
         vsplitter = QSplitter(Qt.Vertical)
         vsplitter.addWidget(editor)
-        vsplitter.addWidget(self.linkview)
         rviewgrid.addWidget(vsplitter)
+
+        rlinkview = QWidget()
+        rlinkviewgrid = QVBoxLayout()
+        rlinkview.setLayout(rlinkviewgrid)
+
+        rightvsplitter = QSplitter(Qt.Vertical)
+        rightvsplitter.addWidget(self.linkview)
+        rightvsplitter.addWidget(self.reqtestlinkview)
+        rlinkviewgrid.addWidget(rightvsplitter)
 
         self.addWidget(self.docview)
         self.addWidget(self.tree)
         self.addWidget(rview)
+        self.addWidget(rlinkview)
 
         self.splitterMoved.connect(self.movebuttons)
 
         self.tree.selectionclb = self.selectfunc
         self.linkview.gotoclb = self.selectfunc
+        self.reqtestlinkview.gotoclb = self.selectfunc
         self.docview.gotoclb = self.selectfunc
         self.tree.setlinkfunc = self.setlink
 
@@ -76,8 +85,9 @@ class FullView(QSplitter):
 
     def setstretch(self):
         self.setStretchFactor(0, 2)
-        self.setStretchFactor(1, 5)
-        self.setStretchFactor(2, 4 / self.stretchfac)
+        self.setStretchFactor(1, 3)
+        self.setStretchFactor(2, int(4 / self.stretchfac))
+        self.setStretchFactor(3, 3)
 
 
 class ReqView(FullView):
@@ -87,7 +97,7 @@ class ReqView(FullView):
         self.database = None
         self.header = 'Requirement'
         self.stretchfac = 1
-        super().__init__(itemview=self.itemview, header=self.header)
+        super().__init__()
 
 
 class TestView(FullView):
@@ -97,7 +107,7 @@ class TestView(FullView):
         self.database = None
         self.header = 'Test'
         self.stretchfac = 2
-        super().__init__(itemview=self.itemview, header=self.header)
+        super().__init__()
 
 
 

@@ -2,6 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from markdown import markdown
 
+
 class LinkItemModel(QStandardItemModel):
     def __init__(self, parent=None):
         super(LinkItemModel, self).__init__(parent)
@@ -36,3 +37,19 @@ class LinkItemModel(QStandardItemModel):
             return ''
 
         return super(LinkItemModel, self).data(index, role)
+
+
+class SimpleLinkItemModel(QStandardItemModel):
+    def __init__(self, parent=None):
+        super(SimpleLinkItemModel, self).__init__(parent)
+
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            item = self.itemFromIndex(index)
+            data = item.data()
+            if type(data) is str:
+                uid = data
+                return str(uid)
+        return super(SimpleLinkItemModel, self).data(index, role)
+
+

@@ -51,8 +51,8 @@ def main():
                 if not os.path.isdir(f):
                     f = os.path.dirname(f)
                 os.chdir(f)
-        view.database.add_listeners([view.attribview, view.linkview, view.tree, view.docview, view.itemview])
-
+        view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.tree, view.docview,
+                                     view.itemview])
 
         def modeclb(editmode):
             if editmode:
@@ -60,6 +60,12 @@ def main():
             else:
                 view.attribview.showref(False)
         view.markdownview.modeclb = modeclb
+
+    reqview.reqtestlinkview.setotherdb(testview.database)
+    testview.reqtestlinkview.setotherdb(reqview.database)
+
+    reqview.reqtestlinkview.gotoclb = testview.selectfunc
+    testview.reqtestlinkview.gotoclb = testview.selectfunc
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir
