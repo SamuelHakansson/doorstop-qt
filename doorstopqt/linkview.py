@@ -44,11 +44,13 @@ class LinkReqAndTestView(AbstractLinkView):
         self.model.clear()
         item = self.db.find(uid)
         if self.key in item._data:
-            link = item._data[self.key]
-            item = QStandardItem(str(link))
-            item.setData(str(link))
-            item.setEditable(False)
-            self.model.appendRow(item)
+            for link in item._data[self.key].split():
+                item = QStandardItem(str(link))
+                item.setData(str(link))
+                item.setEditable(False)
+                self.model.appendRow(item)
+
+        self.currentuid = uid
 
     def contextmenu(self, pos):
         if self.db is None:
@@ -63,15 +65,33 @@ class LinkReqAndTestView(AbstractLinkView):
 
         item = self.model.itemFromIndex(si[0])
         data = item.data()
-        if type(data) is not tuple:
-            return
-        target = data[2]
-        act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(target.uid)))
-        act.triggered.connect(lambda: self.goto(target.uid))
+        act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(data)))
+        act.triggered.connect(lambda: self.goto(data))
 
         act = menu.addAction(self.icons.DialogCloseButton, 'Remove link')
         act.triggered.connect(self.remove_selected_link)
         menu.popup(self.mapToGlobal(pos))
+
+    def remove_selected_link(self):
+        #print(self.db, self.currentuid, flush=True)
+        if self.db is None:
+            return
+        if self.currentuid is None:
+            return
+        si = self.listview.selectedIndexes()
+
+        if len(si) == 0:
+            return
+
+        item = self.model.itemFromIndex(si[0])
+        data = item.data()
+
+        dbitem = self.db.find(self.currentuid)
+        print(dbitem, flush=True)
+        if self.key in dbitem._data:
+            print(dbitem._data[self.key], flush=True)
+        otherdbitem = self.otherdb.find(data)
+        self.read(self.currentuid)
 
 
     def updateCompleter(self):
