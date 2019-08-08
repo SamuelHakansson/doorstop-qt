@@ -477,7 +477,6 @@ class RequirementTreeView(QWidget):
         checkboxtype = s.data()
 
         item = self.uidtoitem(uid)
-        print('before:', data.level, data.normative, data.heading, flush=True)
         if item:
             if checkboxtype == 'active':
                 data.active = True if s.checkState() == Qt.Checked else False
@@ -505,7 +504,6 @@ class RequirementTreeView(QWidget):
 
                 self.setcheckboxfromuid(Qt.Checked if data.normative else Qt.Unchecked, uid, attribute=3)
                 self.updateuidfromitem(item)
-        print('after:', data.level, data.normative, data.heading, flush=True)
 
     def setupHeaders(self):
         self.model.setHorizontalHeaderLabels(self.headerlabel)
@@ -605,7 +603,6 @@ class RequirementTreeView(QWidget):
         index = self.model.indexFromItem(item)
         data = self.model.data(index, role=Qt.UserRole)
         level = str(data.level)
-        print(level, data.heading, data.normative, flush=True)
         uid = self.uidfromindex(index)
         text = None
         if data.heading:
