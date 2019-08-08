@@ -99,7 +99,6 @@ class MarkdownView(QWidget):
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
         self.editview.setPlainText(text)
 
-
         self.layout.addWidget(QLabel('Description'))
         self.layout.addWidget(self.editview)
         self.layout.addWidget(self.htmlview)
@@ -111,7 +110,6 @@ class MarkdownView(QWidget):
 
         self.itemfunc = None
         self.weight = 15
-
 
     def viewhtml(self):
         from markdown import markdown

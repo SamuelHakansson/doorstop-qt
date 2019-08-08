@@ -70,7 +70,6 @@ class LinkView(AbstractLinkView):
 
 
     def read(self, uid):
-
         if self.db is None:
             return
         if self.locked:

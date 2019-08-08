@@ -6,6 +6,7 @@ from markdown import markdown
 from .requirement_template import newitemtext
 from .customtree import CustomTree
 from .revertbutton import RevertButton
+import pathlib
 
 
 class RequirementTreeView(QWidget):
@@ -82,6 +83,8 @@ class RequirementTreeView(QWidget):
         self.NEW = 2
 
         self.headerlabel = ['Requirement', 'Active', 'Derived', 'Normative', 'Heading']
+
+        self.otherdbview = None
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -327,10 +330,17 @@ class RequirementTreeView(QWidget):
             menu.addSeparator()
             act = menu.addAction('Remove item')
 
-            def removerequirement(data):
-                backupfile = open(data.path, 'rb').read()
-                self.treestack.append(((backupfile, data.path), self.REMOVE))
-                uid = data.uid
+            def removerequirement(item):
+                backupfile = open(item.path, 'rb').read()
+                self.treestack.append(((backupfile, item.path), self.REMOVE))
+                uid = item.uid
+                data = item.data
+                if self.otherdbview:
+                    if self.otherdbview.key in data:
+                        linkeduids = data[self.otherdbview.key]
+                        for linkeduid in linkeduids:
+                            otheritem = self.otherdbview.otherdb.find(linkeduid)
+                            self.otherdbview.removelink(otheritem, uid)
                 self.db.remove(uid)
                 self.revertbtn.show()
             act.triggered.connect(lambda: removerequirement(data))
@@ -376,6 +386,11 @@ class RequirementTreeView(QWidget):
             file.write(data)
             file.close()
             self.db.reload()
+            uid = pathlib.Path(path).stem
+            item = self.db.find(uid)
+            if self.otherdbview.key in item.data:
+                for linkeduid in item.data[self.otherdbview.key]:
+                    self.otherdbview.linkitems(uid, linkeduid)
 
         elif type == self.NEW:
             uid = stack
@@ -516,7 +531,7 @@ class RequirementTreeView(QWidget):
         self.setupHeaderwidth()
 
     def setheaderlabel(self, label):
-        self.headerlabel = [label, 'Active', 'Derived', 'Normative', 'Heading']
+        self.headerlabel[0] = label
 
     def setupHeaderwidth(self):
         self.tree.setColumnWidth(0, self.tree.width()-235)

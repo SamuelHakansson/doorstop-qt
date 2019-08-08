@@ -66,16 +66,23 @@ class FullView(QSplitter):
         self.docview.gotoclb = self.selectfunc
         self.tree.setlinkfunc = self.setlink
 
+        self.tree.otherdbview = self.reqtestlinkview
+
         self.setstretch()
 
-    def readuid(self, uid):
-        if uid is None:
+        self.currentuid = None
+
+    def readuid(self, uid, readcurrent=False):
+        if uid is None and readcurrent is False:
             return
+        if readcurrent:
+            uid = self.currentuid
         for view in self.views:
             view.read(uid)
+        self.currentuid = uid
 
-    def selectfunc(self, uid):
-        self.readuid(uid)
+    def selectfunc(self, uid, readcurrent=False):
+        self.readuid(uid, readcurrent)
 
     def setlink(self, uid):
         return self.linkview.setlinkingitem(uid)

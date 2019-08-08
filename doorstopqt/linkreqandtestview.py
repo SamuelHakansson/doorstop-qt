@@ -41,7 +41,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.model.clear()
         item = self.db.find(uid)
         if self.key in item._data:
-            for link in item._data[self.key].split():
+            for link in item._data[self.key]:
                 item = QStandardItem(str(link))
                 item.setData(str(link))
                 item.setEditable(False)
@@ -103,15 +103,17 @@ class LinkReqAndTestView(AbstractLinkView):
         self.otherdb = db
         self.updateCompleter()
 
-    def goto(self, uid):
+    def goto(self, uid, readcurrent=False):
         if self.gotoclb:
-            self.gotoclb(uid)
+            self.gotoclb(uid, readcurrent)
 
     def removelink(self, dbitem, data):
+        if not dbitem:
+            return
         if self.key in dbitem._data:
-            newdata = dbitem._data[self.key].replace(data, "")
-            print(newdata, flush=True)
-            dbitem.set(self.key, newdata)
+            tmp = dbitem._data[self.key]
+            tmp.remove(data)
+            dbitem.set(self.key, tmp)
 
     def setlinkingitem(self, uid):
         if self.locked and uid != self.currentuid and uid:
@@ -126,12 +128,12 @@ class LinkReqAndTestView(AbstractLinkView):
         if self.key in item._data:
             return item._data[self.key]
         else:
-            return ""
+            return []
 
     def linkitems(self, uidthis, uidother):
         itemthis = self.db.find(uidthis)
         itemother = self.otherdb.find(uidother)
-        itemthisstr = str(itemother) + " " + self.getlinkdata(itemthis)
-        itemotherstr = str(itemthis) + " " + self.getlinkdata(itemother)
-        itemthis.set(self.key, itemthisstr)
-        itemother.set(self.key, itemotherstr)
+        if uidother not in self.getlinkdata(itemthis):
+            itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
+        if uidthis not in self.getlinkdata(itemother):
+            itemother.set(self.key, self.getlinkdata(itemother) + [uidthis])
