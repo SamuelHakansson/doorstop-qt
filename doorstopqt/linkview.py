@@ -1,7 +1,7 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .abstractlinkview import AbstractLinkView
-from .linkitemmodel import LinkItemModel, SimpleLinkItemModel
+from .linkitemmodel import LinkItemModel
 
 
 class LinkView(AbstractLinkView):
@@ -12,8 +12,6 @@ class LinkView(AbstractLinkView):
 
         self.model = LinkItemModel()
         self.listview.setModel(self.model)
-
-
 
         def dataChanged(index):
             if self.db is None:

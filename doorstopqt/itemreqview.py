@@ -13,10 +13,8 @@ class ItemReqView(ItemView):
         self.viewssplitted = self.decisionview.views + [self.lastupdatedtext]
         super().__init__(self.views, self.viewssplitted)
 
-
         self.decisionview.decisionlog.textview.selectionChanged.connect(self.vieweditor)
         self.decisionview.decisionlog.textview.textChanged.connect(self.textChanged)
-        self.decisionview.decisiontakers.textview.textChanged.connect(self.textChanged)
-        self.decisionview.decisiontakers.textview.selectionChanged.connect(self.vieweditor)
-
+        #self.decisionview.decisiontakers.listview.dataChanged.connect(self.textChanged)
+        #self.decisionview.decisiontakers.listview.selectionChanged.connect(self.vieweditor)
 
