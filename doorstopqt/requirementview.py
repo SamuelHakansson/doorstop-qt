@@ -119,7 +119,6 @@ class RequirementTreeView(QWidget):
                 return index
 
     def uidtoitem(self, uid):
-
         if uid is None:
             return
         data = self.db.find(uid)

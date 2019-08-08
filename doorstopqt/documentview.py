@@ -75,7 +75,6 @@ class DocumentView(QWidget):
         self.doctonewname = {}
         self.willberemoved = {}
         self.documentstocreate = []
-        self.path = './reqs/'
         self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
@@ -170,19 +169,24 @@ class DocumentView(QWidget):
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
-        addaction = menu.addAction("Create child document")
-        addaction.triggered.connect(lambda: addnewdocument(item))
-        menu.addSeparator()
-        renameaction = menu.addAction("Rename")
-        renameaction.triggered.connect(lambda: rename(item))
-        menu.addSeparator()
-
-        removeaction = menu.addAction('Remove')
-        removeaction.triggered.connect(lambda: remove(item))
-
         si = self.tree.selectedIndexes()
-        indextoremove = si[0]
-        item = self.model.itemFromIndex(indextoremove)
+        if len(si) > 0:
+            selectedindex = si[0]
+            item = self.model.itemFromIndex(selectedindex)
+
+            addaction = menu.addAction("Create child document")
+            addaction.triggered.connect(lambda: addnewdocument(item))
+            menu.addSeparator()
+            renameaction = menu.addAction("Rename")
+            renameaction.triggered.connect(lambda: rename(item))
+            menu.addSeparator()
+
+            removeaction = menu.addAction('Remove')
+            removeaction.triggered.connect(lambda: remove(item))
+        else:
+            addaction = menu.addAction("Create document")
+            addaction.triggered.connect(lambda: addnewdocument())
+
 
         def remove(item):
             documenttoremove(item)
@@ -223,9 +227,12 @@ class DocumentView(QWidget):
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
-        def addnewdocument(parentitem):
+        def addnewdocument(parentitem=None):
             newitem = QStandardItem()
-            parentitem.appendRow(newitem)
+            if parentitem:
+                parentitem.appendRow(newitem)
+            else:
+                self.model.appendRow(newitem)
             self.tree.edit(newitem.index())
 
         menu.popup(self.tree.mapToGlobal(pos))
@@ -245,10 +252,14 @@ class DocumentView(QWidget):
             self.model.blockSignals(True)
             docitem.setData(prefix, role=Qt.UserRole)
             self.model.blockSignals(False)
-            path = self.path + prefix
-            parent = docitem.parent().text()
+            path = Path(self.db.root.root, prefix)
+            if docitem.parent():
+                parent = docitem.parent().text()
+            else:
+                parent = None
             print('{} {} {}'.format(prefix, parent, path), flush=True)
             doc = self.db.root.create_document(path, prefix, parent=parent)
+            print(doc.parent, flush=True)
             self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(docitem.index())
             self.treestack.append((doc, self.NEW))

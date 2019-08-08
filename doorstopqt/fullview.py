@@ -10,7 +10,7 @@ from .linkreqandtestview import LinkReqAndTestView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
-from .databases import ReqDatabase, TestDatabase
+from .databases import ReqDatabase, TestDatabase, ProductDatabase
 
 
 class FullView(QSplitter):
@@ -119,5 +119,15 @@ class TestView(FullView):
         self.stretchfac = 2
         super().__init__()
 
+
+class ProductView(FullView):
+    def __init__(self):
+        self.itemview = ItemTestView()
+        self.calldatabase = ProductDatabase
+        self.database = None
+        self.header = 'Product'
+        self.otherheader = 'requirement'
+        self.stretchfac = 2
+        super().__init__()
 
 

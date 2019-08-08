@@ -3,7 +3,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from .fullview import ReqView, TestView
+from .fullview import ReqView, TestView, ProductView
 from .version import VERSION
 import resources  # resources fetches icons
 
@@ -36,7 +36,8 @@ def main():
 
     reqview = ReqView()
     testview = TestView()
-    views = [testview, reqview]
+    productview = ProductView()
+    views = [testview, reqview, productview]
     for view in views:
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
 
@@ -65,10 +66,11 @@ def main():
     testview.reqtestlinkview.setotherdb(reqview.database)
 
     reqview.reqtestlinkview.gotoclb = testview.selectfunc
-    testview.reqtestlinkview.gotoclb = testview.selectfunc
+    testview.reqtestlinkview.gotoclb = reqview.selectfunc
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir
+    splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
     splitter.setStretchFactor(0, 2)
