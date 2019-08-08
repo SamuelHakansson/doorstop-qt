@@ -35,7 +35,6 @@ class DecisiontakersView(QWidget):
 
     def setPlainText(self, decisiontakers):
         self.model.clear()
-        print(decisiontakers, flush=True)
         if decisiontakers:
             for decisiontaker in decisiontakers:
                 self.additem(decisiontaker)
@@ -48,7 +47,6 @@ class DecisiontakersView(QWidget):
         for row in range(self.rows()):
             item = self.listview.model().index(row, 0)
             name = item.data()
-            print(name, flush=True)
             if name:
                 decisiontakerslist.append(name)
         return decisiontakerslist

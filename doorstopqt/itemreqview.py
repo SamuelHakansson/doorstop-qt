@@ -15,6 +15,4 @@ class ItemReqView(ItemView):
 
         self.decisionview.decisionlog.textview.selectionChanged.connect(self.vieweditor)
         self.decisionview.decisionlog.textview.textChanged.connect(self.textChanged)
-        #self.decisionview.decisiontakers.listview.dataChanged.connect(self.textChanged)
-        #self.decisionview.decisiontakers.listview.selectionChanged.connect(self.vieweditor)
-
+        self.decisionview.decisiontakers.listview.model().dataChanged.connect(self.textChanged)

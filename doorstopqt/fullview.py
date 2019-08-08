@@ -19,8 +19,8 @@ class FullView(QSplitter):
         self.markdownview = self.itemview.markdownview
 
         self.attribview = MarkReviewedView()
-        self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower()+"s")
-        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.otherheader.lower()+"s")
+        self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower())
+        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.otherheader.lower())
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
