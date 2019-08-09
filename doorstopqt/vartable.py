@@ -34,12 +34,15 @@ class VarTable(QWidget):
         self.table.insertRow(rows)
 
     def tableastext(self):
-        entry = []
+        pairs = []
         for i in range(self.table.rowCount()):
+            entry = []
             for j, header in enumerate(self.headers):
                 if self.table.item(i, j):
                     entry.append(self.table.item(i, j).text())
-        return [entry]
+            if entry:
+                pairs.append(entry)
+        return pairs
 
     def setPlainText(self, text):
         if text is not None and text != "":
