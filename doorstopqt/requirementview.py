@@ -183,7 +183,7 @@ class RequirementTreeView(QWidget):
         currentobjects_list = previouslist + nextlist
         topindices = []
         for index in currentobjects_list:
-            if self.itemtouid(self.model.itemFromIndex(index).parent()) == None:
+            if self.itemtouid(self.model.itemFromIndex(index).parent()) is None:
                 topindices.append(index)
 
         treeofitems = []
@@ -488,9 +488,11 @@ class RequirementTreeView(QWidget):
             return
         data = s.data(role=Qt.UserRole)
         uid = data.uid
+        data = self.db.find(uid)
         checkboxtype = s.data()
 
         item = self.uidtoitem(uid)
+        print('checkbox', uid, data.level, flush=True)
         if item:
             if checkboxtype == 'active':
                 data.active = True if s.checkState() == Qt.Checked else False
@@ -501,6 +503,7 @@ class RequirementTreeView(QWidget):
             elif checkboxtype == 'normative':
                 if s.checkState() == Qt.Checked:
                     data.normative = True
+
                     if data.level.value[-1] == 0:
                         data.level = data.level.value[:-1]
                 else:
@@ -576,6 +579,7 @@ class RequirementTreeView(QWidget):
             dbitem = self.db.find(uid)
             data.level = level
             dbitem.level = level
+            print('setlevel', uid, level, flush=True)
             return True
 
     def selecteduid(self):
