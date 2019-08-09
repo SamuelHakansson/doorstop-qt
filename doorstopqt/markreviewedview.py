@@ -2,14 +2,14 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
-from doorstop.core import publisher
+from doorstop.core import publisher, Document, Tree
 import os
 from .icon import Icon
 from pathlib import Path
 
 
 class MarkReviewedView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, publishtest=False, parent=None):
         super(MarkReviewedView, self).__init__(parent)
 
         self.db = None
@@ -31,6 +31,7 @@ class MarkReviewedView(QWidget):
         sendicon = papirusicons.fromTheme("document-send-symbolic")
         self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
+        self.getotherdbitems = None
         self.readlinkview = None
 
         def ref():
@@ -54,6 +55,31 @@ class MarkReviewedView(QWidget):
                 self.readlinkview(self.currentuid)
         self.markreviewed.clicked.connect(markreviewed)
 
+        def publishtestforproduct():
+            tree, items = self.getotherdbitems()
+            path = tree.root
+            pathtodoc = Path(path, "test-for-product")
+            activedict = {}
+            textdict = {}
+            for doc in tree.documents:
+                for item in doc.items:
+                    activedict[str(item)] = item.active
+                    textdict[str(item)] = item.text
+
+            for doc in tree.documents:
+                for item in doc.items:
+                    if item in items:
+                        item.active = True
+                    else:
+                        item.active = False
+                    item.text = item.text.replace(item.data['inputvariables'])
+
+            publisher.publish(tree, pathtodoc)
+
+            for doc in tree.documents:
+                for item in doc.items:
+                    item.active = activedict[str(item)]
+
         def publishdocs():
             publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))
         self.publish.clicked.connect(publishdocs)
@@ -63,6 +89,12 @@ class MarkReviewedView(QWidget):
         grid.addWidget(self.refloc)
         grid.addStretch(1)
         grid.addWidget(self.markreviewed)
+        if publishtest:
+            self.publishtest = QPushButton(sendicon, 'Publish test for product')
+            self.publishtest.setVisible(True)
+            self.publishtest.clicked.connect(publishtestforproduct)
+            grid.addWidget(self.publishtest)
+
         grid.addWidget(self.publish)
         self.setLayout(grid)
 

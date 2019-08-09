@@ -18,9 +18,10 @@ class FullView(QSplitter):
         super().__init__()
         self.markdownview = self.itemview.markdownview
 
-        self.attribview = MarkReviewedView()
+        self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower())
-        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, header=self.otherheader.lower())
+        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[0],  header=self.otherheaders[0].lower())
+        self.reqtestlinkview2 = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[1],  header=self.otherheaders[1].lower())
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
@@ -28,7 +29,7 @@ class FullView(QSplitter):
         self.tree.connectview(self.markdownview)
         self.tree.connectdocview(self.docview)
         self.tree.post_init()
-        self.views = [self.attribview, self.linkview, self.reqtestlinkview, self.docview, self.tree, self.itemview]
+        self.views = [self.attribview, self.linkview, self.reqtestlinkview, self.reqtestlinkview2,  self.docview, self.tree, self.itemview]
 
         editor = QWidget()
         editorgrid = QVBoxLayout()
@@ -51,6 +52,7 @@ class FullView(QSplitter):
         rightvsplitter.addWidget(self.attribview)
         rightvsplitter.addWidget(self.linkview)
         rightvsplitter.addWidget(self.reqtestlinkview)
+        rightvsplitter.addWidget(self.reqtestlinkview2)
         rlinkviewgrid.addWidget(rightvsplitter)
 
         self.addWidget(self.docview)
@@ -63,10 +65,11 @@ class FullView(QSplitter):
         self.tree.selectionclb = self.selectfunc
         self.linkview.gotoclb = self.selectfunc
         self.reqtestlinkview.gotoclb = self.selectfunc
+        self.reqtestlinkview2.gotoclb = self.selectfunc
         self.docview.gotoclb = self.selectfunc
         self.tree.setlinkfunc = self.setlink
 
-        self.tree.otherdbview = self.reqtestlinkview
+        self.tree.otherdbviews = [self.reqtestlinkview, self.reqtestlinkview2]
 
         self.setstretch()
 
@@ -98,14 +101,17 @@ class FullView(QSplitter):
         self.setStretchFactor(3, 3)
 
 
+
 class ReqView(FullView):
     def __init__(self):
         self.itemview = ItemReqView()
         self.calldatabase = ReqDatabase
         self.database = None
         self.header = 'Requirement'
-        self.otherheader = 'test'
+        self.otherheaders = ['test', 'product']
+        self.keys = ['linkedtests', 'linkedproducts']
         self.stretchfac = 2
+        self.publishtest = False
         super().__init__()
 
 
@@ -115,8 +121,10 @@ class TestView(FullView):
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
-        self.otherheader = 'requirement'
+        self.otherheaders = ['requirement', 'product']
+        self.keys = ['linkedrequirements', 'linkedproducts']
         self.stretchfac = 2
+        self.publishtest = False
         super().__init__()
 
 
@@ -126,8 +134,10 @@ class ProductView(FullView):
         self.calldatabase = ProductDatabase
         self.database = None
         self.header = 'Product'
-        self.otherheader = 'requirement'
+        self.otherheaders = ['requirement', 'test']
+        self.keys = ['linkedrequirements', 'linkedtests']
         self.stretchfac = 2
+        self.publishtest = True
         super().__init__()
 
 

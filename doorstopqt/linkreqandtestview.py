@@ -2,16 +2,19 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .abstractlinkview import AbstractLinkView
 from .linkitemmodel import SimpleLinkItemModel
+from doorstop.core import Tree, Document, builder
+from pathlib import Path
 
 
 class LinkReqAndTestView(AbstractLinkView):
-    def __init__(self, markdownview, attribview, header=""):
+    def __init__(self, markdownview, attribview, key, header=""):
         super(LinkReqAndTestView, self).__init__(markdownview, attribview, header=header)
-        self.key = 'linkedrequirements'
+        self.key = key
         self.otherdb = None
         self.model = SimpleLinkItemModel()
         self.listview.setModel(self.model)
         self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', header, 'link>'))
+        self.attribview.getotherdbitems = self.getpublishtree
 
         def dataChanged(index):
             if self.db is None:
@@ -40,8 +43,8 @@ class LinkReqAndTestView(AbstractLinkView):
         self.currentuid = None
         self.model.clear()
         item = self.db.find(uid)
-        if self.key in item._data:
-            for link in item._data[self.key]:
+        if self.key in item.data:
+            for link in item.data[self.key]:
                 item = QStandardItem(str(link))
                 item.setData(str(link))
                 item.setEditable(False)
@@ -112,7 +115,8 @@ class LinkReqAndTestView(AbstractLinkView):
             return
         if self.key in dbitem._data:
             tmp = dbitem._data[self.key]
-            tmp.remove(data)
+            if data in tmp:
+                tmp.remove(data)
             dbitem.set(self.key, tmp)
 
     def setlinkingitem(self, uid):
@@ -137,3 +141,15 @@ class LinkReqAndTestView(AbstractLinkView):
             itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
         if uidthis not in self.getlinkdata(itemother):
             itemother.set(self.key, self.getlinkdata(itemother) + [uidthis])
+
+    def getpublishtree(self):
+        items = []
+        item = self.db.find(self.currentuid)
+        if self.key in item.data:
+            for linkuid in item.data[self.key]:
+                linkitem = self.otherdb.find(linkuid)
+                items.append(linkitem)
+        return self.otherdb.root, items
+
+
+

@@ -84,7 +84,7 @@ class RequirementTreeView(QWidget):
 
         self.headerlabel = ['Requirement', 'Active', 'Derived', 'Normative', 'Heading']
 
-        self.otherdbview = None
+        self.otherdbviews = []
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -334,12 +334,12 @@ class RequirementTreeView(QWidget):
                 self.treestack.append(((backupfile, item.path), self.REMOVE))
                 uid = item.uid
                 data = item.data
-                if self.otherdbview:
-                    if self.otherdbview.key in data:
-                        linkeduids = data[self.otherdbview.key]
+                for otherdbview in self.otherdbviews:
+                    if otherdbview.key in data:
+                        linkeduids = data[otherdbview.key]
                         for linkeduid in linkeduids:
-                            otheritem = self.otherdbview.otherdb.find(linkeduid)
-                            self.otherdbview.removelink(otheritem, uid)
+                            otheritem = otherdbview.otherdb.find(linkeduid)
+                            otherdbview.removelink(otheritem, uid)
                 self.db.remove(uid)
                 self.revertbtn.show()
             act.triggered.connect(lambda: removerequirement(data))
@@ -387,9 +387,10 @@ class RequirementTreeView(QWidget):
             self.db.reload()
             uid = pathlib.Path(path).stem
             item = self.db.find(uid)
-            if self.otherdbview.key in item.data:
-                for linkeduid in item.data[self.otherdbview.key]:
-                    self.otherdbview.linkitems(uid, linkeduid)
+            for otherdbview in self.otherdbviews:
+                if otherdbview.key in item.data:
+                    for linkeduid in item.data[otherdbview.key]:
+                        otherdbview.linkitems(uid, linkeduid)
 
         elif type == self.NEW:
             uid = stack
@@ -492,7 +493,6 @@ class RequirementTreeView(QWidget):
         checkboxtype = s.data()
 
         item = self.uidtoitem(uid)
-        print('checkbox', uid, data.level, flush=True)
         if item:
             if checkboxtype == 'active':
                 data.active = True if s.checkState() == Qt.Checked else False
@@ -579,7 +579,6 @@ class RequirementTreeView(QWidget):
             dbitem = self.db.find(uid)
             data.level = level
             dbitem.level = level
-            print('setlevel', uid, level, flush=True)
             return True
 
     def selecteduid(self):

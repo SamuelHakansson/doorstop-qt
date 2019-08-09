@@ -28,8 +28,8 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*13/16)
-    height = int(screenheight*13/16)
+    width = int(screenwidth*12/16)
+    height = int(screenheight*12/16)
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
@@ -52,8 +52,8 @@ def main():
                 if not os.path.isdir(f):
                     f = os.path.dirname(f)
                 os.chdir(f)
-        view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.tree, view.docview,
-                                     view.itemview])
+        view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
+                                     view.tree, view.docview, view.itemview])
 
         def modeclb(editmode):
             if editmode:
@@ -64,9 +64,19 @@ def main():
 
     reqview.reqtestlinkview.setotherdb(testview.database)
     testview.reqtestlinkview.setotherdb(reqview.database)
+    productview.reqtestlinkview.setotherdb(reqview.database)
+
+    reqview.reqtestlinkview2.setotherdb(productview.database)
+    testview.reqtestlinkview2.setotherdb(productview.database)
+    productview.reqtestlinkview2.setotherdb(testview.database)
 
     reqview.reqtestlinkview.gotoclb = testview.selectfunc
     testview.reqtestlinkview.gotoclb = reqview.selectfunc
+    productview.reqtestlinkview.gotoclb = reqview.selectfunc
+
+    reqview.reqtestlinkview2.gotoclb = productview.selectfunc
+    testview.reqtestlinkview2.gotoclb = productview.selectfunc
+    productview.reqtestlinkview2.gotoclb = testview.selectfunc
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir

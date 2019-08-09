@@ -7,7 +7,7 @@ class VarTable(QWidget):
     def __init__(self, name=None, label=None):
         super().__init__()
         self.rows = 1
-        self.columns = 3
+        self.columns = 2
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
@@ -19,7 +19,7 @@ class VarTable(QWidget):
         self.text = self.tableastext
         self.layout.addWidget(QLabel(self.label))
         self.layout.addWidget(self.table)
-        self.headers = ["Name", "Value", "Unit"]
+        self.headers = ["Name", "Value"]
         self.table.setHorizontalHeaderLabels(self.headers)
         self.table.cellChanged.connect(self.newrow)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -34,18 +34,22 @@ class VarTable(QWidget):
         self.table.insertRow(rows)
 
     def tableastext(self):
-        tables = []
+        entry = []
         for i in range(self.table.rowCount()):
-            entry = {}
             for j, header in enumerate(self.headers):
                 if self.table.item(i, j):
-                    entry[header] = self.table.item(i, j).text()
-            if entry:
-                tables.append(entry)
-        text = json.dumps(tables)
-        return text
+                    entry.append(self.table.item(i, j).text())
+        return [entry]
 
     def setPlainText(self, text):
+        if text is not None and text != "":
+            for i, varpair in enumerate(text):
+                for j, var in enumerate(varpair):
+                    self.table.setItem(i, j, QTableWidgetItem(var))
+        else:
+            self.table.clearContents()
+            self.table.setRowCount(self.rows)
+        '''
         if text is not None and text != "":
             data = json.loads(text)
             j = 0
@@ -53,9 +57,7 @@ class VarTable(QWidget):
                 for key, value in vars.items():
                     self.table.setItem(0, j, QTableWidgetItem(value))
                     j += 1
-        else:
-            self.table.clearContents()
-            self.table.setRowCount(self.rows)
+        '''
 
     def toPlainText(self):
         return self.tableastext()

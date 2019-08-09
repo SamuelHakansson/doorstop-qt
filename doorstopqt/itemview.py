@@ -165,11 +165,12 @@ class ItemView(QVBoxLayout):
         if not self.db:
             return
         item = self.db.find(uid)
-        try:
-            text = item._data[key]
-            return text
-        except KeyError:
-            return
+        if item:
+            try:
+                text = item.data[key]
+                return text
+            except KeyError or AttributeError:
+                return
 
     def updateinfo(self, uid):
         item = self.db.find(uid)
@@ -178,7 +179,7 @@ class ItemView(QVBoxLayout):
 
     def updateview(self, view, item):
         try:
-            text = item._data[view.name]
+            text = item.data[view.name]
         except:
             text = ''
         view.setPlainText(text)

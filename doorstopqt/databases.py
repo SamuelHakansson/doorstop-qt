@@ -32,8 +32,9 @@ class ReqDatabase(object):
 
     def remove(self, uid):
         item = self.find(uid)
-        item.delete()
-        self.reload()
+        if item:
+            item.delete()
+            self.reload()
 
 
 class OtherDatabase(ReqDatabase):
@@ -50,7 +51,6 @@ class OtherDatabase(ReqDatabase):
             os.system("git init .")
         os.chdir("..")
         super().__init__()
-
         os.chdir(currentdir)
 
     def reload(self):
