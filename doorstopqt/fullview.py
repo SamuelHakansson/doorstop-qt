@@ -20,8 +20,8 @@ class FullView(QSplitter):
 
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.markdownview, self.attribview, header=self.header.lower())
-        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[0],  header=self.otherheaders[0].lower())
-        self.reqtestlinkview2 = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[1],  header=self.otherheaders[1].lower())
+        self.reqtestlinkview = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[0], self.ownkey,  header=self.otherheaders[0].lower())
+        self.reqtestlinkview2 = LinkReqAndTestView(self.markdownview, self.attribview, self.keys[1], self.ownkey,  header=self.otherheaders[1].lower())
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
@@ -101,6 +101,12 @@ class FullView(QSplitter):
         self.setStretchFactor(3, 3)
 
 
+REQUIREMENT = 'requirement'
+TEST = 'test'
+PRODUCT = 'product'
+LINKEDREQUIREMENTS = 'linkedrequirements'
+LINKEDTESTS = 'linkestests'
+LINKEDPRODUCTS = 'linkedproducts'
 
 class ReqView(FullView):
     def __init__(self):
@@ -108,8 +114,9 @@ class ReqView(FullView):
         self.calldatabase = ReqDatabase
         self.database = None
         self.header = 'Requirement'
-        self.otherheaders = ['test', 'product']
-        self.keys = ['linkedtests', 'linkedproducts']
+        self.otherheaders = [TEST, PRODUCT]
+        self.keys = [LINKEDTESTS, LINKEDPRODUCTS]
+        self.ownkey = LINKEDREQUIREMENTS
         self.stretchfac = 2
         self.publishtest = False
         super().__init__()
@@ -121,8 +128,9 @@ class TestView(FullView):
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
-        self.otherheaders = ['requirement', 'product']
-        self.keys = ['linkedrequirements', 'linkedproducts']
+        self.otherheaders = [REQUIREMENT, PRODUCT]
+        self.keys = [LINKEDREQUIREMENTS, LINKEDPRODUCTS]
+        self.ownkey = LINKEDTESTS
         self.stretchfac = 2
         self.publishtest = False
         super().__init__()
@@ -134,8 +142,9 @@ class ProductView(FullView):
         self.calldatabase = ProductDatabase
         self.database = None
         self.header = 'Product'
-        self.otherheaders = ['requirement', 'test']
-        self.keys = ['linkedrequirements', 'linkedtests']
+        self.otherheaders = [REQUIREMENT, TEST]
+        self.keys = [LINKEDREQUIREMENTS, LINKEDTESTS]
+        self.ownkey = LINKEDPRODUCTS
         self.stretchfac = 2
         self.publishtest = True
         super().__init__()

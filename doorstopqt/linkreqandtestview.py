@@ -7,15 +7,17 @@ from pathlib import Path
 
 
 class LinkReqAndTestView(AbstractLinkView):
-    def __init__(self, markdownview, attribview, key, header=""):
+    def __init__(self, markdownview, attribview, key, ownkey, header=""):
         super(LinkReqAndTestView, self).__init__(markdownview, attribview, header=header)
         self.header = header
         self.key = key
+        self.ownkey = ownkey
         self.otherdb = None
         self.model = SimpleLinkItemModel()
         self.listview.setModel(self.model)
         self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', self.header, 'link>'))
         self.attribview.getotherdbitems = self.getpublishtree
+        self.currentuid = None
 
         def dataChanged(index):
             if self.db is None:
@@ -35,8 +37,11 @@ class LinkReqAndTestView(AbstractLinkView):
 
     def connectdb(self, db):
         self.db = db
+        self.read(self.currentuid)
 
     def read(self, uid):
+        if uid is None:
+            return
         if self.db is None:
             return
         if self.locked:
@@ -141,7 +146,7 @@ class LinkReqAndTestView(AbstractLinkView):
         if uidother not in self.getlinkdata(itemthis):
             itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
         if uidthis not in self.getlinkdata(itemother):
-            itemother.set(self.key, self.getlinkdata(itemother) + [uidthis])
+            itemother.set(self.ownkey, self.getlinkdata(itemother) + [uidthis])
         if self.header == 'test':
             key = 'inputvariables'
             vars = []

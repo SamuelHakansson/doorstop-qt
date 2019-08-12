@@ -85,6 +85,7 @@ class RequirementTreeView(QWidget):
         self.headerlabel = ['Requirement', 'Active', 'Derived', 'Normative', 'Heading']
 
         self.otherdbviews = []
+        self.currentuid = None
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -113,6 +114,8 @@ class RequirementTreeView(QWidget):
         self.setcheckboxfromuid(s, uid, attribute)
 
     def uidtoguiindex(self, uid):
+        if uid is None:
+            return
         treeindices = self.gettreeindices()
         for index in treeindices:
             if index.data(Qt.UserRole) == str(uid):
@@ -456,7 +459,7 @@ class RequirementTreeView(QWidget):
             index = self.model.indexFromItem(item)
             if str(doc.uid) not in self.collapsed:
                 self.tree.expand(index)
-            if str(doc) in self.lastselected and str(doc.uid) == self.lastselected[str(doc)]:
+            if str(doc.document) in self.lastselected and str(doc.uid) == self.lastselected[str(doc.document)]:
                 self.tree.setCurrentIndex(index)
             self.updateuid(uid)
         if len(self.tree.selectedIndexes()) == 0:
@@ -647,6 +650,8 @@ class RequirementTreeView(QWidget):
 
     def read(self, uid):
         if self.db is None:
+            return
+        if uid is None:
             return
         item = self.db.find(uid)
         cat = str(item.document)
