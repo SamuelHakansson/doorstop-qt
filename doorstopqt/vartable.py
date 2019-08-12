@@ -3,6 +3,7 @@ import json
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+
 class VarTable(QWidget):
     def __init__(self, name=None, label=None):
         super().__init__()

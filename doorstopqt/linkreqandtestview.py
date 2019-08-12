@@ -9,11 +9,12 @@ from pathlib import Path
 class LinkReqAndTestView(AbstractLinkView):
     def __init__(self, markdownview, attribview, key, header=""):
         super(LinkReqAndTestView, self).__init__(markdownview, attribview, header=header)
+        self.header = header
         self.key = key
         self.otherdb = None
         self.model = SimpleLinkItemModel()
         self.listview.setModel(self.model)
-        self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', header, 'link>'))
+        self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', self.header, 'link>'))
         self.attribview.getotherdbitems = self.getpublishtree
 
         def dataChanged(index):
@@ -141,6 +142,16 @@ class LinkReqAndTestView(AbstractLinkView):
             itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
         if uidthis not in self.getlinkdata(itemother):
             itemother.set(self.key, self.getlinkdata(itemother) + [uidthis])
+        if self.header == 'test':
+            key = 'inputvariables'
+            vars = []
+            if key in itemother.data:
+                vars = itemother.data[key]
+            prevdata = []
+            if key in itemthis.data:
+                prevdata = itemthis.data[key]
+            itemthis.set(key, prevdata + vars)
+        self.db.reload()
 
     def getpublishtree(self):
         items = []

@@ -74,11 +74,7 @@ class MarkReviewedView(QWidget):
                             varname = inputvar[0]
                             varvalue = inputvar[1]
                             import re
-                            print(item.text, flush=True)
-                            print('----------', item.text, flush=True)
                             item.text = re.sub(r"\b%s\b" % varname, varvalue, item.text)
-                            print(item.text, flush=True)
-                            # item.text = item.text.replace("{}".format(varname), " {} ".format(varvalue))
                     else:
                         item.active = False
 
@@ -87,9 +83,6 @@ class MarkReviewedView(QWidget):
             for doc in tree.documents:
                 for item in sorted(i for i in doc._iter()):
                     if item.active:
-                        print(item.text, flush=True)
-                        print('----------', flush=True)
-                        print(textdict[str(item)], flush=True)
                         item._data['text'] = textdict[str(item)]
                         item.save()
 
