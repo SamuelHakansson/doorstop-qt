@@ -182,7 +182,6 @@ class LinkReqAndTestView(AbstractLinkView):
             it = self.db.find(link)
             prevdata = it.data[self.INPUTVARIABLES]
             newinputvars = prevdata
-            print(inputvars, flush=True)
             for var in inputvars:
                 if var[0] not in [x[0] for x in prevdata]:
                     newinputvars.append(var)

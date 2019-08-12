@@ -1,11 +1,10 @@
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
-from doorstop.core import publisher, Document, Tree
-import os
+from doorstop.core import publisher
 from .icon import Icon
 from pathlib import Path
+import re
 
 
 class MarkReviewedView(QWidget):
@@ -67,6 +66,7 @@ class MarkReviewedView(QWidget):
                     textdict[str(item)] = item.text
             for doc in tree.documents:
                 for item in doc.items:
+                    newitemtext = item.text
                     if item in items:
                         item.active = True
                         product = self.db.find(self.currentuid)
@@ -76,8 +76,9 @@ class MarkReviewedView(QWidget):
                                 varvalue = inputvar[1]
                             except IndexError:
                                 varvalue = ''
-                            import re
-                            item.text = re.sub(r"\b%s\b" % varname, varvalue, item.text)
+                            newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
+                        newitemtext += product.data['expectedresults']
+                        item.text = newitemtext
                     else:
                         item.active = False
 
