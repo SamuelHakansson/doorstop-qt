@@ -34,7 +34,7 @@ class FullView(QSplitter):
         editor = QWidget()
         editorgrid = QVBoxLayout()
         editorgrid.setContentsMargins(0, 0, 0, 0)
-        editorgrid.addLayout(self.itemview)
+        editorgrid.addWidget(self.itemview)
         editor.setLayout(editorgrid)
 
         rview = QWidget()
@@ -96,9 +96,9 @@ class FullView(QSplitter):
 
     def setstretch(self):
         self.setStretchFactor(0, 2)
-        self.setStretchFactor(1, 3)
-        self.setStretchFactor(2, int(4 / self.stretchfac))
-        self.setStretchFactor(3, 3)
+        self.setStretchFactor(1, 4)
+        self.setStretchFactor(2, int(6 / self.stretchfac))
+        self.setStretchFactor(3, 2)
 
 
 REQUIREMENT = 'requirement'
@@ -107,6 +107,7 @@ PRODUCT = 'product'
 LINKEDREQUIREMENTS = 'linkedrequirements'
 LINKEDTESTS = 'linkestests'
 LINKEDPRODUCTS = 'linkedproducts'
+
 
 class ReqView(FullView):
     def __init__(self):
@@ -125,6 +126,8 @@ class ReqView(FullView):
 class TestView(FullView):
     def __init__(self):
         self.itemview = ItemTestView()
+        self.itemview.vartables.inputtable.table.setHorizontalHeaderLabels(['Name', 'Default value'])
+        self.itemview.vartables.expectedresultsmarkdownview.label.setText('Default expected value')
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
@@ -134,6 +137,7 @@ class TestView(FullView):
         self.stretchfac = 2
         self.publishtest = False
         super().__init__()
+
 
 
 class ProductView(FullView):

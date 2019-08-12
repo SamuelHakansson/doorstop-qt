@@ -18,6 +18,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', self.header, 'link>'))
         self.attribview.getotherdbitems = self.getpublishtree
         self.currentuid = None
+        self.INPUTVARIABLES = 'inputvariables'
 
         def dataChanged(index):
             if self.db is None:
@@ -49,6 +50,8 @@ class LinkReqAndTestView(AbstractLinkView):
         self.currentuid = None
         self.model.clear()
         item = self.db.find(uid)
+        if item is None:
+            return
         if self.key in item.data:
             for link in item.data[self.key]:
                 item = QStandardItem(str(link))
@@ -148,7 +151,7 @@ class LinkReqAndTestView(AbstractLinkView):
         if uidthis not in self.getlinkdata(itemother):
             itemother.set(self.ownkey, self.getlinkdata(itemother) + [uidthis])
         if self.header == 'test':
-            key = 'inputvariables'
+            key = self.INPUTVARIABLES
             vars = []
             if key in itemother.data:
                 vars = itemother.data[key]
@@ -167,5 +170,21 @@ class LinkReqAndTestView(AbstractLinkView):
                 items.append(linkitem)
         return self.otherdb.root, items
 
-
-
+    def updateinputvariables(self, uid):
+        item = self.otherdb.find(uid)
+        if self.ownkey not in item.data:
+            return
+        if self.INPUTVARIABLES not in item.data:
+            return
+        links = item.data[self.ownkey]
+        inputvars = item.data[self.INPUTVARIABLES]
+        for link in links:
+            it = self.db.find(link)
+            prevdata = it.data[self.INPUTVARIABLES]
+            newinputvars = prevdata
+            print(inputvars, flush=True)
+            for var in inputvars:
+                if var[0] not in [x[0] for x in prevdata]:
+                    newinputvars.append(var)
+            it.set(self.INPUTVARIABLES, newinputvars)
+        self.db.reload()

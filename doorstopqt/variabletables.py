@@ -1,21 +1,22 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .vartable import VarTable
+from .markdownview import MarkdownView
 
 
-class VariableTables(QWidget):
+class VariableTables(QSplitter):
     def __init__(self):
         super().__init__()
-        self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
-        self.layout.setContentsMargins(0, 0, 0, 0)
         self.inputtable = VarTable("inputvariables", "Input variables")
-        self.outputtable = VarTable("expectedresults", "Expected results")
+        self.expectedresultsmarkdownview = MarkdownView(text='Expected results')
+        self.expectedresultsmarkdownview.name = 'expectedresults'
+
         self.weight = 3
         self.name = "variables"
-        self.layout.addWidget(self.inputtable)
-        self.layout.addWidget(self.outputtable)
-        self.views = [self.inputtable, self.outputtable]
+        self.addWidget(self.inputtable)
+        self.addWidget(self.expectedresultsmarkdownview)
+        self.views = [self.inputtable, self.expectedresultsmarkdownview]
+
 
 
 

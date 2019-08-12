@@ -28,8 +28,8 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*12/16)
-    height = int(screenheight*12/16)
+    width = int(screenwidth*10/16)
+    height = int(screenheight*10/16)
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
@@ -66,15 +66,6 @@ def main():
     testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
     productview.database.add_other_listeners([reqview.reqtestlinkview2, testview.reqtestlinkview2])
 
-    '''
-    reqview.reqtestlinkview.connectotherdb(testview.database)
-    testview.reqtestlinkview.connectotherdb(reqview.database)
-    productview.reqtestlinkview.connectotherdb(reqview.database)
-
-    reqview.reqtestlinkview2.connectotherdb(productview.database)
-    testview.reqtestlinkview2.connectotherdb(productview.database)
-    productview.reqtestlinkview2.connectotherdb(testview.database)
-    '''
     reqview.reqtestlinkview.gotoclb = testview.selectfunc
     testview.reqtestlinkview.gotoclb = reqview.selectfunc
     productview.reqtestlinkview.gotoclb = reqview.selectfunc
@@ -83,6 +74,7 @@ def main():
     testview.reqtestlinkview2.gotoclb = productview.selectfunc
     productview.reqtestlinkview2.gotoclb = testview.selectfunc
 
+    testview.itemview.applytootheritem = productview.reqtestlinkview2.updateinputvariables
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir

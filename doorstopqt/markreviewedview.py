@@ -72,7 +72,10 @@ class MarkReviewedView(QWidget):
                         product = self.db.find(self.currentuid)
                         for inputvar in product.data['inputvariables']:
                             varname = inputvar[0]
-                            varvalue = inputvar[1]
+                            try:
+                                varvalue = inputvar[1]
+                            except IndexError:
+                                varvalue = ''
                             import re
                             item.text = re.sub(r"\b%s\b" % varname, varvalue, item.text)
                     else:
@@ -87,8 +90,6 @@ class MarkReviewedView(QWidget):
                         item.save()
 
                     item.active = activedict[str(item)]
-
-
 
         def publishdocs():
             publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))

@@ -1,23 +1,29 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 from .markdownview import MarkdownView
 from .icon import Icon
 import sys
 
 
-class ItemView(QVBoxLayout):
+class ItemView(QSplitter):
     def __init__(self, views=None, viewssplitted=None):
         super().__init__()
+        self.setOrientation(Qt.Vertical)
         self.db = None
         self.markdownview = MarkdownView()
         self.markdownview.name = 'text'
         self.views = [self.markdownview] + (views or [])
         for view in self.views:
-            self.addWidget(view, view.weight)
+            self.addWidget(view)
         if viewssplitted:
             self.views = [self.markdownview] + (viewssplitted or [])
         self.currentuid = None
+        self.markdownviews = [self.markdownview]
+        for view in viewssplitted:
+            if type(view) is MarkdownView:
+                self.markdownviews.append(view)
 
         papirusicons = Icon()
         reverticon = papirusicons.fromTheme("document-revert")
@@ -37,6 +43,7 @@ class ItemView(QVBoxLayout):
         self.savebtn.setVisible(False)
         discardbtnsize = self.discardbtn.minimumSizeHint()
         savebtnsize = self.savebtn.minimumSizeHint()
+
         if discardbtnsize.width() > savebtnsize.width():
             self.discardbtn.setFixedSize(discardbtnsize)
             self.savebtn.setFixedSize(discardbtnsize)
@@ -44,8 +51,9 @@ class ItemView(QVBoxLayout):
             self.discardbtn.setFixedSize(savebtnsize)
             self.savebtn.setFixedSize(savebtnsize)
 
-        self.markdownview.editview.textChanged.connect(self.textChanged)
-        self.markdownview.htmlview.selectionChanged.connect(self.vieweditor)
+        for markdownview in self.markdownviews:
+            markdownview.editview.textChanged.connect(self.textChanged)
+            markdownview.htmlview.selectionChanged.connect(self.vieweditor)
 
         saveshortcut = QShortcut(QKeySequence("Ctrl+S"), self.markdownview.editview)
         saveshortcut.activated.connect(lambda: self.save())
@@ -63,6 +71,7 @@ class ItemView(QVBoxLayout):
         self.addWidget(buttonrow)
         self.cache = {}
         self.CHANGED = 'changed'
+        self.applytootheritem = None
 
     def connectdb(self, db):
         self.db = db
@@ -75,16 +84,17 @@ class ItemView(QVBoxLayout):
             self.discardbtn.setVisible(True)
 
     def viewhtml(self):
-        self.markdownview.viewhtml()
+        for mv in self.markdownviews:
+            mv.viewhtml()
         self.editbtn.setVisible(True)
         self.previewbtn.setVisible(False)
-        #self.decisiontakers.setText(self.decisiontakerslabeltext)
+
 
     def vieweditor(self):
-        self.markdownview.vieweditor()
+        for mv in self.markdownviews:
+            mv.vieweditor()
         self.previewbtn.setVisible(True)
         self.editbtn.setVisible(False)
-        #self.decisiontakers.setText(self.decisiontakerslabeltext)# + self.decisiontakerslabelhelp)
 
     def discard(self):
         if self.currentuid not in self.cache:
@@ -154,6 +164,9 @@ class ItemView(QVBoxLayout):
     def savefunc(self, uid):
         for view in self.views:
             self.saveview(view, uid)
+            if self.applytootheritem:
+                self.applytootheritem(uid)
+
 
     def saveview(self, view, uid):
         text = view.text()

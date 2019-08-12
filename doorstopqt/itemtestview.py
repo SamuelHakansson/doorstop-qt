@@ -16,5 +16,3 @@ class ItemTestView(ItemView):
         self.vartables.inputtable.table.cellChanged.connect(self.vieweditor)
         self.vartables.inputtable.table.cellChanged.connect(self.textChanged)
 
-        self.vartables.outputtable.table.cellChanged.connect(self.vieweditor)
-        self.vartables.outputtable.table.cellChanged.connect(self.textChanged)

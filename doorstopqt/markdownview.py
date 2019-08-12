@@ -5,6 +5,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+
 class SimpleMarkdownHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         import re
@@ -86,7 +87,7 @@ class MarkdownEditor(QPlainTextEdit):
 
 
 class MarkdownView(QWidget):
-    def __init__(self, text='', parent=None):
+    def __init__(self, text='Description', parent=None):
         super(MarkdownView, self).__init__(parent)
 
         self.layout = QVBoxLayout()
@@ -97,9 +98,9 @@ class MarkdownView(QWidget):
 
         self.editview = MarkdownEditor()
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
-        self.editview.setPlainText(text)
-
-        self.layout.addWidget(QLabel('Description'))
+        self.editview.setPlainText('')
+        self.label = QLabel(text)
+        self.layout.addWidget(self.label)
         self.layout.addWidget(self.editview)
         self.layout.addWidget(self.htmlview)
 
@@ -126,7 +127,6 @@ class MarkdownView(QWidget):
         if self.modeclb:
             self.modeclb(False)
 
-
     def vieweditor(self):
         self.editview.setVisible(True)
         self.htmlview.setVisible(False)
@@ -148,6 +148,7 @@ class MarkdownView(QWidget):
                 super(MarkdownEditor, self.editview).wheelEvent(ev)
 
         htmlzoom = self.htmlview.wheelEvent
+
         def zoomhtml(ev):
             htmlzoom(ev)
             if self.htmlview.isVisible():
@@ -155,8 +156,6 @@ class MarkdownView(QWidget):
 
         self.htmlview.wheelEvent = zoomhtml
         self.editview.wheelEvent = zoomeditor
-
-
 
     def setPlainText(self, text):
         self.editview.setPlainText(text)
