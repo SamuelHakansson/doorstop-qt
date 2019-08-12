@@ -6,6 +6,7 @@ from pathlib import Path
 class ReqDatabase(object):
     def __init__(self):
         self.listeners = []
+        self.other_listeners = []
         self.root = None
         self.reload()
 
@@ -18,10 +19,21 @@ class ReqDatabase(object):
             l.connectdb(self)
             self.listeners.append(l)
 
-    def reload(self):
-        self.root = doorstop.core.builder.build()
+    def add_other_listeners(self, l):
+        if type(l) is list:
+            for listener in l:
+                listener.connectotherdb(self)
+                self.other_listeners.append(listener)
+        else:
+            l.connectotherdb(self)
+            self.other_listeners.append(l)
+
+    def reload(self, root=None):
+        self.root = doorstop.core.builder.build(root=root)
         for l in self.listeners:
             l.connectdb(self)
+        for ol in self.other_listeners:
+            ol.connectotherdb(self)
 
     def find(self, uid):
         for document in self.root:
@@ -54,9 +66,7 @@ class OtherDatabase(ReqDatabase):
         os.chdir(currentdir)
 
     def reload(self):
-        self.root = doorstop.core.builder.build(root=self.path)
-        for l in self.listeners:
-            l.connectdb(self)
+        super(OtherDatabase, self).reload(root=self.path)
 
 
 class TestDatabase(OtherDatabase):

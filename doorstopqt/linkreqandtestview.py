@@ -103,7 +103,7 @@ class LinkReqAndTestView(AbstractLinkView):
         docs = list(map(lambda x: x, self.otherdb.root.documents))
         super(LinkReqAndTestView, self).updateCompleter(docs)
 
-    def setotherdb(self, db):
+    def connectotherdb(self, db):
         self.otherdb = db
         self.updateCompleter()
 

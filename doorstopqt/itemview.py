@@ -103,7 +103,6 @@ class ItemView(QVBoxLayout):
             text = self.cache[uid][name]
         else:
             text = self.getiteminfo(uid, name)
-            print(text, flush=True)
         view.storedtext = text
 
     def read(self, uid):

@@ -62,14 +62,19 @@ def main():
                 view.attribview.showref(False)
         view.markdownview.modeclb = modeclb
 
-    reqview.reqtestlinkview.setotherdb(testview.database)
-    testview.reqtestlinkview.setotherdb(reqview.database)
-    productview.reqtestlinkview.setotherdb(reqview.database)
+    reqview.database.add_other_listeners([testview.reqtestlinkview, productview.reqtestlinkview])
+    testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
+    productview.database.add_other_listeners([reqview.reqtestlinkview2, testview.reqtestlinkview2])
 
-    reqview.reqtestlinkview2.setotherdb(productview.database)
-    testview.reqtestlinkview2.setotherdb(productview.database)
-    productview.reqtestlinkview2.setotherdb(testview.database)
+    '''
+    reqview.reqtestlinkview.connectotherdb(testview.database)
+    testview.reqtestlinkview.connectotherdb(reqview.database)
+    productview.reqtestlinkview.connectotherdb(reqview.database)
 
+    reqview.reqtestlinkview2.connectotherdb(productview.database)
+    testview.reqtestlinkview2.connectotherdb(productview.database)
+    productview.reqtestlinkview2.connectotherdb(testview.database)
+    '''
     reqview.reqtestlinkview.gotoclb = testview.selectfunc
     testview.reqtestlinkview.gotoclb = reqview.selectfunc
     productview.reqtestlinkview.gotoclb = reqview.selectfunc
@@ -77,6 +82,7 @@ def main():
     reqview.reqtestlinkview2.gotoclb = productview.selectfunc
     testview.reqtestlinkview2.gotoclb = productview.selectfunc
     productview.reqtestlinkview2.gotoclb = testview.selectfunc
+
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir
