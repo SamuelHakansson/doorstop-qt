@@ -65,20 +65,37 @@ class MarkReviewedView(QWidget):
                 for item in doc.items:
                     activedict[str(item)] = item.active
                     textdict[str(item)] = item.text
-
             for doc in tree.documents:
                 for item in doc.items:
                     if item in items:
                         item.active = True
+                        product = self.db.find(self.currentuid)
+                        for inputvar in product.data['inputvariables']:
+                            varname = inputvar[0]
+                            varvalue = inputvar[1]
+                            import re
+                            print(item.text, flush=True)
+                            print('----------', item.text, flush=True)
+                            item.text = re.sub(r"\b%s\b" % varname, varvalue, item.text)
+                            print(item.text, flush=True)
+                            # item.text = item.text.replace("{}".format(varname), " {} ".format(varvalue))
                     else:
                         item.active = False
-                    item.text = item.text.replace(item.data['inputvariables'])
 
             publisher.publish(tree, pathtodoc)
 
             for doc in tree.documents:
-                for item in doc.items:
+                for item in sorted(i for i in doc._iter()):
+                    if item.active:
+                        print(item.text, flush=True)
+                        print('----------', flush=True)
+                        print(textdict[str(item)], flush=True)
+                        item._data['text'] = textdict[str(item)]
+                        item.save()
+
                     item.active = activedict[str(item)]
+
+
 
         def publishdocs():
             publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))

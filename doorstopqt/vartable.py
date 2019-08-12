@@ -38,7 +38,7 @@ class VarTable(QWidget):
         for i in range(self.table.rowCount()):
             entry = []
             for j, header in enumerate(self.headers):
-                if self.table.item(i, j):
+                if self.table.item(i, j) and self.table.item(i, j).text() != '':
                     entry.append(self.table.item(i, j).text())
             if entry:
                 pairs.append(entry)
