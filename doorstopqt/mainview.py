@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .fullview import ReqView, TestView, ProductView
 from .version import VERSION
-import resources  # resources fetches icons
+import resources  # resources fetches icons (don't remove)
 
 
 class CustomSplitter(QSplitter):

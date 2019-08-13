@@ -6,7 +6,7 @@ from .customcompleter import CustomQCompleter
 
 
 class AbstractLinkView(QWidget):
-    def __init__(self, markdownview, attribview, header=""):
+    def __init__(self, itemview, attribview, header=""):
         super().__init__()
         self.vbox = QVBoxLayout()
         self.listview = QListView()
@@ -17,9 +17,10 @@ class AbstractLinkView(QWidget):
         self.locked = False
         self.currentitemedit = None
         self.currentindexedit = None
-        self.markdownview = markdownview
+        self.markdownview = itemview.markdownview
         self.attribview = attribview
         self.attribview.readlinkview = self.read
+        self.itemview = itemview
 
         self.completer = CustomQCompleter()
 
@@ -69,6 +70,7 @@ class AbstractLinkView(QWidget):
         uid = self.completerdict[text]
         self.setlock(True)
         self.setlinkingitem(uid)
+        self.itemview.updatelastupdated()
 
     def setlock(self, lock):
         self.locked = lock

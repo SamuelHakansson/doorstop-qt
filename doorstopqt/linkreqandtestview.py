@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 class LinkReqAndTestView(AbstractLinkView):
-    def __init__(self, markdownview, attribview, key, ownkey, header=""):
-        super(LinkReqAndTestView, self).__init__(markdownview, attribview, header=header)
+    def __init__(self, itemview, attribview, key, ownkey, header=""):
+        super(LinkReqAndTestView, self).__init__(itemview, attribview, header=header)
         self.header = header
         self.key = key
         self.ownkey = ownkey
@@ -19,6 +19,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.attribview.getotherdbitems = self.getpublishtree
         self.currentuid = None
         self.INPUTVARIABLES = 'inputvariables'
+        self.itemview = itemview
 
         def dataChanged(index):
             if self.db is None:
@@ -197,3 +198,4 @@ class LinkReqAndTestView(AbstractLinkView):
                     newinputvars.append(var)
             it.set(self.INPUTVARIABLES, newinputvars)
         self.db.reload()
+

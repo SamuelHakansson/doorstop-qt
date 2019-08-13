@@ -167,7 +167,6 @@ class ItemView(QSplitter):
             if self.applytootheritem:
                 self.applytootheritem(uid)
 
-
     def saveview(self, view, uid):
         text = view.text()
         item = self.db.find(uid)
@@ -196,6 +195,11 @@ class ItemView(QSplitter):
         except:
             text = ''
         view.setPlainText(text)
+
+    def updatelastupdated(self):
+        for view in self.views:
+            if view.name == 'lastupdated':
+                view.setPlainText(view.toPlainText())
 
 
 if __name__ == '__main__':
