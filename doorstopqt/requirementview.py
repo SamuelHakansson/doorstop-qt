@@ -342,9 +342,11 @@ class RequirementTreeView(QWidget):
                         linkeduids = data[otherdbview.key]
                         for linkeduid in linkeduids:
                             otheritem = otherdbview.otherdb.find(linkeduid)
-                            otherdbview.removelink(otheritem, uid)
+                            otherdbview.removeotherlink(otheritem, uid)
                 self.db.remove(uid)
+                self.db.reload()
                 self.revertbtn.show()
+
             act.triggered.connect(lambda: removerequirement(data))
         else:
             act = menu.addAction(self.icons.FileIcon, 'Create item')

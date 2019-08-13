@@ -119,14 +119,23 @@ class LinkReqAndTestView(AbstractLinkView):
         if self.gotoclb:
             self.gotoclb(uid, readcurrent)
 
-    def removelink(self, dbitem, data):
+    def removelink(self, dbitem, uid):
         if not dbitem:
             return
-        if self.key in dbitem._data:
-            tmp = dbitem._data[self.key]
-            if data in tmp:
-                tmp.remove(data)
+        if self.key in dbitem.data:
+            tmp = dbitem.data[self.key]
+            if uid in tmp:
+                tmp.remove(uid)
             dbitem.set(self.key, tmp)
+
+    def removeotherlink(self, dbitem, uid):
+        if not dbitem:
+            return
+        if self.ownkey in dbitem.data:
+            tmp = dbitem.data[self.ownkey]
+            if uid in tmp:
+                tmp.remove(uid)
+            dbitem.set(self.ownkey, tmp)
 
     def setlinkingitem(self, uid):
         if self.locked and uid != self.currentuid and uid:
@@ -160,6 +169,7 @@ class LinkReqAndTestView(AbstractLinkView):
                 prevdata = itemthis.data[key]
             itemthis.set(key, prevdata + vars)
         self.db.reload()
+        self.otherdb.reload()
 
     def getpublishtree(self):
         items = []
