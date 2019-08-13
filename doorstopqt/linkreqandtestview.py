@@ -115,6 +115,7 @@ class LinkReqAndTestView(AbstractLinkView):
     def connectotherdb(self, db):
         self.otherdb = db
         self.updateCompleter()
+        self.read(self.currentuid)
 
     def goto(self, uid, readcurrent=False):
         if self.gotoclb:
