@@ -184,7 +184,8 @@ class ItemView(QSplitter):
                     text = newdata
 
                 else:
-                    text = item.data['expectedresults'] + text
+                    if item.data['expectedresults'] != '':
+                        text = item.data['expectedresults'] + text
         item.set(view.name, text)
         item.save()
 

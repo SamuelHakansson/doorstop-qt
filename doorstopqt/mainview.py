@@ -28,8 +28,8 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*10/16)
-    height = int(screenheight*10/16)
+    width = int(screenwidth*12/16)
+    height = int(screenheight*12/16)
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
 from doorstop.core import publisher
+from doorstop.core.types import Text
 from .icon import Icon
 from pathlib import Path
 import re
@@ -78,8 +79,12 @@ class MarkReviewedView(QWidget):
                                 varvalue = ''
                             newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
                         if 'expectedresults' in product.data:
-                            newitemtext += product.data['expectedresults']
-                        item._data['text'] = newitemtext
+                            for pair in product.data['expectedresults']:
+                                if pair[0] == item.uid:
+                                    newitemtext = newitemtext + '\n\n Expected results: \n\n' + pair[1]
+
+                        item.text = newitemtext
+                        item.save()
                     else:
                         item.active = False
 

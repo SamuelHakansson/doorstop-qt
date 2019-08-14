@@ -19,6 +19,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.attribview.getotherdbitems = self.getpublishtree
         self.currentuid = None
         self.INPUTVARIABLES = 'inputvariables'
+        self.EXPECTEDRESULTS = 'expectedresults'
         self.itemview = itemview
 
         def dataChanged(index):
@@ -165,7 +166,7 @@ class LinkReqAndTestView(AbstractLinkView):
             itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
         if uidthis not in self.getlinkdata(itemother):
             itemother.set(self.ownkey, self.getlinkdata(itemother) + [uidthis])
-        if self.header == 'test':
+        if self.header == 'test' and self.ownkey == 'linkedproducts':
             key = self.INPUTVARIABLES
             vars = []
             if key in itemother.data:
@@ -174,6 +175,8 @@ class LinkReqAndTestView(AbstractLinkView):
             if key in itemthis.data:
                 prevdata = itemthis.data[key]
             itemthis.set(key, prevdata + vars)
+
+
         self.db.reload()
         self.otherdb.reload()
 
