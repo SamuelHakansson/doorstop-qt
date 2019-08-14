@@ -81,7 +81,6 @@ class ItemView(QSplitter):
 
     def textChanged(self):
         if self.currentuid is not None:
-            print('cache', flush=True)
             self.cache[self.currentuid][self.CHANGED] = True
             self.savebtn.setVisible(True)
             self.discardbtn.setVisible(True)
@@ -220,7 +219,6 @@ class ItemView(QSplitter):
     def updateexpectedresults(self, uid):
         for view in self.views:
             if view.name == 'expectedresults':
-                #view.vieweditor()
                 view.updatetitle(uid)
                 item = self.db.find(self.currentuid)
                 text = None
@@ -228,13 +226,9 @@ class ItemView(QSplitter):
                     for pair in item.data['expectedresults']:
                         if pair[0] == uid:
                             text = [pair]
-                print('about to set text', flush=True)
                 view.editview.blockSignals(True)
                 view.setPlainText(text)
                 view.editview.blockSignals(False)
-                print('text set', flush=True)
-
-
                 self.viewhtml()
 
 
