@@ -332,7 +332,7 @@ class DocumentView(QWidget):
                 nrroots = 0
                 for obj in self.docs:
                     pardata = obj.parent
-                    if pardata == None:
+                    if pardata is None:
                         nrroots += 1
                 if nrroots != 1:
                     del self.treestack[-1]
@@ -371,12 +371,14 @@ class DocumentView(QWidget):
 
     def changehierarchy(self, currentobjects_list):
         for obj in currentobjects_list:
+            print(obj.data(role=Qt.UserRole))
             temp = []
             data = self.model.data(obj, role=Qt.UserRole)
             parindex = obj.parent()
 
             pardata = self.model.data(parindex, role=Qt.UserRole)
             document = self.docsdict[data]
+            print(document.parent, pardata, obj.data(role=Qt.UserRole), flush=True)
             if document.parent != pardata:
                 temp.append((document, document.parent))
                 self.treestack.append((temp, self.LEVELS))
@@ -387,17 +389,24 @@ class DocumentView(QWidget):
                     document.save()
 
     def onlayoutchanged(self):
-        firstobject = self.model.index(0, 0)
+        rootobject = self.model.index(0, 0)
+        currentindex = self.tree.currentIndex()
+        moveddata = currentindex.data(role=Qt.UserRole)
 
-        nextlist = self.getnext(firstobject, [])
-        currentobjects_list = nextlist
+        nextlist = self.getnext(rootobject, [])
 
+        for i, index in enumerate(nextlist):
+            if index.data(role=Qt.UserRole) == moveddata and index == currentindex:
+                del nextlist[i]
+                break
+
+        currentobjects_list = [rootobject] + nextlist
 
         nrroots = 0
         for obj in currentobjects_list:
             parindex = obj.parent()
             pardata = self.model.data(parindex, role=Qt.UserRole)
-            if pardata == None:
+            if pardata is None:
                 nrroots += 1
         if nrroots != 1:
             self.warningmessage.show()
