@@ -143,7 +143,7 @@ class ItemView(QSplitter):
         for view in self.views:
             view.setPlainText(view.storedtext)
             if view.name == 'expectedresults':
-                view.updatetitle('default')
+                view.updatetitle(uid)
 
         self.currentuid = uid
         self.viewhtml()

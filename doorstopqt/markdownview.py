@@ -172,7 +172,7 @@ class MarkdownView(QWidget):
 
 class MarkdownViewExt(MarkdownView):
     def __init__(self, text):
-        self.currenttestuid = 'default'
+        self.currenttestuid = None
         super().__init__(text)
         #self.text = self.toPlainText
 
@@ -210,7 +210,4 @@ class MarkdownViewExt(MarkdownView):
 
     def updatetitle(self, uid):
         self.currenttestuid = uid
-        if uid != 'default':
-            self.label.setText("{} {} {}".format(self.defaulttext, 'for', uid))
-        else:
-            self.label.setText(self.defaulttext)
+        self.label.setText("{} {} {}".format(self.defaulttext, 'for', uid))

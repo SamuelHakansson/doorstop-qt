@@ -53,15 +53,6 @@ class VarTable(QWidget):
         else:
             self.table.clearContents()
             self.table.setRowCount(self.rows)
-        '''
-        if text is not None and text != "":
-            data = json.loads(text)
-            j = 0
-            for i, vars in enumerate(data):
-                for key, value in vars.items():
-                    self.table.setItem(0, j, QTableWidgetItem(value))
-                    j += 1
-        '''
 
     def toPlainText(self):
         return self.tableastext()

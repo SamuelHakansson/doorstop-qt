@@ -74,7 +74,7 @@ def main():
     testview.reqtestlinkview2.gotoclb = productview.selectfunc
     productview.reqtestlinkview2.gotoclb = testview.selectfunc
 
-    testview.itemview.applytootheritem = productview.reqtestlinkview2.updateinputvariables
+    testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir

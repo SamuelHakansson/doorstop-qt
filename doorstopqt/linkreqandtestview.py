@@ -167,18 +167,20 @@ class LinkReqAndTestView(AbstractLinkView):
         if uidthis not in self.getlinkdata(itemother):
             itemother.set(self.ownkey, self.getlinkdata(itemother) + [uidthis])
         if self.header == 'test' and self.ownkey == 'linkedproducts':
-            key = self.INPUTVARIABLES
-            vars = []
-            if key in itemother.data:
-                vars = itemother.data[key]
-            prevdata = []
-            if key in itemthis.data:
-                prevdata = itemthis.data[key]
-            itemthis.set(key, prevdata + vars)
-
+            self.settoitem(itemthis, itemother, key=self.INPUTVARIABLES)
+            self.settoitem(itemthis, itemother, key=self.EXPECTEDRESULTS)
 
         self.db.reload()
         self.otherdb.reload()
+
+    def settoitem(self, itemthis, itemother, key):
+        vars = []
+        if key in itemother.data:
+            vars = itemother.data[key]
+        prevdata = []
+        if key in itemthis.data:
+            prevdata = itemthis.data[key]
+        itemthis.set(key, prevdata + vars)
 
     def getpublishtree(self):
         items = []
@@ -189,8 +191,13 @@ class LinkReqAndTestView(AbstractLinkView):
                 items.append(linkitem)
         return self.otherdb.root, items
 
-    def updateinputvariables(self, uid):
+    def updatedata(self, uid):
         item = self.otherdb.find(uid)
+        self.updateinputvariables(item)
+
+        self.db.reload()
+
+    def updateinputvariables(self, item):
         if self.ownkey not in item.data:
             return
         if self.INPUTVARIABLES not in item.data:
@@ -205,12 +212,25 @@ class LinkReqAndTestView(AbstractLinkView):
                 if var[0] not in [x[0] for x in prevdata]:
                     newinputvars.append(var)
             it.set(self.INPUTVARIABLES, newinputvars)
-        self.db.reload()
+
+    def updateexpectedresults(self, item):
+        if self.ownkey not in item.data:
+            return
+        if self.EXPECTEDRESULTS not in item.data:
+            return
+        links = item.data[self.ownkey]
+        itemresults = item.data[self.EXPECTEDRESULTS]
+        for link in links:
+            it = self.db.find(link)
+            linkexpectedresults = [item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link][0]
+            for i, pair in enumerate(itemresults):
+                if pair[0] == it.uid and (pair[1] == '' or pair[1] in linkexpectedresults):
+                    del itemresults[i]
+                    itemresults.insert(i, linkexpectedresults)
+            it.set(self.EXPECTEDRESULTS, itemresults)
 
     def showexpectedresults(self, selection):
         if len(selection.indexes()) > 0:
             uid = selection.indexes()[0].data()
-        else:
-            uid = 'default'
-        self.itemview.showexpectedresults(uid)
+            self.itemview.showexpectedresults(uid)
 
