@@ -99,18 +99,21 @@ class MarkdownView(QWidget):
         self.editview = MarkdownEditor()
         self.editview.setWordWrapMode(QTextOption.ManualWrap)
         self.editview.setPlainText('')
+        self.defaulttext = text
         self.label = QLabel(text)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.editview)
         self.layout.addWidget(self.htmlview)
 
-        self.text = self.editview.document().toPlainText
+        self.text = self.toPlainText
         self.connectzoomfunctions()
         self.modeclb = None
         self.viewhtml()
 
         self.itemfunc = None
         self.weight = 15
+        self.db = None
+
 
     def viewhtml(self):
         from markdown import markdown
@@ -162,3 +165,46 @@ class MarkdownView(QWidget):
 
     def toPlainText(self):
         return self.editview.toPlainText()
+
+    def connectdb(self, db):
+        self.db = db
+
+
+class MarkdownViewExt(MarkdownView):
+    def __init__(self, text):
+        self.currenttestuid = 'default'
+        super().__init__(text)
+        #self.text = self.toPlainText
+
+    def viewhtml(self):
+        from markdown import markdown
+        ext = (
+            'markdown.extensions.extra',
+            'markdown.extensions.sane_lists'
+        )
+
+        html = markdown(self.text()[0][1], extensions=ext)
+        self.htmlview.setHtml(html)
+        self.htmlview.setVisible(True)
+        self.editview.setVisible(False)
+
+        if self.modeclb:
+            self.modeclb(False)
+
+    def toPlainText(self):
+        new = [self.currenttestuid, self.editview.toPlainText()]
+        return [new]
+
+    def setPlainText(self, text):
+        if text is None:
+            text = ''
+        else:
+            text = text[0][1]
+        self.editview.setPlainText(text)
+
+    def updatetitle(self, uid):
+        self.currenttestuid = uid
+        if uid != 'default':
+            self.label.setText("{} {} {}".format(self.defaulttext, 'for', uid))
+        else:
+            self.label.setText(self.defaulttext)

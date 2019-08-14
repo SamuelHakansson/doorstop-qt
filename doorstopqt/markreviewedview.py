@@ -77,8 +77,9 @@ class MarkReviewedView(QWidget):
                             except IndexError:
                                 varvalue = ''
                             newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
-                        newitemtext += product.data['expectedresults']
-                        item.text = newitemtext
+                        if 'expectedresults' in product.data:
+                            newitemtext += product.data['expectedresults']
+                        item._data['text'] = newitemtext
                     else:
                         item.active = False
 

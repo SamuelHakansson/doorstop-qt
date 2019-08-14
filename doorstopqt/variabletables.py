@@ -1,14 +1,14 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .vartable import VarTable
-from .markdownview import MarkdownView
+from .markdownview import MarkdownViewExt
 
 
 class VariableTables(QSplitter):
     def __init__(self):
         super().__init__()
         self.inputtable = VarTable("inputvariables", "Input variables")
-        self.expectedresultsmarkdownview = MarkdownView(text='Expected results')
+        self.expectedresultsmarkdownview = MarkdownViewExt(text='Expected results')
         self.expectedresultsmarkdownview.name = 'expectedresults'
 
         self.weight = 3

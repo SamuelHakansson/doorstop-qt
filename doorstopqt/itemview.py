@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from .markdownview import MarkdownView
+from .markdownview import MarkdownView, MarkdownViewExt
 from .icon import Icon
 import sys
 
@@ -22,7 +22,7 @@ class ItemView(QSplitter):
         self.currentuid = None
         self.markdownviews = [self.markdownview]
         for view in viewssplitted:
-            if type(view) is MarkdownView:
+            if type(view) is MarkdownView or type(view) is MarkdownViewExt:
                 self.markdownviews.append(view)
 
         papirusicons = Icon()
@@ -76,9 +76,12 @@ class ItemView(QSplitter):
     def connectdb(self, db):
         self.db = db
         self.read(self.currentuid)
+        for view in self.markdownviews:
+            view.connectdb(db)
 
     def textChanged(self):
         if self.currentuid is not None:
+            print('cache', flush=True)
             self.cache[self.currentuid][self.CHANGED] = True
             self.savebtn.setVisible(True)
             self.discardbtn.setVisible(True)
@@ -88,7 +91,6 @@ class ItemView(QSplitter):
             mv.viewhtml()
         self.editbtn.setVisible(True)
         self.previewbtn.setVisible(False)
-
 
     def vieweditor(self):
         for mv in self.markdownviews:
@@ -170,8 +172,22 @@ class ItemView(QSplitter):
     def saveview(self, view, uid):
         text = view.text()
         item = self.db.find(uid)
+        if view.name == 'expectedresults':
+            if 'expectedresults' in item.data:
+                if text[0][0] in [x[0] for x in item.data['expectedresults']]:
+                    newdata = item.data['expectedresults']
+                    for i, pair in enumerate(newdata):
+                        if pair[0] == text[0][0]:
+                            del newdata[i]
+                            newdata.insert(i, text[0])
+                    text = newdata
+
+                else:
+                    text = item.data['expectedresults'] + text
         item.set(view.name, text)
         item.save()
+
+
 
     def getiteminfo(self, uid, key):
         if not self.db:
@@ -200,6 +216,26 @@ class ItemView(QSplitter):
         for view in self.views:
             if view.name == 'lastupdated':
                 view.setPlainText(view.toPlainText())
+
+    def updateexpectedresults(self, uid):
+        for view in self.views:
+            if view.name == 'expectedresults':
+                #view.vieweditor()
+                view.updatetitle(uid)
+                item = self.db.find(self.currentuid)
+                text = None
+                if 'expectedresults' in item.data:
+                    for pair in item.data['expectedresults']:
+                        if pair[0] == uid:
+                            text = [pair]
+                print('about to set text', flush=True)
+                view.editview.blockSignals(True)
+                view.setPlainText(text)
+                view.editview.blockSignals(False)
+                print('text set', flush=True)
+
+
+                self.viewhtml()
 
 
 if __name__ == '__main__':

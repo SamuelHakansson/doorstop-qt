@@ -215,8 +215,9 @@ class DocumentView(QWidget):
 
             for data in self.documentstodelete:
                 doc = self.docsdict[str(data)]
-                doccommand = "git add ."
-                os.system(doccommand)
+                #doccommand = "git add ."
+                #os.system(doccommand)
+                print('deleting', data, flush=True)
                 doc.delete()
                 del self.docsdict[str(data)]
             self.documentstodelete = []

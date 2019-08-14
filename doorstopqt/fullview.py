@@ -105,7 +105,7 @@ REQUIREMENT = 'requirement'
 TEST = 'test'
 PRODUCT = 'product'
 LINKEDREQUIREMENTS = 'linkedrequirements'
-LINKEDTESTS = 'linkestests'
+LINKEDTESTS = 'linkedtests'
 LINKEDPRODUCTS = 'linkedproducts'
 
 
