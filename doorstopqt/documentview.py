@@ -371,14 +371,12 @@ class DocumentView(QWidget):
 
     def changehierarchy(self, currentobjects_list):
         for obj in currentobjects_list:
-            print(obj.data(role=Qt.UserRole))
             temp = []
             data = self.model.data(obj, role=Qt.UserRole)
             parindex = obj.parent()
 
             pardata = self.model.data(parindex, role=Qt.UserRole)
             document = self.docsdict[data]
-            print(document.parent, pardata, obj.data(role=Qt.UserRole), flush=True)
             if document.parent != pardata:
                 temp.append((document, document.parent))
                 self.treestack.append((temp, self.LEVELS))
