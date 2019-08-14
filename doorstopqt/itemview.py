@@ -142,6 +142,8 @@ class ItemView(QSplitter):
 
         for view in self.views:
             view.setPlainText(view.storedtext)
+            if view.name == 'expectedresults':
+                view.updatetitle('default')
 
         self.currentuid = uid
         self.viewhtml()
@@ -186,8 +188,6 @@ class ItemView(QSplitter):
         item.set(view.name, text)
         item.save()
 
-
-
     def getiteminfo(self, uid, key):
         if not self.db:
             return
@@ -216,12 +216,12 @@ class ItemView(QSplitter):
             if view.name == 'lastupdated':
                 view.setPlainText(view.toPlainText())
 
-    def updateexpectedresults(self, uid):
+    def showexpectedresults(self, uid):
         for view in self.views:
             if view.name == 'expectedresults':
                 view.updatetitle(uid)
                 item = self.db.find(self.currentuid)
-                text = None
+                text = ''
                 if 'expectedresults' in item.data:
                     for pair in item.data['expectedresults']:
                         if pair[0] == uid:

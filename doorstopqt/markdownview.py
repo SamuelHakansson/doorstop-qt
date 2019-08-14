@@ -196,11 +196,17 @@ class MarkdownViewExt(MarkdownView):
         return [new]
 
     def setPlainText(self, text):
+        text = self.unpacktext(text)
         if text is None:
             text = ''
-        else:
-            text = text[0][1]
         self.editview.setPlainText(text)
+
+    def unpacktext(self, text):
+        if text:
+            for pair in text:
+                if pair[0] == self.currenttestuid:
+                    text = pair[1]
+                    return text
 
     def updatetitle(self, uid):
         self.currenttestuid = uid

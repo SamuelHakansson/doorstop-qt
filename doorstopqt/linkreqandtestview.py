@@ -38,7 +38,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.model.dataChanged.connect(dataChanged)
 
         #self.listview.currentChanged.connect(self.updateexpectedresults)
-        self.listview.selectionModel().selectionChanged.connect(self.updateexpectedresults)
+        self.listview.selectionModel().selectionChanged.connect(self.showexpectedresults)
 
 
     def connectdb(self, db):
@@ -204,10 +204,10 @@ class LinkReqAndTestView(AbstractLinkView):
             it.set(self.INPUTVARIABLES, newinputvars)
         self.db.reload()
 
-    def updateexpectedresults(self, selection):
+    def showexpectedresults(self, selection):
         if len(selection.indexes()) > 0:
             uid = selection.indexes()[0].data()
         else:
             uid = 'default'
-        self.itemview.updateexpectedresults(uid)
+        self.itemview.showexpectedresults(uid)
 

@@ -127,7 +127,7 @@ class TestView(FullView):
     def __init__(self):
         self.itemview = ItemTestView()
         self.itemview.vartables.inputtable.table.setHorizontalHeaderLabels(['Name', 'Default value'])
-        self.itemview.vartables.expectedresultsmarkdownview.label.setText('Default expected value')
+        self.itemview.vartables.expectedresultsmarkdownview.label.setText('Default expected results')
         self.calldatabase = TestDatabase
         self.database = None
         self.header = 'Test'
