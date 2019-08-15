@@ -220,6 +220,8 @@ class ItemView(QSplitter):
     def showexpectedresults(self, uid):
         for view in self.views:
             if view.name == 'expectedresults':
+                if uid is None:
+                    uid = self.currentuid
                 view.updatetitle(uid)
                 item = self.db.find(self.currentuid)
                 text = ''

@@ -28,10 +28,10 @@ class DocumentView(QWidget):
         self.warningmessage.setStyleSheet('color: red')
         self.warningmessage.hide()
 
-
         papirusicons = Icon()
         searchicon = papirusicons.fromTheme("search")
         clearicon = papirusicons.fromTheme("edit-clear-all")
+        foldericon = papirusicons.fromTheme("folder-open")
 
         self.revert = RevertButton()
 
@@ -55,7 +55,12 @@ class DocumentView(QWidget):
         font = QFont()
         font.setBold(True)
         self.header.setFont(font)
-        self.vbox.addWidget(self.header)
+        self.hbox = QHBoxLayout()
+        self.hbox.addWidget(self.header)
+        self.folderbutton = QPushButton(foldericon, '')
+        self.hbox.addStretch(1)
+        self.hbox.addWidget(self.folderbutton)
+        self.vbox.addLayout(self.hbox)
         self.vbox.addLayout(self.searchlayout)
         self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
@@ -87,6 +92,12 @@ class DocumentView(QWidget):
         self.REMOVE = 1
         self.NEW = 2
         self.currentdocument = None
+        self.reloaddatabase = None
+        self.folderbutton.clicked.connect(self.selectfolder)
+
+    def selectfolder(self):
+        if self.reloaddatabase:
+            self.reloaddatabase()
 
     def clearsearchbox(self):
         self.searchbox.setText('')

@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import *
 class Icon(QIcon):
     def __init__(self):
         super(Icon, self).__init__()
+
         style = QCommonStyle()
         icons = [x for x in dir(QStyle) if x.startswith('SP_')]
         self.names = []

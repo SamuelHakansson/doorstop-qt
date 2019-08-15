@@ -10,7 +10,7 @@ from .linkreqandtestview import LinkReqAndTestView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
-from .databases import ReqDatabase, TestDatabase, ProductDatabase
+from .databases import ReqDatabase, OtherDatabase
 
 
 class FullView(QSplitter):
@@ -112,7 +112,7 @@ LINKEDPRODUCTS = 'linkedproducts'
 class ReqView(FullView):
     def __init__(self):
         self.itemview = ItemReqView()
-        self.calldatabase = ReqDatabase
+        self.calldatabase = OtherDatabase
         self.database = None
         self.header = 'Requirement'
         self.otherheaders = [TEST, PRODUCT]
@@ -128,7 +128,7 @@ class TestView(FullView):
         self.itemview = ItemTestView()
         self.itemview.vartables.inputtable.table.setHorizontalHeaderLabels(['Name', 'Default value'])
         self.itemview.vartables.expectedresultsmarkdownview.label.setText('Default expected results')
-        self.calldatabase = TestDatabase
+        self.calldatabase = OtherDatabase
         self.database = None
         self.header = 'Test'
         self.otherheaders = [REQUIREMENT, PRODUCT]
@@ -143,7 +143,7 @@ class TestView(FullView):
 class ProductView(FullView):
     def __init__(self):
         self.itemview = ItemTestView()
-        self.calldatabase = ProductDatabase
+        self.calldatabase = OtherDatabase
         self.database = None
         self.header = 'Product'
         self.otherheaders = [REQUIREMENT, TEST]

@@ -3,8 +3,8 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from .fullview import ReqView, TestView, ProductView
-from .version import VERSION
+from doorstopqt.version import VERSION
+from doorstopqt.fullview import ReqView, TestView, ProductView
 import resources  # resources fetches icons (don't remove)
 
 
@@ -30,21 +30,21 @@ def main():
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
     width = int(screenwidth*12/16)
     height = int(screenheight*12/16)
+
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
-
     reqview = ReqView()
     testview = TestView()
     productview = ProductView()
-    views = [testview, reqview, productview]
+    views = [reqview, testview, productview]
     for view in views:
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
 
         has_started = False
         while not has_started:
             try:
-                view.database = view.calldatabase()
+                view.database = view.calldatabase(view.header)
                 has_started = True
             except:
                 import os
@@ -54,7 +54,7 @@ def main():
                 os.chdir(f)
         view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
                                      view.tree, view.docview, view.itemview])
-
+        view.docview.reloaddatabase = view.database.opennewdatabase
         def modeclb(editmode):
             if editmode:
                 view.attribview.showref(True)
@@ -76,14 +76,21 @@ def main():
 
     testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
 
+
+
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir
     splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
     splitter.setStretchFactor(0, 2)
+
     splitter.show()
     for view in views:
         view.movebuttons()
 
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
