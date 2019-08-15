@@ -3,6 +3,7 @@ import doorstop
 from pathlib import Path
 from PyQt5.QtWidgets import *
 import json
+from json import JSONDecodeError
 
 
 class ReqDatabase(object):
@@ -53,21 +54,15 @@ class ReqDatabase(object):
 
 class OtherDatabase(ReqDatabase):
     def __init__(self, name=None):
-        self.path = os.getcwd()
-        '''
-        print('cwd', os.getcwd(), flush=True)
-        databasestextfile = Path(os.getcwd(), 'databases.json')
-        print(databasestextfile, flush=True)
-        if os.path.isfile(databasestextfile):
-            file_obj = open(databasestextfile, 'r')
-            databasedict = json.load(file_obj)
-            if name in databasedict:
-                self.path = Path(databasedict[name])
-            else:
-                self._writetojsonfile(databasestextfile, name)
-        else:
-            self._writetojsonfile(databasestextfile, name)
-        '''
+        self.name = name
+
+        databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
+        self.path = self.finddatapbasepath(databasestextfile)
+        if self.path is None:
+            self.path = self._openfiledialog()
+
+        self._writetojsonfile(databasestextfile)
+
         currentdir = os.getcwd()
 
         os.chdir("..")
@@ -86,26 +81,42 @@ class OtherDatabase(ReqDatabase):
         super(OtherDatabase, self).reload(root=self.path)
 
     def _openfiledialog(self):
-        dialog = QFileDialog()
+        dialog = QFileDialog(None, "{} {}{} {}".format("Select Directory for", self.name.lower(), ".",
+                                                     "Select an empty folder if you want to start from scratch."))
         dialog.setFileMode(QFileDialog.DirectoryOnly)
 
         if dialog.exec_() == QDialog.Accepted:
             path = dialog.selectedFiles()[0]
         return path
 
-    def _writetojsonfile(self, databasestextfile, name):
-            self.path = self._openfiledialog()
-            file_obj = open(databasestextfile, 'w+')
-            databasedict = json.load(file_obj)
-            print(databasedict, flush=True)
-            if not databasedict:
-                databasedict = {name: self.path}
-            else:
-                databasedict[name] = self.path
-            json.dump(databasedict, file_obj)
+    def _writetojsonfile(self, databasestextfile):
+        if os.path.isfile(databasestextfile):
+            file_obj = open(databasestextfile, 'r')
+            try:
+                databasedict = json.load(file_obj)
+                databasedict[self.name] = self.path
+            except JSONDecodeError:
+                databasedict = {self.name: self.path}
+        else:
+            databasedict = {self.name: self.path}
+
+        file_obj_wr = open(databasestextfile, 'w+')
+
+        json.dump(databasedict, file_obj_wr)
+
+    def finddatapbasepath(self, databasestextfile):
+        if os.path.isfile(databasestextfile):
+            file_obj = open(databasestextfile, 'r')
+            try:
+                databasedict = json.load(file_obj)
+                if self.name in databasedict:
+                    return databasedict[self.name]
+            except JSONDecodeError:
+                return
 
     def opennewdatabase(self):
         folder = self._openfiledialog()
         self.reload(folder)
+
 
 

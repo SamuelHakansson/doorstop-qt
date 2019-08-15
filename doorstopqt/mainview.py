@@ -40,7 +40,8 @@ def main():
     views = [reqview, testview, productview]
     for view in views:
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
-
+        view.database = view.calldatabase(view.header)
+        '''
         has_started = False
         while not has_started:
             try:
@@ -48,10 +49,11 @@ def main():
                 has_started = True
             except:
                 import os
-                f = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
+                f = str(QFileDialog.getExistingDirectory(None, "{} {}".format("Select Directory for ", view.header)))
                 if not os.path.isdir(f):
                     f = os.path.dirname(f)
                 os.chdir(f)
+        '''
         view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
@@ -75,8 +77,6 @@ def main():
     productview.reqtestlinkview2.gotoclb = testview.selectfunc
 
     testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
-
-
 
     splitter.addWidget(reqview)
     splitter.addWidget(testview)  # added reversed because of problem with db and current dir
