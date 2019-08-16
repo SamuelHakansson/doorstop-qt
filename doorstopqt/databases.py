@@ -56,12 +56,12 @@ class OtherDatabase(ReqDatabase):
     def __init__(self, name=None):
         self.name = name
 
-        databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
-        self.path = self.finddatabasepath(databasestextfile)
+        self.databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
+        self.path = self.finddatabasepath(self.databasestextfile)
         if self.path is None:
             self.path = self._openfiledialog()
 
-        self._writetojsonfile(databasestextfile)
+        self._writetojsonfile(self.databasestextfile)
 
         currentdir = os.getcwd()
         self.initgit()
@@ -113,6 +113,7 @@ class OtherDatabase(ReqDatabase):
             self.path = folder
             self.initgit()
             self.reload(folder)
+            self._writetojsonfile(self.databasestextfile)
 
     def initgit(self):
         if not os.path.exists(self.path):
