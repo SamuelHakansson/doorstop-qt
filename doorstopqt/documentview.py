@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from .revertbutton import RevertButton
 from .icon import Icon
+import shutil
 
 
 class DocumentView(QWidget):
@@ -233,11 +234,9 @@ class DocumentView(QWidget):
 
             for data in self.documentstodelete:
                 doc = self.docsdict[str(data)]
-                #doccommand = "git add ."
-                #os.system(doccommand)
-                print('deleting', data, flush=True)
-                doc.delete()
-                del self.docsdict[str(data)]
+                if os.path.isdir(Path(doc.path)):
+                    shutil.rmtree((Path(doc.path)))
+                    del self.docsdict[str(data)]
             self.documentstodelete = []
             self.moverevertbutton()
             self.revert.show()

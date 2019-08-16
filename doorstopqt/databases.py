@@ -32,7 +32,7 @@ class ReqDatabase(object):
             self.other_listeners.append(l)
 
     def reload(self, root=None):
-        self.root = doorstop.core.builder.build(root=root)
+        self.root = doorstop.core.builder.build(root=Path(root))
         for l in self.listeners:
             l.connectdb(self)
         for ol in self.other_listeners:
