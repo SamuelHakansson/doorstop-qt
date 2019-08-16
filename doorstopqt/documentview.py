@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from .revertbutton import RevertButton
 from .icon import Icon
+from .searchlayout import SearchLayout
 import shutil
 
 
@@ -30,32 +31,16 @@ class DocumentView(QWidget):
         self.warningmessage.hide()
 
         papirusicons = Icon()
-        searchicon = papirusicons.fromTheme("search")
-        clearicon = papirusicons.fromTheme("edit-clear-all")
+        #searchicon = papirusicons.fromTheme("search")
+        #clearicon = papirusicons.fromTheme("edit-clear-all")
         foldericon = papirusicons.fromTheme("folder-open")
         self.revert = RevertButton()
 
         self.db = None
 
-        self.searchbox = QLineEdit()
-        self.searchbox.setPlaceholderText('Search item')
-        #self.searchbox.setStyleSheet("background-color: white; border: 0px;")
-        self.searchlabel = QPushButton(searchicon, '')
-        self.searchbox.setTextMargins(24, 0, 0, 0)
-        #self.searchlabel.setStyleSheet("background-color: white")
-        #self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
-        self.searchlabel.setStyleSheet("background-color: 4e4e4e; border: 0px;")
-        self.clearbutton = QPushButton(clearicon, '')
-        self.clearbutton.setStyleSheet("background-color: 4e4e4e; border: 0px;")
-        self.clearbutton.setParent(self.searchbox)
-        self.searchlayout = QHBoxLayout()
-        #self.searchlayout.addWidget(self.searchlabel)
-        self.searchlayout.addWidget(self.searchbox)
-        self.searchlabel.setParent(self.searchbox)
-        #self.searchlayout.addWidget(self.clearbutton)
-        self.searchlayout.setSpacing(0)
+        self.searchlayout = SearchLayout('Search item')
         self.completer = CustomQCompleter()
-        self.searchbox.setCompleter(self.completer)
+        self.searchlayout.searchbox.setCompleter(self.completer)
         self.header = QLabel(header)
         font = QFont()
         font.setBold(True)
@@ -88,7 +73,7 @@ class DocumentView(QWidget):
         self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
-        self.clearbutton.clicked.connect(self.clearsearchbox)
+
 
         self.treestack = []
         self.revert.clicked.connect(self.undowrap)
@@ -107,8 +92,7 @@ class DocumentView(QWidget):
         if self.reloaddatabase:
             self.reloaddatabase()
 
-    def clearsearchbox(self):
-        self.searchbox.setText('')
+
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
@@ -277,7 +261,6 @@ class DocumentView(QWidget):
                 parent = None
             print('{} {} {}'.format(prefix, parent, path), flush=True)
             doc = self.db.root.create_document(path, prefix, parent=parent)
-            print(doc.parent, flush=True)
             self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(docitem.index())
             self.treestack.append((doc, self.NEW))
@@ -485,8 +468,6 @@ class DocumentView(QWidget):
         warnwidth = self.warningmessage.width()
         self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
 
-    def moveclearbutton(self):
-        self.clearbutton.move(self.searchbox.width() - self.clearbutton.width(), self.clearbutton.pos().y())
 
     def read(self, uid):
         if self.db is None:

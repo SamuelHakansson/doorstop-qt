@@ -20,8 +20,12 @@ class FullView(QSplitter):
 
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.itemview, self.attribview, header=self.header.lower())
-        self.reqtestlinkview = LinkReqAndTestView(self.itemview, self.attribview, self.keys[0], self.ownkey,  header=self.otherheaders[0].lower())
-        self.reqtestlinkview2 = LinkReqAndTestView(self.itemview, self.attribview, self.keys[1], self.ownkey,  header=self.otherheaders[1].lower())
+        self.reqtestlinkview = LinkReqAndTestView(self.itemview, self.attribview, self.keys[0], self.ownkey,
+                                                  header=self.otherheaders[0].lower())
+        self.reqtestlinkview2 = LinkReqAndTestView(self.itemview, self.attribview, self.keys[1], self.ownkey,
+                                                   header=self.otherheaders[1].lower(),
+                                                   changeexpectedresults=self.changeexpectedresults)
+        self.linkviews = [self.linkview, self.reqtestlinkview, self.reqtestlinkview2]
 
         self.tree = RequirementTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
@@ -93,7 +97,9 @@ class FullView(QSplitter):
     def movebuttons(self):
         self.tree.setupHeaderwidth()
         self.docview.moverevertbutton()
-        self.docview.moveclearbutton()
+        self.docview.searchlayout.moveclearbutton()
+        for lw in self.linkviews:
+            lw.linkentry.moveclearbutton()
 
     def setstretch(self):
         self.setStretchFactor(0, 2)
@@ -121,6 +127,7 @@ class ReqView(FullView):
         self.ownkey = LINKEDREQUIREMENTS
         self.stretchfac = 2
         self.publishtest = False
+        self.changeexpectedresults = False
         super().__init__()
 
 
@@ -137,6 +144,7 @@ class TestView(FullView):
         self.ownkey = LINKEDTESTS
         self.stretchfac = 2
         self.publishtest = False
+        self.changeexpectedresults = False
         super().__init__()
 
 
@@ -152,6 +160,7 @@ class ProductView(FullView):
         self.ownkey = LINKEDPRODUCTS
         self.stretchfac = 2
         self.publishtest = True
+        self.changeexpectedresults = True
         super().__init__()
 
 

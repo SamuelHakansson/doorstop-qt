@@ -71,6 +71,7 @@ class ItemView(QSplitter):
         self.addWidget(buttonrow)
         self.cache = {}
         self.CHANGED = 'changed'
+        self.EXPECTEDRESULTS = 'expectedresults'
         self.applytootheritem = None
 
     def connectdb(self, db):
@@ -141,9 +142,9 @@ class ItemView(QSplitter):
         self.currentuid = None
 
         for view in self.views:
-            view.setPlainText(view.storedtext)
-            if view.name == 'expectedresults':
+            if view.name == self.EXPECTEDRESULTS:
                 view.updatetitle(uid)
+            view.setPlainText(view.storedtext)
 
         self.currentuid = uid
         self.viewhtml()
@@ -167,25 +168,24 @@ class ItemView(QSplitter):
     def savefunc(self, uid):
         for view in self.views:
             self.saveview(view, uid)
-            if self.applytootheritem:
-                self.applytootheritem(uid)
+        if self.applytootheritem:
+            self.applytootheritem(uid)
 
     def saveview(self, view, uid):
         text = view.text()
         item = self.db.find(uid)
-        if view.name == 'expectedresults':
-            if 'expectedresults' in item.data:
-                if text[0][0] in [x[0] for x in item.data['expectedresults']]:
-                    newdata = item.data['expectedresults']
+        if view.name == self.EXPECTEDRESULTS:
+            if self.EXPECTEDRESULTS in item.data:
+                if text[0][0] in [x[0] for x in item.data[self.EXPECTEDRESULTS]]:
+                    newdata = item.data[self.EXPECTEDRESULTS]
                     for i, pair in enumerate(newdata):
                         if pair[0] == text[0][0]:
                             del newdata[i]
                             newdata.insert(i, text[0])
                     text = newdata
-
                 else:
-                    if item.data['expectedresults'] != '':
-                        text = item.data['expectedresults'] + text
+                    if item.data[self.EXPECTEDRESULTS] != '':
+                        text = item.data[self.EXPECTEDRESULTS] + text
         item.set(view.name, text)
         item.save()
 
@@ -219,14 +219,14 @@ class ItemView(QSplitter):
 
     def showexpectedresults(self, uid):
         for view in self.views:
-            if view.name == 'expectedresults':
+            if view.name == self.EXPECTEDRESULTS:
                 if uid is None:
                     uid = self.currentuid
                 view.updatetitle(uid)
                 item = self.db.find(self.currentuid)
                 text = ''
-                if 'expectedresults' in item.data:
-                    for pair in item.data['expectedresults']:
+                if self.EXPECTEDRESULTS in item.data:
+                    for pair in item.data[self.EXPECTEDRESULTS]:
                         if pair[0] == uid:
                             text = [pair]
                 view.editview.blockSignals(True)

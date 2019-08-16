@@ -26,6 +26,9 @@ class CustomSplitter(QSplitter):
         super().resizeEvent(a0)
 
 
+
+
+
 def main():
     import sys
     app = QApplication(sys.argv)

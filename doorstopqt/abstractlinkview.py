@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
 from .customcompleter import CustomQCompleter
+from .searchlayout import SearchLayout
 
 
 class AbstractLinkView(QWidget):
@@ -24,12 +25,12 @@ class AbstractLinkView(QWidget):
 
         self.completer = CustomQCompleter()
 
-        self.linkentry = QLineEdit()
-        self.linkentry.setCompleter(self.completer)
+        self.linkentry = SearchLayout('Add item')
+        self.linkentry.searchbox.setCompleter(self.completer)
 
         self.label = QLabel('Link ' + header)
         self.vbox.addWidget(self.label)
-        self.vbox.addWidget(self.linkentry)
+        self.vbox.addLayout(self.linkentry)
         self.vbox.addWidget(self.listview)
         self.vbox.setSpacing(0)
         self.vbox.setContentsMargins(0, 0, 0, 0)

@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 class LinkReqAndTestView(AbstractLinkView):
-    def __init__(self, itemview, attribview, key, ownkey, header=""):
+    def __init__(self, itemview, attribview, key, ownkey, header="", changeexpectedresults=False):
         super(LinkReqAndTestView, self).__init__(itemview, attribview, header=header)
         self.header = header
         self.key = key
@@ -15,7 +15,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.otherdb = None
         self.model = SimpleLinkItemModel()
         self.listview.setModel(self.model)
-        self.linkentry.setPlaceholderText('{} {} {}'.format('<Click here to add', self.header, 'link>'))
+        self.linkentry.searchbox.setPlaceholderText('{} {} {}'.format('Add', self.header, 'link'))
         self.attribview.getotherdbitems = self.getpublishtree
         self.currentuid = None
         self.INPUTVARIABLES = 'inputvariables'
@@ -38,7 +38,7 @@ class LinkReqAndTestView(AbstractLinkView):
 
         self.model.dataChanged.connect(dataChanged)
 
-        if ownkey == 'linkedproducts' and header == 'test':
+        if changeexpectedresults:
             self.listview.selectionModel().selectionChanged.connect(self.showexpectedresults)
 
 
@@ -194,7 +194,7 @@ class LinkReqAndTestView(AbstractLinkView):
     def updatedata(self, uid):
         item = self.otherdb.find(uid)
         self.updateinputvariables(item)
-
+        self.updateexpectedresults(item)
         self.db.reload()
 
     def updateinputvariables(self, item):
@@ -222,11 +222,16 @@ class LinkReqAndTestView(AbstractLinkView):
         itemresults = item.data[self.EXPECTEDRESULTS]
         for link in links:
             it = self.db.find(link)
-            linkexpectedresults = [item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link][0]
+            expres = it.data[self.EXPECTEDRESULTS][0]
+            #print([item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link], flush=True)
+            #linkexpectedresults = [item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link][0]
             for i, pair in enumerate(itemresults):
-                if pair[0] == it.uid and (pair[1] == '' or pair[1] in linkexpectedresults):
+                print('-----------------', flush=True)
+                print(pair[1], expres[1], pair[1] in expres[1], flush=True)
+                if pair[0] == it.uid and (pair[1] == '' or pair[1] in expres[1]):
+                    print('changing', flush=True)
                     del itemresults[i]
-                    itemresults.insert(i, linkexpectedresults)
+                    itemresults.insert(i, expres[1])
             it.set(self.EXPECTEDRESULTS, itemresults)
 
     def showexpectedresults(self, selection):

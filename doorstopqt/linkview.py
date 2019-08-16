@@ -8,7 +8,7 @@ class LinkView(AbstractLinkView):
     def __init__(self, itemview, attribview, header=""):
         super(LinkView, self).__init__(itemview, attribview, header=header)
 
-        self.linkentry.setPlaceholderText('<Click here to add parent link>')
+        self.linkentry.searchbox.setPlaceholderText('Add parent link')
 
         self.model = LinkItemModel()
         self.listview.setModel(self.model)

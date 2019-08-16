@@ -139,6 +139,12 @@ class RequirementTreeView(QWidget):
                 return
         return item
 
+    def uidtoindex(self, uid):
+        treeaslist = self.gettreeaslist()
+        for index in treeaslist:
+            if str(index.data(Qt.UserRole)) == str(uid):
+                return index
+
     def setcheckboxfromuid(self, state, uid, attribute):
         if uid is None:
             return
@@ -175,15 +181,24 @@ class RequirementTreeView(QWidget):
         currentobjects_list = nextlist
         return currentobjects_list
 
-    def onlayoutchanged(self):
-
-        self.savelevels()
+    def gettreeaslist(self):
         movedobject = self.tree.currentIndex()
 
         movedobject = movedobject.siblingAtColumn(0)
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
+        currentobjects_list = previouslist + [movedobject] + nextlist
+        return currentobjects_list
+
+    def onlayoutchanged(self):
+        movedobject = self.tree.currentIndex()
+        movedobject = movedobject.siblingAtColumn(0)
+        nextlist = self.getnext(movedobject, [])
+        previouslist = self.getprevious(movedobject, [])
         currentobjects_list = previouslist + nextlist
+
+        self.savelevels()
+        currentobjects_list = self.gettreeaslist()
         topindices = []
         for index in currentobjects_list:
             if self.itemtouid(self.model.itemFromIndex(index).parent()) is None:
@@ -658,8 +673,8 @@ class RequirementTreeView(QWidget):
         item = self.db.find(uid)
         cat = str(item.document)
         self.lastselected[cat] = str(uid)
-        guiitem = self.uidtoitem(uid)
-        if guiitem:
-            self.tree.setCurrentIndex(self.uidtoitem(uid).index())
+        guiindex = self.uidtoindex(uid)
+        if guiindex:
+            self.tree.setCurrentIndex(guiindex)
         self.setupHeaders()
 
