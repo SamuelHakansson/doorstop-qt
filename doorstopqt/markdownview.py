@@ -119,8 +119,7 @@ class MarkdownView(QWidget):
         from markdown import markdown
         ext = (
             'markdown.extensions.extra',
-            'markdown.extensions.sane_lists',
-            'markdown.extensions.mdx_outline'
+            'markdown.extensions.sane_lists'
         )
 
         html = markdown(self.text(), extensions=ext)
@@ -181,8 +180,7 @@ class MarkdownViewExt(MarkdownView):
         from markdown import markdown
         ext = (
             'markdown.extensions.extra',
-            'markdown.extensions.sane_lists',
-            'markdown.extensions.mdx_outline'
+            'markdown.extensions.sane_lists'
         )
 
         html = markdown(self.text()[0][1], extensions=ext)
