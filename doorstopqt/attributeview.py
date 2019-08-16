@@ -5,6 +5,7 @@ from doorstop.common import DoorstopError
 import os
 from .icon import Icon
 
+
 class AttributeView(QWidget):
     def __init__(self, parent=None):
         super(AttributeView, self).__init__(parent)
@@ -115,15 +116,12 @@ class AttributeView(QWidget):
     def read(self, uid):
         if uid is None:
             return
-        if self.locked:
-            return
         self.currentuid = None
         if self.db is None:
             return
         data = self.db.find(uid)
         if data is None:
             return
-
 
         self.active.setCheckState(Qt.Checked if data.active else Qt.Unchecked)
         self.derived.setCheckState(Qt.Checked if data.derived else Qt.Unchecked)

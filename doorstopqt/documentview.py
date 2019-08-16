@@ -6,10 +6,12 @@ import os
 from pathlib import Path
 from .revertbutton import RevertButton
 from .icon import Icon
+from .searchlayout import SearchLayout
+import shutil
 
 
 class DocumentView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, header=''):
         super(DocumentView, self).__init__(parent)
 
         self.vbox = QVBoxLayout()
@@ -20,7 +22,7 @@ class DocumentView(QWidget):
         self.tree.header().hide()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.setIndentation(20)
-        self.tree.setAlternatingRowColors(True)
+        #self.tree.setAlternatingRowColors(True)
 
         grid.addWidget(self.tree)
 
@@ -28,29 +30,27 @@ class DocumentView(QWidget):
         self.warningmessage.setStyleSheet('color: red')
         self.warningmessage.hide()
 
-
         papirusicons = Icon()
-        searchicon = papirusicons.fromTheme("search")
-        clearicon = papirusicons.fromTheme("edit-clear-all")
-
+        #searchicon = papirusicons.fromTheme("search")
+        #clearicon = papirusicons.fromTheme("edit-clear-all")
+        foldericon = papirusicons.fromTheme("folder-open")
         self.revert = RevertButton()
 
         self.db = None
 
-        self.searchbox = QLineEdit()
-        self.searchbox.setStyleSheet("background-color: white; border: 0px;")
-        self.searchlabel = QLabel()
-        self.searchlabel.setStyleSheet("background-color: white")
-        self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
-        self.clearbutton = QPushButton(clearicon, '')
-        self.clearbutton.setStyleSheet("background-color: white; border: 0px;")
-        self.searchlayout = QHBoxLayout()
-        self.searchlayout.addWidget(self.searchlabel)
-        self.searchlayout.addWidget(self.searchbox)
-        self.searchlayout.addWidget(self.clearbutton)
-        self.searchlayout.setSpacing(0)
+        self.searchlayout = SearchLayout('Search item')
         self.completer = CustomQCompleter()
-        self.searchbox.setCompleter(self.completer)
+        self.searchlayout.searchbox.setCompleter(self.completer)
+        self.header = QLabel(header)
+        font = QFont()
+        font.setBold(True)
+        self.header.setFont(font)
+        self.hbox = QHBoxLayout()
+        self.hbox.addWidget(self.header)
+        self.folderbutton = QPushButton(foldericon, '')
+        self.hbox.addStretch(1)
+        self.hbox.addWidget(self.folderbutton)
+        self.vbox.addLayout(self.hbox)
         self.vbox.addLayout(self.searchlayout)
         self.vbox.addWidget(self.tree)
         self.setLayout(self.vbox)
@@ -70,11 +70,10 @@ class DocumentView(QWidget):
         self.doctonewname = {}
         self.willberemoved = {}
         self.documentstocreate = []
-        self.path = './reqs/'
         self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
-        self.clearbutton.clicked.connect(self.clearsearchbox)
+
 
         self.treestack = []
         self.revert.clicked.connect(self.undowrap)
@@ -83,9 +82,17 @@ class DocumentView(QWidget):
         self.REMOVE = 1
         self.NEW = 2
         self.currentdocument = None
+        self.reloaddatabase = None
+        self.folderbutton.clicked.connect(self.selectfolder)
+        self.reloaditemfunc = None
 
-    def clearsearchbox(self):
-        self.searchbox.setText('')
+
+
+    def selectfolder(self):
+        if self.reloaddatabase:
+            self.reloaddatabase()
+
+
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
@@ -112,6 +119,8 @@ class DocumentView(QWidget):
             self.gotoclb(uid)
 
     def gotocompleted(self, searchstr):
+        if searchstr not in self.completerdict:
+            return
         uid = self.completerdict[searchstr]
         self.goto(uid)
 
@@ -163,19 +172,24 @@ class DocumentView(QWidget):
 
     def contextmenu(self, pos):
         menu = QMenu(parent=self.tree)
-        addaction = menu.addAction("Create child document")
-        addaction.triggered.connect(lambda: addnewdocument(item))
-        menu.addSeparator()
-        renameaction = menu.addAction("Rename")
-        renameaction.triggered.connect(lambda: rename(item))
-        menu.addSeparator()
-
-        removeaction = menu.addAction('Remove')
-        removeaction.triggered.connect(lambda: remove(item))
-
         si = self.tree.selectedIndexes()
-        indextoremove = si[0]
-        item = self.model.itemFromIndex(indextoremove)
+        if len(si) > 0:
+            selectedindex = si[0]
+            item = self.model.itemFromIndex(selectedindex)
+
+            addaction = menu.addAction("Create child document")
+            addaction.triggered.connect(lambda: addnewdocument(item))
+            menu.addSeparator()
+            renameaction = menu.addAction("Rename")
+            renameaction.triggered.connect(lambda: rename(item))
+            menu.addSeparator()
+
+            removeaction = menu.addAction('Remove')
+            removeaction.triggered.connect(lambda: remove(item))
+        else:
+            addaction = menu.addAction("Create document")
+            addaction.triggered.connect(lambda: addnewdocument())
+
 
         def remove(item):
             documenttoremove(item)
@@ -192,8 +206,7 @@ class DocumentView(QWidget):
             doc = self.docsdict[str(data)]
             docpath = Path(doc.path)
             listdir = os.listdir(doc.path)
-            itemsindoc = []
-            itemsindoc.append(Path(docpath))
+            itemsindoc = [Path(docpath)]
             for file in listdir:
                 path = Path(doc.path)
                 filepath = path / file
@@ -205,23 +218,23 @@ class DocumentView(QWidget):
 
             for data in self.documentstodelete:
                 doc = self.docsdict[str(data)]
-                doccommand = "git add ."
-                os.system(doccommand)
-                doc.delete()
-                del self.docsdict[str(data)]
+                if os.path.isdir(Path(doc.path)):
+                    shutil.rmtree((Path(doc.path)))
+                    del self.docsdict[str(data)]
             self.documentstodelete = []
             self.moverevertbutton()
             self.revert.show()
             self.db.reload()
 
-
-
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
-        def addnewdocument(parentitem):
+        def addnewdocument(parentitem=None):
             newitem = QStandardItem()
-            parentitem.appendRow(newitem)
+            if parentitem:
+                parentitem.appendRow(newitem)
+            else:
+                self.model.appendRow(newitem)
             self.tree.edit(newitem.index())
 
         menu.popup(self.tree.mapToGlobal(pos))
@@ -231,8 +244,7 @@ class DocumentView(QWidget):
             if not docitem:
                 return
             prefix = docitem.text()
-            #if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
-            if prefix == '':
+            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
                 self.model.removeRow(docitem.row(), docitem.parent().index())
                 self.documentstocreate.remove(docitem)
                 return
@@ -242,8 +254,11 @@ class DocumentView(QWidget):
             self.model.blockSignals(True)
             docitem.setData(prefix, role=Qt.UserRole)
             self.model.blockSignals(False)
-            path = self.path + prefix
-            parent = docitem.parent().text()
+            path = Path(self.db.root.root, prefix)
+            if docitem.parent():
+                parent = docitem.parent().text()
+            else:
+                parent = None
             print('{} {} {}'.format(prefix, parent, path), flush=True)
             doc = self.db.root.create_document(path, prefix, parent=parent)
             self.docsdict[prefix] = doc
@@ -254,11 +269,12 @@ class DocumentView(QWidget):
 
         self.documentstocreate = []
 
-
     def buildlist(self):
-        if self.db is None or len(self.db.root.documents) == 0:
-            return
         self.model.clear()
+        if self.db is None or len(self.db.root.documents) == 0:
+            if self.reloaditemfunc:
+                self.reloaditemfunc(None)
+            return
         self.model.blockSignals(True)
         self.createhierarchy()
         self.model.blockSignals(False)
@@ -296,6 +312,7 @@ class DocumentView(QWidget):
             prevpos = pos
             previtem = item
         self.tree.expandAll()
+        self.select(None)
 
     def undowrap(self):
         self.undo()
@@ -318,7 +335,7 @@ class DocumentView(QWidget):
                 nrroots = 0
                 for obj in self.docs:
                     pardata = obj.parent
-                    if pardata == None:
+                    if pardata is None:
                         nrroots += 1
                 if nrroots != 1:
                     del self.treestack[-1]
@@ -326,7 +343,6 @@ class DocumentView(QWidget):
                 else:
                     self.warningmessage.hide()
                     self.moverevertbutton()
-
 
         elif type == self.REMOVE:
             folder = stack[0]
@@ -341,7 +357,6 @@ class DocumentView(QWidget):
         elif type == self.NEW:
             doc = stack
             doc.delete()
-
 
     def undoreload(self):
         self.db.reload()
@@ -374,20 +389,25 @@ class DocumentView(QWidget):
                     document._data['parent'] = None
                     document.save()
 
-
     def onlayoutchanged(self):
-        movedobject = self.tree.currentIndex()
+        rootobject = self.model.index(0, 0)
+        currentindex = self.tree.currentIndex()
+        moveddata = currentindex.data(role=Qt.UserRole)
 
-        nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + nextlist
+        nextlist = self.getnext(rootobject, [])
 
+        for i, index in enumerate(nextlist):
+            if index.data(role=Qt.UserRole) == moveddata and index == currentindex:
+                del nextlist[i]
+                break
+
+        currentobjects_list = [rootobject] + nextlist
 
         nrroots = 0
         for obj in currentobjects_list:
             parindex = obj.parent()
             pardata = self.model.data(parindex, role=Qt.UserRole)
-            if pardata == None:
+            if pardata is None:
                 nrroots += 1
         if nrroots != 1:
             self.warningmessage.show()
@@ -405,14 +425,6 @@ class DocumentView(QWidget):
         if data is not None:
             nextobjectslist.append(nextobject)
             self.getnext(nextobject, nextobjectslist)
-        return nextobjectslist
-
-    def getprevious(self, index, nextobjectslist):
-        previousobject = self.tree.indexAbove(index)
-        data = self.model.data(previousobject, role=Qt.UserRole)
-        if data is not None:
-            nextobjectslist.insert(0, previousobject)
-            self.getprevious(previousobject, nextobjectslist)
         return nextobjectslist
 
     def findallchildren(self, item):
@@ -434,8 +446,8 @@ class DocumentView(QWidget):
                 self.currentdocument = doc
             except IndexError:
                 doc = None
-
             func(doc)
+        self.reloaditemfunc = func
         self.tree.selectionModel().selectionChanged.connect(clb)
 
     def select(self, document=None):
@@ -455,6 +467,7 @@ class DocumentView(QWidget):
         self.revert.move(self.tree.width() - 35, self.tree.height() - 30)
         warnwidth = self.warningmessage.width()
         self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
+
 
     def read(self, uid):
         if self.db is None:

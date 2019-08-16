@@ -1,78 +1,17 @@
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from markdown import markdown
-from .icon import Icon
-from .customcompleter import CustomQCompleter
+from .abstractlinkview import AbstractLinkView
+from .linkitemmodel import LinkItemModel
 
 
-class LinkItemModel(QStandardItemModel):
-    def __init__(self, parent=None):
-        super(LinkItemModel, self).__init__(parent)
+class LinkView(AbstractLinkView):
+    def __init__(self, itemview, attribview, header=""):
+        super(LinkView, self).__init__(itemview, attribview, header=header)
 
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            item = self.itemFromIndex(index)
-            data = item.data()
-            if type(data) is str:
-                return data
-            elif type(data) is tuple:
-                is_parent_link = data[0]
-                uid = data[1]
-                target = data[2]
-                flags = data[3]
-                title = ''
-                if target is not None:
-                    title = QTextDocument()
-                    title.setHtml(markdown(target.text.split('\n')[0]))
-                    title = title.toPlainText()
-                if 'broken' in flags:
-                    extra = '[broken] '
-                elif 'suspect' in flags:
-                    extra = '[needs review] '
-                else:
-                    extra = ''
-                text = extra + str(uid) + '\t' + title
-                if is_parent_link:
-                    return '→ ' + text
-                else:
-                    return '← ' + text
-            return ''
+        self.linkentry.searchbox.setPlaceholderText('Add parent link')
 
-        return super(LinkItemModel, self).data(index, role)
-
-
-
-class LinkView(QWidget):
-    def __init__(self, markdownview, attribview, parent=None):
-        super(LinkView, self).__init__(parent)
-
-        self.vbox = QVBoxLayout()
-        self.listview = QListView()
-        self.icons = Icon()
-        self.db = None
         self.model = LinkItemModel()
         self.listview.setModel(self.model)
-        self.listview.setAlternatingRowColors(True)
-        self.locked = False
-        self.currentitemedit = None
-        self.currentindexedit = None
-        self.markdownview = markdownview
-        self.attribview = attribview
-        self.attribview.readlinkview = self.read
-
-        self.completer = CustomQCompleter()
-        self.completer.activated.connect(self.createlinkingitem)
-        self.linkentry = QLineEdit()
-        self.linkentry.setCompleter(self.completer)
-        self.linkentry.setPlaceholderText('<Click here to add parent link>')
-        self.vbox.addWidget(self.linkentry)
-        self.vbox.addWidget(self.listview)
-        self.vbox.setSpacing(0)
-        self.vbox.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.vbox)
-        self.completerdict = {}
-
 
         def dataChanged(index):
             if self.db is None:
@@ -88,63 +27,13 @@ class LinkView(QWidget):
                 self.db.root.link_items(self.currentuid, uid)
 
             self.goto(self.currentuid)
+
         self.model.dataChanged.connect(dataChanged)
 
-        def clicked(index):
-            item = self.model.itemFromIndex(index)
-            if item.isEditable():
-                self.currentitemedit = item
-                self.currentindexedit = index
-                self.setlock(True)
-                self.edit(index)
-            else:
-                self.setlock(False)
 
-
-        self.listview.clicked.connect(clicked)
-
-        def dblclicked(index):
-            item = self.model.itemFromIndex(index)
-            data = item.data()
-            if data is None or item.isEditable():
-                return
-            uid = data[1]
-            self.goto(uid)
-        self.listview.doubleClicked.connect(dblclicked)
-
-        self.listview.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.listview.customContextMenuRequested.connect(self.contextmenu)
-
-        delete = QShortcut(QKeySequence("Delete"), self)
-        delete.activated.connect(self.remove_selected_link)
-
-    def updateCompleter(self):
-        docs = list(map(lambda x: x, self.db.root.documents))
-
-        start = '**Feature name:**'
-        end = "**Feature requirement:**"
-        texts = []
-        for doc in docs:
-            for item in doc.items:
-                dt = item.text
-                uid = str(item.uid)
-                if start in dt and end in dt:
-                    text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-                    text = uid + ' | ' + text
-                else:
-                    text = uid
-                texts.append(text)
-                self.completerdict[text] = uid
-        model = QStringListModel()
-        model.setStringList(texts)
-        self.completer.setModel(model)
-        self.completer.setCompletionMode(QCompleter.PopupCompletion)
-        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
-
-    def setlock(self, lock):
-        self.locked = lock
-        self.markdownview.locked = lock
-        self.attribview.locked = lock
+    def connectdb(self, db):
+        self.db = db
+        self.updateCompleter()
 
     def contextmenu(self, pos):
         if self.db is None:
@@ -152,7 +41,7 @@ class LinkView(QWidget):
         if self.currentuid is None:
             return
         menu = QMenu(parent=self)
-        si = self.selectedIndexes()
+        si = self.listview.selectedIndexes()
 
         if len(si) == 0:
             return
@@ -179,9 +68,6 @@ class LinkView(QWidget):
         act.triggered.connect(self.remove_selected_link)
         menu.popup(self.mapToGlobal(pos))
 
-    def connectdb(self, db):
-        self.db = db
-        self.updateCompleter()
 
     def read(self, uid):
         if self.db is None:
@@ -189,9 +75,8 @@ class LinkView(QWidget):
         if self.locked:
             return
         self.currentuid = None
-
-        data = self.db.find(uid)
         self.model.clear()
+        data = self.db.find(uid)
         for link in data.links:
             d = self.db.find(str(link))
             item = QStandardItem(str(link))
@@ -221,12 +106,13 @@ class LinkView(QWidget):
 
         self.currentuid = uid
 
+
     def remove_selected_link(self):
         if self.db is None:
             return
         if self.currentuid is None:
             return
-        si = self.selectedIndexes()
+        si = self.listview.selectedIndexes()
 
         if len(si) == 0:
             return
@@ -254,10 +140,6 @@ class LinkView(QWidget):
         cur.save()
         self.read(self.currentuid)
 
-    def goto(self, uid):
-        if self.gotoclb:
-            self.gotoclb(uid)
-
     def setlinkingitem(self, uid):
         if self.locked and uid != self.currentuid and uid:
             parentuid = self.currentuid
@@ -270,7 +152,12 @@ class LinkView(QWidget):
             self.read(parentuid)
             return parentuid
 
-    def createlinkingitem(self, text):
-        uid = self.completerdict[text]
-        self.setlock(True)
-        self.setlinkingitem(uid)
+    def updateCompleter(self):
+        docs = list(map(lambda x: x, self.db.root.documents))
+        super(LinkView, self).updateCompleter(docs)
+
+    def goto(self, uid):
+        if self.gotoclb:
+            self.gotoclb(uid)
+
+
