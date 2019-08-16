@@ -30,6 +30,8 @@ class MarkReviewedView(QWidget):
         self.publish.setVisible(True)
         self.getotherdbitems = None
         self.readlinkview = None
+        self.EXPECTEDRESULTS = 'expectedresults'
+        self.INPUTVARIABLES = 'inputvariables'
 
         def ref():
             if self.currentuid is None:
@@ -62,26 +64,26 @@ class MarkReviewedView(QWidget):
                 for item in doc.items:
                     activedict[str(item)] = item.active
                     textdict[str(item)] = item.text
+            product = self.db.find(self.currentuid)
             for doc in tree.documents:
                 for item in doc.items:
-                    newitemtext = item.text
                     if item in items:
+                        newitemtext = item.text
                         item.active = True
-                        product = self.db.find(self.currentuid)
-                        for inputvar in product.data['inputvariables']:
+                        for inputvar in product.data[self.INPUTVARIABLES]:
                             varname = inputvar[0]
                             try:
                                 varvalue = inputvar[1]
                             except IndexError:
                                 varvalue = ''
                             newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
-                        if 'expectedresults' in product.data:
-                            for pair in product.data['expectedresults']:
-                                if pair[0] == item.uid:
+                        if self.EXPECTEDRESULTS in product.data:
+                            for pair in product.data[self.EXPECTEDRESULTS]:
+                                if str(pair[0]) == str(item.uid):
                                     newitemtext = newitemtext + '\n\n Expected results: \n\n' + pair[1]
-
-                        item._data['text'] = newitemtext
+                        item.text = newitemtext
                         item.save()
+
                     else:
                         item.active = False
 

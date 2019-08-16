@@ -13,7 +13,7 @@ class VarTable(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.table = QTableWidget(self.rows, self.columns)
-        self.table.setAlternatingRowColors(True)
+        #self.table.setAlternatingRowColors(True)
         self.weight = 1
         self.name = name
         self.label = label

@@ -180,6 +180,10 @@ class LinkReqAndTestView(AbstractLinkView):
         prevdata = []
         if key in itemthis.data:
             prevdata = itemthis.data[key]
+            for i, entry in enumerate(prevdata):
+                for varpair in vars:
+                    if entry[0] == varpair[0]:
+                        del prevdata[i]
         itemthis.set(key, prevdata + vars)
 
     def getpublishtree(self):
@@ -208,9 +212,13 @@ class LinkReqAndTestView(AbstractLinkView):
             it = self.db.find(link)
             prevdata = it.data[self.INPUTVARIABLES]
             newinputvars = prevdata
-            for var in inputvars:
-                if var[0] not in [x[0] for x in prevdata]:
+            for i, var in enumerate(inputvars):
+                name = var[0]
+                if name not in [x[0] for x in prevdata]:
                     newinputvars.append(var)
+                else:
+                    del newinputvars[i]
+                    newinputvars.insert(i, var)
             it.set(self.INPUTVARIABLES, newinputvars)
 
     def updateexpectedresults(self, item):
@@ -223,13 +231,8 @@ class LinkReqAndTestView(AbstractLinkView):
         for link in links:
             it = self.db.find(link)
             expres = it.data[self.EXPECTEDRESULTS][0]
-            #print([item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link], flush=True)
-            #linkexpectedresults = [item for item in it.data[self.EXPECTEDRESULTS] if item[0] == link][0]
             for i, pair in enumerate(itemresults):
-                print('-----------------', flush=True)
-                print(pair[1], expres[1], pair[1] in expres[1], flush=True)
                 if pair[0] == it.uid and (pair[1] == '' or pair[1] in expres[1]):
-                    print('changing', flush=True)
                     del itemresults[i]
                     itemresults.insert(i, expres[1])
             it.set(self.EXPECTEDRESULTS, itemresults)
