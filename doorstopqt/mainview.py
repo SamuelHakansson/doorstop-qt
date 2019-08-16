@@ -6,12 +6,19 @@ from PyQt5.QtWidgets import *
 from doorstopqt.version import VERSION
 from doorstopqt.fullview import ReqView, TestView, ProductView
 import resources  # resources fetches icons (don't remove)
+from pathlib import Path
+from doorstopqt.stylesheet import stylesheet
 
 
 class CustomSplitter(QSplitter):
+    """
+    Custom splitter to be able to move buttons when resizing the window.
+    """
     def __init__(self):
         super(CustomSplitter, self).__init__()
         self.movebuttons = None
+        self.setStyleSheet(stylesheet)
+
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         if self.movebuttons:
@@ -34,26 +41,15 @@ def main():
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
+
     reqview = ReqView()
     testview = TestView()
     productview = ProductView()
+
     views = [reqview, testview, productview]
     for view in views:
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
         view.database = view.calldatabase(view.header)
-        '''
-        has_started = False
-        while not has_started:
-            try:
-                view.database = view.calldatabase(view.header)
-                has_started = True
-            except:
-                import os
-                f = str(QFileDialog.getExistingDirectory(None, "{} {}".format("Select Directory for ", view.header)))
-                if not os.path.isdir(f):
-                    f = os.path.dirname(f)
-                os.chdir(f)
-        '''
         view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
@@ -79,7 +75,7 @@ def main():
     testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
 
     splitter.addWidget(reqview)
-    splitter.addWidget(testview)  # added reversed because of problem with db and current dir
+    splitter.addWidget(testview)
     splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)

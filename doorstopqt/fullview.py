@@ -10,7 +10,7 @@ from .linkreqandtestview import LinkReqAndTestView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
-from .databases import ReqDatabase, OtherDatabase
+from .databases import OtherDatabase
 
 
 class FullView(QSplitter):
@@ -93,12 +93,13 @@ class FullView(QSplitter):
     def movebuttons(self):
         self.tree.setupHeaderwidth()
         self.docview.moverevertbutton()
+        self.docview.moveclearbutton()
 
     def setstretch(self):
         self.setStretchFactor(0, 2)
         self.setStretchFactor(1, 4)
         self.setStretchFactor(2, int(6 / self.stretchfac))
-        self.setStretchFactor(3, 2)
+        self.setStretchFactor(3, 4)
 
 
 REQUIREMENT = 'requirement'

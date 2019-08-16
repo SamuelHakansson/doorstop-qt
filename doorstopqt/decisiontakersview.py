@@ -7,7 +7,7 @@ class DecisiontakersView(QWidget):
         super().__init__()
         self.text = self.createdecisiontakerslist
         self.listview = QListView()
-        self.listview.setAlternatingRowColors(True)
+        #self.listview.setAlternatingRowColors(True)
         self.label = QLabel(name)
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)

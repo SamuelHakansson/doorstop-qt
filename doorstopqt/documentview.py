@@ -20,7 +20,7 @@ class DocumentView(QWidget):
         self.tree.header().hide()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.setIndentation(20)
-        self.tree.setAlternatingRowColors(True)
+        #self.tree.setAlternatingRowColors(True)
 
         grid.addWidget(self.tree)
 
@@ -32,22 +32,26 @@ class DocumentView(QWidget):
         searchicon = papirusicons.fromTheme("search")
         clearicon = papirusicons.fromTheme("edit-clear-all")
         foldericon = papirusicons.fromTheme("folder-open")
-
         self.revert = RevertButton()
 
         self.db = None
 
         self.searchbox = QLineEdit()
-        self.searchbox.setStyleSheet("background-color: white; border: 0px;")
-        self.searchlabel = QLabel()
-        self.searchlabel.setStyleSheet("background-color: white")
-        self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
+        self.searchbox.setPlaceholderText('Search item')
+        #self.searchbox.setStyleSheet("background-color: white; border: 0px;")
+        self.searchlabel = QPushButton(searchicon, '')
+        self.searchbox.setTextMargins(24, 0, 0, 0)
+        #self.searchlabel.setStyleSheet("background-color: white")
+        #self.searchlabel.setPixmap(searchicon.pixmap(16, 16))
+        self.searchlabel.setStyleSheet("background-color: 4e4e4e; border: 0px;")
         self.clearbutton = QPushButton(clearicon, '')
-        self.clearbutton.setStyleSheet("background-color: white; border: 0px;")
+        self.clearbutton.setStyleSheet("background-color: 4e4e4e; border: 0px;")
+        self.clearbutton.setParent(self.searchbox)
         self.searchlayout = QHBoxLayout()
-        self.searchlayout.addWidget(self.searchlabel)
+        #self.searchlayout.addWidget(self.searchlabel)
         self.searchlayout.addWidget(self.searchbox)
-        self.searchlayout.addWidget(self.clearbutton)
+        self.searchlabel.setParent(self.searchbox)
+        #self.searchlayout.addWidget(self.clearbutton)
         self.searchlayout.setSpacing(0)
         self.completer = CustomQCompleter()
         self.searchbox.setCompleter(self.completer)
@@ -94,6 +98,9 @@ class DocumentView(QWidget):
         self.currentdocument = None
         self.reloaddatabase = None
         self.folderbutton.clicked.connect(self.selectfolder)
+        self.reloaditemfunc = None
+
+
 
     def selectfolder(self):
         if self.reloaddatabase:
@@ -281,9 +288,11 @@ class DocumentView(QWidget):
         self.documentstocreate = []
 
     def buildlist(self):
-        if self.db is None or len(self.db.root.documents) == 0:
-            return
         self.model.clear()
+        if self.db is None or len(self.db.root.documents) == 0:
+            if self.reloaditemfunc:
+                self.reloaditemfunc(None)
+            return
         self.model.blockSignals(True)
         self.createhierarchy()
         self.model.blockSignals(False)
@@ -321,6 +330,7 @@ class DocumentView(QWidget):
             prevpos = pos
             previtem = item
         self.tree.expandAll()
+        self.select(None)
 
     def undowrap(self):
         self.undo()
@@ -455,6 +465,7 @@ class DocumentView(QWidget):
             except IndexError:
                 doc = None
             func(doc)
+        self.reloaditemfunc = func
         self.tree.selectionModel().selectionChanged.connect(clb)
 
     def select(self, document=None):
@@ -474,6 +485,9 @@ class DocumentView(QWidget):
         self.revert.move(self.tree.width() - 35, self.tree.height() - 30)
         warnwidth = self.warningmessage.width()
         self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
+
+    def moveclearbutton(self):
+        self.clearbutton.move(self.searchbox.width() - self.clearbutton.width(), self.clearbutton.pos().y())
 
     def read(self, uid):
         if self.db is None:

@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
 from doorstop.core import publisher
-from doorstop.core.types import Text
 from .icon import Icon
 from pathlib import Path
 import re
@@ -25,9 +24,7 @@ class MarkReviewedView(QWidget):
         self.refloc.setVisible(False)
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
-        self.icons = Icon()
-        papirusicons = QIcon()
-        papirusicons.setThemeName('papirus')
+        papirusicons = Icon()
         sendicon = papirusicons.fromTheme("document-send-symbolic")
         self.publish = QPushButton(sendicon, 'Publish')
         self.publish.setVisible(True)
@@ -83,7 +80,7 @@ class MarkReviewedView(QWidget):
                                 if pair[0] == item.uid:
                                     newitemtext = newitemtext + '\n\n Expected results: \n\n' + pair[1]
 
-                        item.text = newitemtext
+                        item._data['text'] = newitemtext
                         item.save()
                     else:
                         item.active = False
@@ -95,8 +92,8 @@ class MarkReviewedView(QWidget):
                     if item.active:
                         item._data['text'] = textdict[str(item)]
                         item.save()
-
-                    item.active = activedict[str(item)]
+                    if str(item) in activedict:
+                        item.active = activedict[str(item)]
 
         def publishdocs():
             publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))

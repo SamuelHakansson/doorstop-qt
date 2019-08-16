@@ -57,27 +57,18 @@ class OtherDatabase(ReqDatabase):
         self.name = name
 
         databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
-        self.path = self.finddatapbasepath(databasestextfile)
+        self.path = self.finddatabasepath(databasestextfile)
         if self.path is None:
             self.path = self._openfiledialog()
 
         self._writetojsonfile(databasestextfile)
 
         currentdir = os.getcwd()
-
-        os.chdir("..")
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        os.chdir(self.path)
-        if os.system('git rev-parse') != 0:
-            os.system("git init .")
-        os.chdir("..")
+        self.initgit()
         super().__init__()
         os.chdir(currentdir)
 
     def reload(self, root=None):
-        if root:
-            self.path = root
         super(OtherDatabase, self).reload(root=self.path)
 
     def _openfiledialog(self):
@@ -87,6 +78,8 @@ class OtherDatabase(ReqDatabase):
 
         if dialog.exec_() == QDialog.Accepted:
             path = dialog.selectedFiles()[0]
+        else:
+            path = None
         return path
 
     def _writetojsonfile(self, databasestextfile):
@@ -104,7 +97,7 @@ class OtherDatabase(ReqDatabase):
 
         json.dump(databasedict, file_obj_wr)
 
-    def finddatapbasepath(self, databasestextfile):
+    def finddatabasepath(self, databasestextfile):
         if os.path.isfile(databasestextfile):
             file_obj = open(databasestextfile, 'r')
             try:
@@ -116,7 +109,17 @@ class OtherDatabase(ReqDatabase):
 
     def opennewdatabase(self):
         folder = self._openfiledialog()
-        self.reload(folder)
+        if folder:
+            self.path = folder
+            self.initgit()
+            self.reload(folder)
+
+    def initgit(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        os.chdir(self.path)
+        if os.system('git rev-parse') != 0:
+            os.system("git init .")
 
 
 

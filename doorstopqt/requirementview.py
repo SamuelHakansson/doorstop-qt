@@ -541,7 +541,7 @@ class RequirementTreeView(QWidget):
         self.headerlabel[0] = label
 
     def setupHeaderwidth(self):
-        self.tree.setColumnWidth(0, self.tree.width()-235)
+        self.tree.setColumnWidth(0, self.tree.width()-245)
         self.setposrevertbtn()
 
     def setposrevertbtn(self):

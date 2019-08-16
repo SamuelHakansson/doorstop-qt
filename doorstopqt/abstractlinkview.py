@@ -13,7 +13,7 @@ class AbstractLinkView(QWidget):
         self.icons = Icon()
         self.db = None
 
-        self.listview.setAlternatingRowColors(True)
+        #self.listview.setAlternatingRowColors(True)
         self.locked = False
         self.currentitemedit = None
         self.currentindexedit = None
