@@ -1,3 +1,5 @@
+#http://discourse.techart.online/t/release-qt-dark-orange-stylesheet/2287/6
+
 orange = "ffa02f"
 blackgrey = "323232"
 black = "000000"

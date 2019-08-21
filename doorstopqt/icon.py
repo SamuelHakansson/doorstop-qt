@@ -31,7 +31,8 @@ class Icon(QIcon):
         return icon
 
     def getpixmap(self, icon):
-        pixmap = icon.pixmap(24, 24)
+        iconsize = icon.availableSizes()[0]
+        pixmap = icon.pixmap(iconsize)
         return pixmap
 
     def fromTheme(self, name: str) -> 'QIcon':

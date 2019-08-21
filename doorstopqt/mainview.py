@@ -8,8 +8,12 @@ from doorstopqt.fullview import ReqView, TestView, ProductView
 import resources  # resources fetches icons (don't remove)
 from doorstopqt.stylesheetdark import stylesheet as stylesheetdark
 from doorstopqt.stylesheetwhite import stylesheet as stylesheetwhite
-from .icon import Icon
-
+from pathlib import Path
+import sys
+import os
+from .initdirectoriesview import InitDirectoriesView
+import json
+from json import JSONDecodeError
 
 class CustomSplitter(QSplitter):
     """
@@ -36,10 +40,31 @@ class CustomSplitter(QSplitter):
         self.setStyleSheet("")
 
 
+def getlabel(showhide, view):
+    return '{} {} {}'.format(showhide, view.header, 'view')
+
+
+def sethideshowlabels(view, action):
+    if not view.isHidden():
+        view.hide()
+        action.setText(getlabel('Show', view))
+    else:
+        view.show()
+        action.setText(getlabel('Hide', view))
+
+
+def inithideshow(view, menu):
+    if not view.isHidden():
+        productaction = menu.addAction(getlabel('Hide', view))
+        productaction.triggered.connect(lambda: sethideshowlabels(view, productaction))
+
+    else:
+        productaction = menu.addAction(getlabel('Show', view))
+        productaction.triggered.connect(lambda: sethideshowlabels(view, productaction))
 
 
 def main():
-    import sys
+
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
@@ -53,7 +78,14 @@ def main():
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
-    icons = Icon()
+
+    databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
+    if not os.path.isfile(databasestextfile):
+        initdirectories = InitDirectoriesView(databasestextfile, stylesheetdark)
+        closeprogram = initdirectories.exec()
+        if closeprogram:
+            sys.exit()
+
     reqview = ReqView()
     testview = TestView()
     productview = ProductView()
@@ -87,13 +119,14 @@ def main():
     testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
 
     mainMenu = QMenuBar()
-    fileMenu = mainMenu.addMenu('File')
-    changestylesheetmenu = fileMenu.addMenu('Change theme')
+    optionsMenu = mainMenu.addMenu('Options')
+    changestylesheetmenu = optionsMenu.addMenu('Change theme')
     darktheme = changestylesheetmenu.addAction("Dark theme")
     whitetheme = changestylesheetmenu.addAction("White theme")
     darktheme.triggered.connect(splitter.setdarkstylesheet)
     whitetheme.triggered.connect(splitter.setwhiteStylesheet)
 
+    showhidemenu = optionsMenu.addMenu('Show/hide views')
 
     splitter.addWidget(mainMenu)
     splitter.addWidget(reqview)
@@ -106,6 +139,7 @@ def main():
     splitter.show()
     for view in views:
         view.movebuttons()
+        inithideshow(view, showhidemenu)
 
     sys.exit(app.exec_())
 
