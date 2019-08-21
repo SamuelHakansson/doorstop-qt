@@ -63,6 +63,16 @@ def inithideshow(view, menu):
         productaction.triggered.connect(lambda: sethideshowlabels(view, productaction))
 
 
+def getdatabasedict(databasestextfile):
+    if os.path.isfile(databasestextfile):
+        file_obj = open(databasestextfile, 'r')
+        try:
+            databasedict = json.load(file_obj)
+            return databasedict
+        except JSONDecodeError:
+            return
+
+
 def main():
 
     app = QApplication(sys.argv)
@@ -86,17 +96,34 @@ def main():
         if closeprogram:
             sys.exit()
 
-    reqview = ReqView()
-    testview = TestView()
-    productview = ProductView()
+    databasedict = getdatabasedict(databasestextfile)
+    headers = [('Requirement', ReqView), ('Test', TestView), ('Product', ProductView)]
+    views = []
+    viewsdict = {}
+    for header in headers:
+        name = header[0]
+        viewtype = header[1]
+        if name in databasedict:
+            view = viewtype()
+            views.append(view)
+            viewsdict[name] = view
 
-    views = [reqview, testview, productview]
+    #reqview = ReqView()
+    #testview = TestView()
+    #productview = ProductView()
+
+    #views = [reqview, testview, productview]
+    linkviews = {}
     for view in views:
+        linkviews[view.header] = [view.reqtestlinkview, view.reqtestlinkview2]
+
+    for i, view in enumerate(views):
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
         view.database = view.calldatabase(view.header)
         view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
+
         def modeclb(editmode):
             if editmode:
                 view.attribview.showref(True)
@@ -104,19 +131,28 @@ def main():
                 view.attribview.showref(False)
         view.markdownview.modeclb = modeclb
 
-    reqview.database.add_other_listeners([testview.reqtestlinkview, productview.reqtestlinkview])
-    testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
-    productview.database.add_other_listeners([reqview.reqtestlinkview2, testview.reqtestlinkview2])
+        for v in view.otherheaders:
+            lv = linkviews[v.capitalize()][0]
+            del linkviews[v.capitalize()][0]
+            view.database.add_other_listeners(lv)
 
-    reqview.reqtestlinkview.gotoclb = testview.selectfunc
-    testview.reqtestlinkview.gotoclb = reqview.selectfunc
-    productview.reqtestlinkview.gotoclb = reqview.selectfunc
+        view.reqtestlinkview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
+        view.reqtestlinkview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
 
-    reqview.reqtestlinkview2.gotoclb = productview.selectfunc
-    testview.reqtestlinkview2.gotoclb = productview.selectfunc
-    productview.reqtestlinkview2.gotoclb = testview.selectfunc
+        splitter.addWidget(view)
+    #reqview.database.add_other_listeners([testview.reqtestlinkview, productview.reqtestlinkview])
+    #testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
+    #productview.database.add_other_listeners([reqview.reqtestlinkview2, testview.reqtestlinkview2])
 
-    testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
+    #reqview.reqtestlinkview.gotoclb = testview.selectfunc
+    #testview.reqtestlinkview.gotoclb = reqview.selectfunc
+    #productview.reqtestlinkview.gotoclb = reqview.selectfunc
+
+    #reqview.reqtestlinkview2.gotoclb = productview.selectfunc
+    #testview.reqtestlinkview2.gotoclb = productview.selectfunc
+    #productview.reqtestlinkview2.gotoclb = testview.selectfunc
+    if 'test' in viewsdict and 'product' in viewsdict:
+        viewsdict['test'].itemview.applytootheritem = viewsdict['product'].reqtestlinkview2.updatedata
 
     mainMenu = QMenuBar()
     optionsMenu = mainMenu.addMenu('Options')
@@ -129,9 +165,9 @@ def main():
     showhidemenu = optionsMenu.addMenu('Show/hide views')
 
     splitter.addWidget(mainMenu)
-    splitter.addWidget(reqview)
-    splitter.addWidget(testview)
-    splitter.addWidget(productview)
+    #splitter.addWidget(reqview)
+    #splitter.addWidget(testview)
+    #splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
     splitter.setStretchFactor(0, 2)

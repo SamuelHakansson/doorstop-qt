@@ -13,6 +13,7 @@
         <file>icons/Papirus/24x24/actions/search.svg</file>
         <file>icons/Papirus/24x24/actions/edit-clear-all.svg</file>
         <file>icons/Papirus/24x24/actions/folder-open.svg</file>
+        <file>icons/Papirus/64x64@2x/places/folder-black.svg</file>
     </qresource>
 </RCC>
 
