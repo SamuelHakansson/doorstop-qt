@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import *
 from doorstopqt.version import VERSION
 from doorstopqt.fullview import ReqView, TestView, ProductView
 import resources  # resources fetches icons (don't remove)
-from pathlib import Path
-from doorstopqt.stylesheet import stylesheet
+from doorstopqt.stylesheetdark import stylesheet as stylesheetdark
+from doorstopqt.stylesheetwhite import stylesheet as stylesheetwhite
+from .icon import Icon
 
 
 class CustomSplitter(QSplitter):
@@ -17,7 +18,7 @@ class CustomSplitter(QSplitter):
     def __init__(self):
         super(CustomSplitter, self).__init__()
         self.movebuttons = None
-        self.setStyleSheet(stylesheet)
+        self.setdarkstylesheet()
 
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
@@ -25,6 +26,14 @@ class CustomSplitter(QSplitter):
             self.movebuttons()
         super().resizeEvent(a0)
 
+    def setwhiteStylesheet(self):
+        self.setStyleSheet(stylesheetwhite)
+
+    def setdarkstylesheet(self):
+        self.setStyleSheet(stylesheetdark)
+
+    def setdefaultstylesheet(self):
+        self.setStyleSheet("")
 
 
 
@@ -44,7 +53,7 @@ def main():
     splitter.resize(width, height)
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
-
+    icons = Icon()
     reqview = ReqView()
     testview = TestView()
     productview = ProductView()
@@ -77,6 +86,16 @@ def main():
 
     testview.itemview.applytootheritem = productview.reqtestlinkview2.updatedata
 
+    mainMenu = QMenuBar()
+    fileMenu = mainMenu.addMenu('File')
+    changestylesheetmenu = fileMenu.addMenu('Change theme')
+    darktheme = changestylesheetmenu.addAction("Dark theme")
+    whitetheme = changestylesheetmenu.addAction("White theme")
+    darktheme.triggered.connect(splitter.setdarkstylesheet)
+    whitetheme.triggered.connect(splitter.setwhiteStylesheet)
+
+
+    splitter.addWidget(mainMenu)
     splitter.addWidget(reqview)
     splitter.addWidget(testview)
     splitter.addWidget(productview)

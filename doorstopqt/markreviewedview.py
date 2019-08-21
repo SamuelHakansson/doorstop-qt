@@ -6,6 +6,11 @@ from .icon import Icon
 from pathlib import Path
 import re
 
+EXTENSIONS = (
+    'markdown.extensions.extra',
+    'markdown.extensions.sane_lists'
+)
+
 
 class MarkReviewedView(QWidget):
     def __init__(self, publishtest=False, parent=None):
@@ -87,7 +92,7 @@ class MarkReviewedView(QWidget):
                     else:
                         item.active = False
 
-            publisher.publish(tree, pathtodoc)
+            publisher.publish(tree, pathtodoc, extensions=EXTENSIONS)
 
             for doc in tree.documents:
                 for item in sorted(i for i in doc._iter()):

@@ -2,10 +2,11 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-class Icon(QIcon):
-    def __init__(self):
-        super(Icon, self).__init__()
 
+class Icon(QIcon):
+    def __init__(self, color=Qt.white):
+        super(Icon, self).__init__()
+        self.defaultcolor = color
         style = QCommonStyle()
         icons = [x for x in dir(QStyle) if x.startswith('SP_')]
         self.names = []
@@ -17,9 +18,10 @@ class Icon(QIcon):
         self.setThemeName('Papirus')
         self.protectedicons = ["media-floppy"]
 
+
     def colorize(self, pixmap):
 
-        color = QColor(Qt.white)  # sets color of icons
+        color = QColor(self.defaultcolor)  # sets color of icons
         painter = QPainter(pixmap)
         painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
 
