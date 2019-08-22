@@ -60,9 +60,9 @@ class MarkReviewedView(QWidget):
         self.markreviewed.clicked.connect(markreviewed)
 
         def publishtestforproduct():
-            tree, items = self.getotherdbitems()
+            tree, items, selecteduid = self.getotherdbitems()
             path = tree.root
-            pathtodoc = Path(path, "test-for-product")
+            pathtodoc = Path(path, "tests-for-"+selecteduid)
             activedict = {}
             textdict = {}
             for doc in tree.documents:
@@ -75,13 +75,16 @@ class MarkReviewedView(QWidget):
                     if item in items:
                         newitemtext = item.text
                         item.active = True
-                        for inputvar in product.data[self.INPUTVARIABLES]:
-                            varname = inputvar[0]
-                            try:
-                                varvalue = inputvar[1]
-                            except IndexError:
-                                varvalue = ''
-                            newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
+                        if self.INPUTVARIABLES in product.data:
+                            for inputvar in product.data[self.INPUTVARIABLES]:
+                                varname = inputvar[0]
+                                try:
+                                    varvalue = inputvar[1]
+                                except IndexError:
+                                    varvalue = ''
+                                newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
+                        else:
+                            newitemtext = re.sub('', '', newitemtext)
                         if self.EXPECTEDRESULTS in product.data:
                             for pair in product.data[self.EXPECTEDRESULTS]:
                                 if str(pair[0]) == str(item.uid):
@@ -91,7 +94,12 @@ class MarkReviewedView(QWidget):
 
                     else:
                         item.active = False
-
+            '''
+            Says in the doorstop documentation that the publish method can take a list of items. Didn't manage to get it
+            to work because at a point it gets to the method 'iter_documents' which returns it wrong. The workaround is
+            to add text to all chosen items and set the other to inactive. 
+            //Samuel
+            '''
             publisher.publish(tree, pathtodoc, extensions=EXTENSIONS)
 
             for doc in tree.documents:

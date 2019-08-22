@@ -5,7 +5,7 @@ import datetime
 class LastUpdatedText(QLabel):
     def __init__(self):
         super().__init__()
-        self.name = None
+        self.name = 'lastupdated'
         self.text = self.getcurrenttime
         self.weight = 1
         self.defaulttext = "Last updated: "

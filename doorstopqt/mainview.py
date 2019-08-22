@@ -11,7 +11,7 @@ from doorstopqt.stylesheetwhite import stylesheet as stylesheetwhite
 from pathlib import Path
 import sys
 import os
-from .initdirectoriesview import InitDirectoriesView
+from doorstopqt.initdirectoriesview import InitDirectoriesView
 import json
 from json import JSONDecodeError
 
@@ -47,9 +47,11 @@ def getlabel(showhide, view):
 def sethideshowlabels(view, action):
     if not view.isHidden():
         view.hide()
+        saveshowhide(view, 'hide')
         action.setText(getlabel('Show', view))
     else:
         view.show()
+        saveshowhide(view, 'show')
         action.setText(getlabel('Hide', view))
 
 
@@ -63,14 +65,39 @@ def inithideshow(view, menu):
         productaction.triggered.connect(lambda: sethideshowlabels(view, productaction))
 
 
-def getdatabasedict(databasestextfile):
-    if os.path.isfile(databasestextfile):
-        file_obj = open(databasestextfile, 'r')
+def saveshowhide(view, showhide):
+    showhidefile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
+    data = getdictfromfile(showhidefile)
+    if not data:
+        data = {view.header: showhide}
+    else:
+        data[view.header] = showhide
+    file = open(showhidefile, 'w+')
+    json.dump(data, file)
+
+
+def getdictfromfile(file):
+    if os.path.isfile(file):
+        file_obj = open(file, 'r')
         try:
             databasedict = json.load(file_obj)
             return databasedict
         except JSONDecodeError:
-            return
+            return {}
+
+
+def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu, stylesheet=stylesheetdark):
+    initdirectories = InitDirectoriesView(databasestextfile, stylesheet)
+    if initdirectories.exec() is False:
+        clearlayout(splitter)
+        showhidemenu.clear()
+
+        loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu)
+
+
+def clearlayout(splitter):
+    for i in reversed(range(splitter.count())):
+        splitter.widget(i).setParent(None)
 
 
 def main():
@@ -82,8 +109,8 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*12/16)
-    height = int(screenheight*12/16)
+    width = int(screenwidth*10/16)
+    height = int(screenheight*10/16)
 
     splitter.resize(width, height)
 
@@ -96,8 +123,28 @@ def main():
         if closeprogram:
             sys.exit()
 
-    databasedict = getdatabasedict(databasestextfile)
+    mainmenu = QMenuBar()
+    optionsmenu = mainmenu.addMenu('Options')
+    changestylesheetmenu = optionsmenu.addMenu('Change theme')
+    darktheme = changestylesheetmenu.addAction("Dark theme")
+    whitetheme = changestylesheetmenu.addAction("White theme")
+    darktheme.triggered.connect(splitter.setdarkstylesheet)
+    whitetheme.triggered.connect(splitter.setwhiteStylesheet)
+
+    showhidemenu = optionsmenu.addMenu('Show/hide views')
+    setupfolders = optionsmenu.addAction('Setup folders')
+    setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu))
+
+    loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu)
+
+    sys.exit(app.exec_())
+
+
+def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
+    splitter.addWidget(mainmenu)
+    databasedict = getdictfromfile(databasestextfile)
     headers = [('Requirement', ReqView), ('Test', TestView), ('Product', ProductView)]
+
     views = []
     viewsdict = {}
     for header in headers:
@@ -130,15 +177,16 @@ def main():
             else:
                 view.attribview.showref(False)
         view.markdownview.modeclb = modeclb
-
         for v in view.otherheaders:
-            lv = linkviews[v.capitalize()][0]
-            del linkviews[v.capitalize()][0]
-            view.database.add_other_listeners(lv)
-
-        view.reqtestlinkview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
-        view.reqtestlinkview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
-
+            if v.capitalize() in linkviews:
+                lv = linkviews[v.capitalize()][0]
+                del linkviews[v.capitalize()][0]
+                view.database.add_other_listeners(lv)
+        try:
+            view.reqtestlinkview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
+            view.reqtestlinkview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
+        except:
+            pass
         splitter.addWidget(view)
     #reqview.database.add_other_listeners([testview.reqtestlinkview, productview.reqtestlinkview])
     #testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
@@ -151,20 +199,10 @@ def main():
     #reqview.reqtestlinkview2.gotoclb = productview.selectfunc
     #testview.reqtestlinkview2.gotoclb = productview.selectfunc
     #productview.reqtestlinkview2.gotoclb = testview.selectfunc
-    if 'test' in viewsdict and 'product' in viewsdict:
-        viewsdict['test'].itemview.applytootheritem = viewsdict['product'].reqtestlinkview2.updatedata
+    if 'Test' in viewsdict and 'Product' in viewsdict:
+        viewsdict['Test'].itemview.applytootheritem = viewsdict['Product'].reqtestlinkview2.updatedata
 
-    mainMenu = QMenuBar()
-    optionsMenu = mainMenu.addMenu('Options')
-    changestylesheetmenu = optionsMenu.addMenu('Change theme')
-    darktheme = changestylesheetmenu.addAction("Dark theme")
-    whitetheme = changestylesheetmenu.addAction("White theme")
-    darktheme.triggered.connect(splitter.setdarkstylesheet)
-    whitetheme.triggered.connect(splitter.setwhiteStylesheet)
 
-    showhidemenu = optionsMenu.addMenu('Show/hide views')
-
-    splitter.addWidget(mainMenu)
     #splitter.addWidget(reqview)
     #splitter.addWidget(testview)
     #splitter.addWidget(productview)
@@ -173,11 +211,17 @@ def main():
     splitter.setStretchFactor(0, 2)
 
     splitter.show()
+    showfile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
+    if os.path.isfile(showfile):
+        d = getdictfromfile(showfile)
+    else:
+        d = {}
     for view in views:
         view.movebuttons()
+        if view.header in d:
+            if d[view.header] == 'hide':
+                view.hide()
         inithideshow(view, showhidemenu)
-
-    sys.exit(app.exec_())
 
 
 if __name__ == '__main__':

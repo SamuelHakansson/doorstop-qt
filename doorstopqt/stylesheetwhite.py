@@ -18,6 +18,7 @@ QSplitter
 }
 QPushButton
 {
-    background-color: #877877;
+    background-color: #444;
+    color: white;
 }
 """

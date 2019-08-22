@@ -2,6 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .abstractlinkview import AbstractLinkView
 from .linkitemmodel import SimpleLinkItemModel
+from .lastupdatedtext import LastUpdatedText
 from doorstop.core import Tree, Document, builder
 from pathlib import Path
 
@@ -21,6 +22,7 @@ class LinkReqAndTestView(AbstractLinkView):
         self.INPUTVARIABLES = 'inputvariables'
         self.EXPECTEDRESULTS = 'expectedresults'
         self.itemview = itemview
+        self.lastupdated = LastUpdatedText()
 
         def dataChanged(index):
             if self.db is None:
@@ -40,7 +42,6 @@ class LinkReqAndTestView(AbstractLinkView):
 
         if changeexpectedresults:
             self.listview.selectionModel().selectionChanged.connect(self.showexpectedresults)
-
 
     def connectdb(self, db):
         self.db = db
@@ -153,23 +154,28 @@ class LinkReqAndTestView(AbstractLinkView):
             self.read(uidthis)
             return uid
 
-    def getlinkdata(self, item):
-        if self.key in item._data:
-            return item._data[self.key]
+    def getlinkdata(self, item, key):
+        if key in item._data:
+            return item._data[key]
         else:
             return []
 
     def linkitems(self, uidthis, uidother):
         itemthis = self.db.find(uidthis)
         itemother = self.otherdb.find(uidother)
-        if uidother not in self.getlinkdata(itemthis):
-            itemthis.set(self.key, self.getlinkdata(itemthis) + [uidother])
-        if uidthis not in self.getlinkdata(itemother):
-            itemother.set(self.ownkey, self.getlinkdata(itemother) + [uidthis])
+        if uidother not in self.getlinkdata(itemthis, self.key):
+            itemthis.set(self.key, self.getlinkdata(itemthis, self.key) + [uidother])
+        if uidthis not in self.getlinkdata(itemother, self.ownkey):
+            itemother.set(self.ownkey, self.getlinkdata(itemother, self.ownkey) + [uidthis])
         if self.header == 'test' and self.ownkey == 'linkedproducts':
             self.settoitem(itemthis, itemother, key=self.INPUTVARIABLES)
             self.settoitem(itemthis, itemother, key=self.EXPECTEDRESULTS)
 
+        if self.header == 'product' and self.ownkey == 'linkedtests':
+            self.settoitem(itemother, itemthis, key=self.INPUTVARIABLES)
+            self.settoitem(itemother, itemthis, key=self.EXPECTEDRESULTS)
+
+        itemother.set(self.lastupdated.name, self.lastupdated.getcurrenttime())
         self.db.reload()
         self.otherdb.reload()
 
@@ -184,7 +190,8 @@ class LinkReqAndTestView(AbstractLinkView):
                 for varpair in vars:
                     if entry[0] == varpair[0]:
                         del prevdata[i]
-        itemthis.set(key, prevdata + vars)
+        if prevdata + vars:
+            itemthis.set(key, prevdata + vars)
 
     def getpublishtree(self):
         items = []
@@ -193,7 +200,7 @@ class LinkReqAndTestView(AbstractLinkView):
             for linkuid in item.data[self.key]:
                 linkitem = self.otherdb.find(linkuid)
                 items.append(linkitem)
-        return self.otherdb.root, items
+        return self.otherdb.root, items, self.currentuid
 
     def updatedata(self, uid):
         item = self.otherdb.find(uid)
@@ -210,7 +217,10 @@ class LinkReqAndTestView(AbstractLinkView):
         inputvars = item.data[self.INPUTVARIABLES]
         for link in links:
             it = self.db.find(link)
-            prevdata = it.data[self.INPUTVARIABLES]
+            if self.INPUTVARIABLES in it.data:
+                prevdata = it.data[self.INPUTVARIABLES]
+            else:
+                prevdata = []
             newinputvars = prevdata
             for i, var in enumerate(inputvars):
                 name = var[0]
@@ -221,21 +231,25 @@ class LinkReqAndTestView(AbstractLinkView):
                     newinputvars.insert(i, var)
             it.set(self.INPUTVARIABLES, newinputvars)
 
-    def updateexpectedresults(self, item):
-        if self.ownkey not in item.data:
+    def updateexpectedresults(self, miditem):
+        if self.ownkey not in miditem.data:
             return
-        if self.EXPECTEDRESULTS not in item.data:
+        if self.EXPECTEDRESULTS not in miditem.data:
             return
-        links = item.data[self.ownkey]
-        itemresults = item.data[self.EXPECTEDRESULTS]
+        links = miditem.data[self.ownkey]
+        miditemresults = miditem.data[self.EXPECTEDRESULTS][0]
         for link in links:
-            it = self.db.find(link)
-            expres = it.data[self.EXPECTEDRESULTS][0]
-            for i, pair in enumerate(itemresults):
-                if pair[0] == it.uid and (pair[1] == '' or pair[1] in expres[1]):
-                    del itemresults[i]
-                    itemresults.insert(i, expres[1])
-            it.set(self.EXPECTEDRESULTS, itemresults)
+            newitem = self.db.find(link)
+            if self.EXPECTEDRESULTS in newitem.data:
+                expres = newitem.data[self.EXPECTEDRESULTS]
+                for i, pair in enumerate(expres):
+                    if pair[0] == str(miditem.uid) and (pair[1] == '' or pair[1] in miditemresults[1]):
+                        del expres[i]
+                        expres.insert(i, miditemresults)
+
+            else:
+                expres = [miditemresults]
+            newitem.set(self.EXPECTEDRESULTS, expres)
 
     def showexpectedresults(self, selection):
         if len(selection.indexes()) > 0:

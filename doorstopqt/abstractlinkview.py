@@ -68,6 +68,8 @@ class AbstractLinkView(QWidget):
         self.listview.doubleClicked.connect(dblclicked)
 
     def createlinkingitem(self, text):
+        if text not in self.completerdict:
+            return
         uid = self.completerdict[text]
         self.setlock(True)
         self.setlinkingitem(uid)
