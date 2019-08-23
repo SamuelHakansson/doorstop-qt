@@ -15,6 +15,7 @@ from doorstopqt.initdirectoriesview import InitDirectoriesView
 import json
 from json import JSONDecodeError
 
+
 class CustomSplitter(QSplitter):
     """
     Custom splitter to be able to move buttons when resizing the window.
@@ -23,7 +24,6 @@ class CustomSplitter(QSplitter):
         super(CustomSplitter, self).__init__()
         self.movebuttons = None
         self.setdarkstylesheet()
-
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         if self.movebuttons:

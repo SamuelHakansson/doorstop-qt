@@ -74,7 +74,7 @@ class FullView(QSplitter):
         self.tree.setlinkfunc = self.setlink
 
         self.tree.otherdbviews = [self.reqtestlinkview, self.reqtestlinkview2]
-
+        self.attribview.readlinkview = self.linkview.read
         self.setstretch()
 
         self.currentuid = None

@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 from doorstop.common import DoorstopError
 from doorstop.core import publisher
 from .icon import Icon
@@ -84,7 +85,7 @@ class MarkReviewedView(QWidget):
                                     varvalue = ''
                                 newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
                         else:
-                            newitemtext = re.sub('', '', newitemtext)
+                            newitemtext = re.sub('', '', newitemtext)  # Seems like the text can't be saved without this
                         if self.EXPECTEDRESULTS in product.data:
                             for pair in product.data[self.EXPECTEDRESULTS]:
                                 if str(pair[0]) == str(item.uid):
@@ -117,13 +118,13 @@ class MarkReviewedView(QWidget):
         grid.addWidget(self.reflabel)
         grid.addWidget(self.ref)
         grid.addWidget(self.refloc)
-        grid.addStretch(1)
-        grid.addWidget(self.markreviewed)
+        #grid.addStretch(1)
+        grid.addWidget(self.markreviewed, Qt.AlignLeft)
         if publishtest:
             self.publishtest = QPushButton(sendicon, 'Publish test for product')
             self.publishtest.setVisible(True)
             self.publishtest.clicked.connect(publishtestforproduct)
-            grid.addWidget(self.publishtest)
+            grid.addWidget(self.publishtest, Qt.AlignRight)
 
         grid.addWidget(self.publish)
         self.setLayout(grid)
@@ -154,6 +155,7 @@ class MarkReviewedView(QWidget):
                     self.refloc.setText('{}:{}'.format(refloc[0], refloc[1]))
                 else:
                     self.refloc.setText('{}'.format(refloc[0]))
+        print(data.reviewed, data.cleared, flush=True)
         if data.reviewed and data.cleared:
             self.markreviewed.setVisible(False)
         else:

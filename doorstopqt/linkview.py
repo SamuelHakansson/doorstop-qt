@@ -30,7 +30,6 @@ class LinkView(AbstractLinkView):
 
         self.model.dataChanged.connect(dataChanged)
 
-
     def connectdb(self, db):
         self.db = db
         self.updateCompleter()
@@ -68,7 +67,6 @@ class LinkView(AbstractLinkView):
         act.triggered.connect(self.remove_selected_link)
         menu.popup(self.mapToGlobal(pos))
 
-
     def read(self, uid):
         if self.db is None:
             return
@@ -77,6 +75,7 @@ class LinkView(AbstractLinkView):
         self.currentuid = None
         self.model.clear()
         data = self.db.find(uid)
+        nrfinelinks = 0
         for link in data.links:
             d = self.db.find(str(link))
             item = QStandardItem(str(link))
@@ -86,9 +85,13 @@ class LinkView(AbstractLinkView):
                 flags.add('broken')
             elif link.stamp != target.stamp():
                 flags.add('suspect')
+            else:
+                nrfinelinks += 1
             item.setData((True, link, d, flags))
             item.setEditable(False)
             self.model.appendRow(item)
+        if nrfinelinks == len(data.links):
+            data.review()
 
         clinks = data.find_child_links()
         for clink in clinks:
@@ -105,7 +108,7 @@ class LinkView(AbstractLinkView):
             self.model.appendRow(item)
 
         self.currentuid = uid
-
+        self.attribview.read(uid)
 
     def remove_selected_link(self):
         if self.db is None:
