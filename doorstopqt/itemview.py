@@ -164,6 +164,7 @@ class ItemView(QSplitter):
         #self.updateinfo(self.currentuid)
         self.savebtn.setVisible(False)
         self.discardbtn.setVisible(False)
+        self.read(self.currentuid)
 
     def savefunc(self, uid):
         for view in self.views:
@@ -186,6 +187,7 @@ class ItemView(QSplitter):
                 else:
                     if item.data[self.EXPECTEDRESULTS] != '':
                         text = item.data[self.EXPECTEDRESULTS] + text
+        print(text, flush=True)
         item.set(view.name, text)
         item.save()
 
