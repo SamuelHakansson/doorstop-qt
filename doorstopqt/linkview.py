@@ -54,14 +54,20 @@ class LinkView(AbstractLinkView):
         flags = data[3]
         is_suspect = 'suspect' in flags
 
-        act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(target.uid)))
-        act.triggered.connect(lambda: self.goto(target.uid))
-        if target.uid in self.db.find(self.currentuid).links:
-            act = menu.addAction('Mark link as reviewed')
-            act.setEnabled(is_suspect)
-            act.triggered.connect(lambda: self.review_link(target.uid))
+        act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(target.uid))
+                                                                        if target is not None else "Link is broken, can't go to it")
+        act.triggered.connect(lambda: self.goto(target.uid) if target is not None else None)
+
+        currentitem = self.db.find(self.currentuid)
+        if target is not None:
+            if target.uid in currentitem.links:
+                act = menu.addAction('Mark link as reviewed')
+                act.setEnabled(is_suspect)
+                act.triggered.connect(lambda: self.review_link(target.uid))
+            else:
+                act = menu.addAction("Can't mark child links as reviewed")
+                act.setEnabled(False)
         else:
-            act = menu.addAction("Can't mark child links as reviewed")
             act.setEnabled(False)
         act = menu.addAction(self.icons.DialogCloseButton, 'Remove link')
         act.triggered.connect(self.remove_selected_link)
@@ -127,8 +133,10 @@ class LinkView(AbstractLinkView):
         uid = data[1]
         if uid not in self.db.find(self.currentuid).links:
             return
-
-        self.db.root.unlink_items(self.currentuid, uid)
+        if self.db.find(uid) is None:
+            self.db.find(self.currentuid).unlink(uid)
+        else:
+            self.db.root.unlink_items(self.currentuid, uid)
         self.read(self.currentuid)
 
     def review_link(self, uid):

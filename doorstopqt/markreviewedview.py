@@ -19,17 +19,26 @@ class MarkReviewedView(QWidget):
 
         self.db = None
         self.currentuid = None
-
+        vgrid = QVBoxLayout()
+        vgrid.setContentsMargins(0, 0, 0, 0)
         grid = QHBoxLayout()
         grid.setContentsMargins(0, 0, 0, 0)
+        grid2 = QHBoxLayout()
+        grid2.setContentsMargins(0, 0, 0, 0)
+        sizepolicyretain = self.sizePolicy()
+        sizepolicyretain.setRetainSizeWhenHidden(True)
         self.reflabel = QLabel('External ref:')
         self.refloc = QLabel('')
         self.ref = QLineEdit()
+        self.reflabel.setSizePolicy(sizepolicyretain)
+        self.ref.setSizePolicy(sizepolicyretain)
+        self.refloc.setSizePolicy(sizepolicyretain)
         self.reflabel.setVisible(False)
         self.ref.setVisible(False)
         self.refloc.setVisible(False)
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
+        self.markreviewed.setSizePolicy(sizepolicyretain)
         papirusicons = Icon()
         sendicon = papirusicons.fromTheme("document-send-symbolic")
         self.publish = QPushButton(sendicon, 'Publish')
@@ -115,19 +124,21 @@ class MarkReviewedView(QWidget):
             publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))
         self.publish.clicked.connect(publishdocs)
 
-        grid.addWidget(self.reflabel)
-        grid.addWidget(self.ref)
-        grid.addWidget(self.refloc)
+        grid2.addWidget(self.reflabel)
+        grid2.addWidget(self.ref)
+        grid2.addWidget(self.refloc)
         #grid.addStretch(1)
-        grid.addWidget(self.markreviewed, Qt.AlignLeft)
+        grid.addWidget(self.markreviewed, alignment=Qt.AlignLeft)
         if publishtest:
-            self.publishtest = QPushButton(sendicon, 'Publish test for product')
+            self.publishtest = QPushButton(sendicon, 'Publish test')
             self.publishtest.setVisible(True)
             self.publishtest.clicked.connect(publishtestforproduct)
-            grid.addWidget(self.publishtest, Qt.AlignRight)
+            grid.addWidget(self.publishtest, alignment=Qt.AlignRight)
 
         grid.addWidget(self.publish)
-        self.setLayout(grid)
+        vgrid.addLayout(grid)
+        vgrid.addLayout(grid2)
+        self.setLayout(vgrid)
 
     def connectdb(self, db):
         self.db = db
@@ -155,7 +166,6 @@ class MarkReviewedView(QWidget):
                     self.refloc.setText('{}:{}'.format(refloc[0], refloc[1]))
                 else:
                     self.refloc.setText('{}'.format(refloc[0]))
-        print(data.reviewed, data.cleared, flush=True)
         if data.reviewed and data.cleared:
             self.markreviewed.setVisible(False)
         else:
@@ -171,5 +181,7 @@ class MarkReviewedView(QWidget):
             self.reflabel.setVisible(False)
             self.ref.setVisible(False)
             self.refloc.setVisible(False)
+
+
 
 

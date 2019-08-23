@@ -78,6 +78,13 @@ class FullView(QSplitter):
         self.setstretch()
 
         self.currentuid = None
+        self.markdownview.modeclb = self.modeclb
+
+    def modeclb(self, editmode):
+        if editmode:
+            self.attribview.showref(True)
+        else:
+            self.attribview.showref(False)
 
     def readuid(self, uid, readcurrent=False):
         if uid is None and readcurrent is False:

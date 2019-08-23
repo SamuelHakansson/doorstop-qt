@@ -104,7 +104,6 @@ def main():
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
     splitter = CustomSplitter()
 
     screen_resolution = app.desktop().screenGeometry()
@@ -171,12 +170,7 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
 
-        def modeclb(editmode):
-            if editmode:
-                view.attribview.showref(True)
-            else:
-                view.attribview.showref(False)
-        view.markdownview.modeclb = modeclb
+
         for v in view.otherheaders:
             if v.capitalize() in linkviews:
                 lv = linkviews[v.capitalize()][0]
