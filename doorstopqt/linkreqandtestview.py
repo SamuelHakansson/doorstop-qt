@@ -109,8 +109,9 @@ class LinkReqAndTestView(AbstractLinkView):
 
         dbitem = self.db.find(self.currentuid)
         otherdbitem = self.otherdb.find(data)
+        print('removing links', flush=True)
         self.removelink(dbitem, data)
-        self.removelink(otherdbitem, str(dbitem.uid))
+        self.removeotherlink(otherdbitem, str(dbitem.uid))
 
         self.read(self.currentuid)
 
@@ -144,6 +145,7 @@ class LinkReqAndTestView(AbstractLinkView):
             if uid in tmp:
                 tmp.remove(uid)
             dbitem.set(self.ownkey, tmp)
+        self.otherdb.reload()
 
     def setlinkingitem(self, uid):
         if self.locked and uid != self.currentuid and uid:
