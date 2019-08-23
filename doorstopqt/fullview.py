@@ -16,8 +16,9 @@ from .databases import OtherDatabase
 class FullView(QSplitter):
     def __init__(self):
         super().__init__()
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.size
         self.markdownview = self.itemview.markdownview
-
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.itemview, self.attribview, header=self.header.lower())
         self.reqtestlinkview = LinkReqAndTestView(self.itemview, self.attribview, self.keys[0], self.ownkey,

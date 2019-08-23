@@ -108,8 +108,8 @@ def main():
 
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
-    width = int(screenwidth*10/16)
-    height = int(screenheight*10/16)
+    width = int(screenwidth*11/16)
+    height = int(screenheight*7/16)
 
     splitter.resize(width, height)
 
@@ -123,6 +123,7 @@ def main():
             sys.exit()
 
     mainmenu = QMenuBar()
+    mainmenu.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
     optionsmenu = mainmenu.addMenu('Options')
     changestylesheetmenu = optionsmenu.addMenu('Change theme')
     darktheme = changestylesheetmenu.addAction("Dark theme")
@@ -202,7 +203,6 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     #splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
-    splitter.setStretchFactor(0, 2)
 
     splitter.show()
     showfile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
