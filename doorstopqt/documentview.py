@@ -86,13 +86,9 @@ class DocumentView(QWidget):
         self.folderbutton.clicked.connect(self.selectfolder)
         self.reloaditemfunc = None
 
-
-
     def selectfolder(self):
         if self.reloaddatabase:
             self.reloaddatabase()
-
-
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
@@ -264,6 +260,7 @@ class DocumentView(QWidget):
             self.docsdict[prefix] = doc
             self.tree.setCurrentIndex(docitem.index())
             self.treestack.append((doc, self.NEW))
+            self.currentdocument = doc
             self.moverevertbutton()
             self.revert.show()
 
@@ -312,7 +309,7 @@ class DocumentView(QWidget):
             prevpos = pos
             previtem = item
         self.tree.expandAll()
-        self.select(None)
+        self.select(self.currentdocument)
 
     def undowrap(self):
         self.undo()
@@ -443,6 +440,7 @@ class DocumentView(QWidget):
             try:
                 index = selectionmodel.indexes()[0]
                 doc = index.data(Qt.UserRole)
+                print('callback selecting', doc, flush=True)
                 self.currentdocument = doc
             except IndexError:
                 doc = None
@@ -454,6 +452,8 @@ class DocumentView(QWidget):
         movedobject = self.model.index(0, 0)
         nextlist = self.getnext(movedobject, [])
         currentobjects_list = [movedobject] + nextlist
+        print('should select', document, flush=True)
+        print('-----------------', flush=True)
         if document is None:
             currentindex = self.model.index(0, 0)
             self.tree.setCurrentIndex(currentindex)
@@ -467,7 +467,6 @@ class DocumentView(QWidget):
         self.revert.move(self.tree.width() - 35, self.tree.height() - 30)
         warnwidth = self.warningmessage.width()
         self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
-
 
     def read(self, uid):
         if self.db is None:

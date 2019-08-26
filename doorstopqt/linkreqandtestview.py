@@ -61,8 +61,17 @@ class LinkReqAndTestView(AbstractLinkView):
             return
         if self.key in item.data:
             for link in item.data[self.key]:
+                text = ''
+                if self.otherdb:
+                    linkitem = self.otherdb.find(link)
+                    start = '**Feature name:**'
+                    end = "**Feature requirement:**"
+                    dt = linkitem.text
+                    if start in dt and end in dt:
+                        text = ' | ' + dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+
                 item = QStandardItem(str(link))
-                item.setData(str(link))
+                item.setData(str(link) + text)
                 item.setEditable(False)
                 self.model.appendRow(item)
 
@@ -195,14 +204,16 @@ class LinkReqAndTestView(AbstractLinkView):
         if prevdata + vars:
             itemthis.set(key, prevdata + vars)
 
-    def getpublishtree(self):
+    def getpublishtree(self, uid=None):
         items = []
-        item = self.db.find(self.currentuid)
+        if uid is None:
+            uid = self.currentuid
+        item = self.db.find(uid)
         if self.key in item.data:
             for linkuid in item.data[self.key]:
                 linkitem = self.otherdb.find(linkuid)
                 items.append(linkitem)
-        return self.otherdb.root, items, self.currentuid
+        return self.otherdb.root, items, uid
 
     def updatedata(self, uid):
         item = self.otherdb.find(uid)

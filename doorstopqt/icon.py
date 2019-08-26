@@ -31,14 +31,16 @@ class Icon(QIcon):
         return icon
 
     def getpixmap(self, icon):
-        iconsize = icon.availableSizes()[0]
-        pixmap = icon.pixmap(iconsize)
-        return pixmap
+        if len(icon.availableSizes()) > 0:
+            iconsize = icon.availableSizes()[0]
+            pixmap = icon.pixmap(iconsize)
+            return pixmap
 
     def fromTheme(self, name: str) -> 'QIcon':
         icon = super(Icon, self).fromTheme(name)
-        if name not in self.protectedicons:
-            coloredicon = self.colorize(self.getpixmap(icon))
+        pixmap = self.getpixmap(icon)
+        if name not in self.protectedicons and pixmap is not None:
+            coloredicon = self.colorize(pixmap)
         else:
             return icon
         return coloredicon

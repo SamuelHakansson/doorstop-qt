@@ -16,8 +16,7 @@ from .databases import OtherDatabase
 class FullView(QSplitter):
     def __init__(self):
         super().__init__()
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.size
+        #self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.markdownview = self.itemview.markdownview
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.itemview, self.attribview, header=self.header.lower())
@@ -156,7 +155,6 @@ class TestView(FullView):
         super().__init__()
 
 
-
 class ProductView(FullView):
     def __init__(self):
         self.itemview = ItemTestView()
@@ -170,5 +168,11 @@ class ProductView(FullView):
         self.publishtest = True
         self.changeexpectedresults = True
         super().__init__()
+
+    def publishalltestsforallproducts(self):
+        for document in self.database.root.documents:
+            for item in document.items:
+                tree, items, uid = self.reqtestlinkview2.getpublishtree(item.uid)
+                self.attribview.publishtestdoc(tree, items, str(uid))
 
 

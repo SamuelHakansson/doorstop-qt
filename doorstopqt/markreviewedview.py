@@ -41,7 +41,7 @@ class MarkReviewedView(QWidget):
         self.markreviewed.setSizePolicy(sizepolicyretain)
         papirusicons = Icon()
         sendicon = papirusicons.fromTheme("document-send-symbolic")
-        self.publish = QPushButton(sendicon, 'Publish')
+        self.publish = QPushButton(sendicon, 'Publish locally')
         self.publish.setVisible(True)
         self.getotherdbitems = None
         self.readlinkview = None
@@ -69,60 +69,9 @@ class MarkReviewedView(QWidget):
                 self.readlinkview(self.currentuid)
         self.markreviewed.clicked.connect(markreviewed)
 
-        def publishtestforproduct():
-            tree, items, selecteduid = self.getotherdbitems()
-            path = tree.root
-            pathtodoc = Path(path, "tests-for-"+selecteduid)
-            activedict = {}
-            textdict = {}
-            for doc in tree.documents:
-                for item in doc.items:
-                    activedict[str(item)] = item.active
-                    textdict[str(item)] = item.text
-            product = self.db.find(self.currentuid)
-            for doc in tree.documents:
-                for item in doc.items:
-                    if item in items:
-                        newitemtext = item.text
-                        item.active = True
-                        if self.INPUTVARIABLES in product.data:
-                            for inputvar in product.data[self.INPUTVARIABLES]:
-                                varname = inputvar[0]
-                                try:
-                                    varvalue = inputvar[1]
-                                except IndexError:
-                                    varvalue = ''
-                                newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
-                        else:
-                            newitemtext = re.sub('', '', newitemtext)  # Seems like the text can't be saved without this
-                        if self.EXPECTEDRESULTS in product.data:
-                            for pair in product.data[self.EXPECTEDRESULTS]:
-                                if str(pair[0]) == str(item.uid):
-                                    newitemtext = newitemtext + '\n\n Expected results: \n\n' + pair[1]
-                        item.text = newitemtext
-                        item.save()
 
-                    else:
-                        item.active = False
-            '''
-            Says in the doorstop documentation that the publish method can take a list of items. Didn't manage to get it
-            to work because at a point it gets to the method 'iter_documents' which returns it wrong. The workaround is
-            to add text to all chosen items and set the other to inactive. 
-            //Samuel
-            '''
-            publisher.publish(tree, pathtodoc, extensions=EXTENSIONS)
 
-            for doc in tree.documents:
-                for item in sorted(i for i in doc._iter()):
-                    if item.active:
-                        item._data['text'] = textdict[str(item)]
-                        item.save()
-                    if str(item) in activedict:
-                        item.active = activedict[str(item)]
-
-        def publishdocs():
-            publisher.publish(self.db.root, Path(self.db.root.vcs.path, "public"))
-        self.publish.clicked.connect(publishdocs)
+        self.publish.clicked.connect(self.publishdocs)
 
         grid2.addWidget(self.reflabel)
         grid2.addWidget(self.ref)
@@ -130,15 +79,73 @@ class MarkReviewedView(QWidget):
         #grid.addStretch(1)
         grid.addWidget(self.markreviewed, alignment=Qt.AlignLeft)
         if publishtest:
-            self.publishtest = QPushButton(sendicon, 'Publish test')
+            self.publishtest = QPushButton(sendicon, 'Publish test for product')
             self.publishtest.setVisible(True)
-            self.publishtest.clicked.connect(publishtestforproduct)
+            self.publishtest.clicked.connect(self.publishtestforproduct)
             grid.addWidget(self.publishtest, alignment=Qt.AlignRight)
 
         grid.addWidget(self.publish)
         vgrid.addLayout(grid)
         vgrid.addLayout(grid2)
         self.setLayout(vgrid)
+
+    def publishtestforproduct(self):
+        tree, items, selecteduid = self.getotherdbitems()
+        self.publishtestdoc(tree, items, selecteduid)
+
+    def publishdocs(self):
+        publisher.publish(self.db.root, Path(self.db.root.root, "public"))
+
+
+    def publishtestdoc(self, tree, items, selecteduid):
+        path = tree.root
+        pathtodoc = Path(path, "tests-for-" + selecteduid)
+        activedict = {}
+        textdict = {}
+        for doc in tree.documents:
+            for item in doc.items:
+                activedict[str(item)] = item.active
+                textdict[str(item)] = item.text
+        product = self.db.find(self.currentuid)
+        for doc in tree.documents:
+            for item in doc.items:
+                if item in items:
+                    newitemtext = item.text
+                    item.active = True
+                    if self.INPUTVARIABLES in product.data:
+                        for inputvar in product.data[self.INPUTVARIABLES]:
+                            varname = inputvar[0]
+                            try:
+                                varvalue = inputvar[1]
+                            except IndexError:
+                                varvalue = ''
+                            newitemtext = re.sub(r"\b%s\b" % varname, varvalue, newitemtext)
+
+                    newitemtext = re.sub('', '', newitemtext)  # Seems like the text can't be saved without this
+                    if self.EXPECTEDRESULTS in product.data:
+                        for pair in product.data[self.EXPECTEDRESULTS]:
+                            if str(pair[0]) == str(item.uid):
+                                newitemtext = newitemtext + '\n\n Expected results: \n\n' + pair[1]
+                    item.text = newitemtext
+                    item.save()
+
+                else:
+                    item.active = False
+        '''
+        Says in the doorstop documentation that the publish method can take a list of items. Didn't manage to get it
+        to work because at a point it gets to the method 'iter_documents' which returns it wrong. The workaround is
+        to add text to all chosen items and set the other to inactive. 
+        //Samuel
+        '''
+        publisher.publish(tree, pathtodoc, extensions=EXTENSIONS)
+
+        for doc in tree.documents:
+            for item in sorted(i for i in doc._iter()):
+                if item.active:
+                    item._data['text'] = textdict[str(item)]
+                    item.save()
+                if str(item) in activedict:
+                    item.active = activedict[str(item)]
 
     def connectdb(self, db):
         self.db = db

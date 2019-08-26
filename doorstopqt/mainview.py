@@ -14,6 +14,8 @@ import os
 from doorstopqt.initdirectoriesview import InitDirectoriesView
 import json
 from json import JSONDecodeError
+from doorstopqt.icon import Icon
+from argparse import ArgumentParser
 
 
 class CustomSplitter(QSplitter):
@@ -38,6 +40,21 @@ class CustomSplitter(QSplitter):
 
     def setdefaultstylesheet(self):
         self.setStyleSheet("")
+
+
+def saveWindowSettings(splitter, id):
+    settings = QSettings("Lab.gruppen", id)
+    settings.setValue("geometry", splitter.saveGeometry())
+    settings.setValue("windowState", splitter.saveState())
+
+def loadWindowSettings(splitter, id):
+    settings = QSettings("Lab.gruppen", id)
+    if not settings.value("geometry"):
+        return
+    saved_geometry = settings.value("geometry")
+    splitter.restoreGeometry(saved_geometry)
+    saved_state = settings.value("windowState")
+    splitter.restoreState(saved_state)
 
 
 def getlabel(showhide, view):
@@ -100,10 +117,19 @@ def clearlayout(splitter):
         splitter.widget(i).setParent(None)
 
 
+def storeviews(mainsplitter):
+    splitters = mainsplitter.findChildren(QSplitter)
+    for id, splitter in enumerate(splitters):
+        saveWindowSettings(splitter, str(id))
+
+
 def main():
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    icons = Icon(Qt.black)
+    doorstoplogo = icons.fromTheme('doorstop-qt-logo-smallest')
+    app.setWindowIcon(doorstoplogo)
     splitter = CustomSplitter()
 
     screen_resolution = app.desktop().screenGeometry()
@@ -124,16 +150,18 @@ def main():
 
     mainmenu = QMenuBar()
     mainmenu.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-    optionsmenu = mainmenu.addMenu('Options')
-    changestylesheetmenu = optionsmenu.addMenu('Change theme')
+    #optionsmenu = mainmenu.addMenu('Options')
+    changestylesheetmenu = mainmenu.addMenu('Change theme')
     darktheme = changestylesheetmenu.addAction("Dark theme")
     whitetheme = changestylesheetmenu.addAction("White theme")
     darktheme.triggered.connect(splitter.setdarkstylesheet)
     whitetheme.triggered.connect(splitter.setwhiteStylesheet)
 
-    showhidemenu = optionsmenu.addMenu('Show/hide views')
-    setupfolders = optionsmenu.addAction('Setup folders')
+    showhidemenu = mainmenu.addMenu('Show/hide views')
+    setupfolders = mainmenu.addAction('Setup folders')
     setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu))
+    storeview = mainmenu.addAction('Store view')
+    storeview.triggered.connect(lambda: storeviews(splitter))
 
     loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu)
 
@@ -197,12 +225,25 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     if 'Test' in viewsdict and 'Product' in viewsdict:
         viewsdict['Test'].itemview.applytootheritem = viewsdict['Product'].reqtestlinkview2.updatedata
 
-
+    parser = ArgumentParser()
+    parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,
+                        help="Publish the test for all products")
+    #  doorstop-qt -p True
+    # to publish test for all products
+    args = parser.parse_args()
+    if args.publish:
+        productview = viewsdict['Product']
+        productview.publishalltestsforallproducts()
+        sys.exit()
     #splitter.addWidget(reqview)
     #splitter.addWidget(testview)
     #splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
+
+    children = splitter.findChildren(QSplitter)
+    for id, child in enumerate(children):
+        loadWindowSettings(child, str(id))
 
     splitter.show()
     showfile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
@@ -216,7 +257,6 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
             if d[view.header] == 'hide':
                 view.hide()
         inithideshow(view, showhidemenu)
-
 
 if __name__ == '__main__':
     main()

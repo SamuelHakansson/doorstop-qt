@@ -93,7 +93,6 @@ class ItemView(QSplitter):
         self.previewbtn.setVisible(False)
 
     def vieweditor(self):
-        print('vieweditor', flush=True)
         for mv in self.markdownviews:
             if mv.htmlview.hasFocus():
                 cursor = mv.htmlview.textCursor()

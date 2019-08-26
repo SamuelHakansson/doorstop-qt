@@ -331,7 +331,9 @@ class RequirementTreeView(QWidget):
             item = self.db.root.add_item(self.document, level=level, reorder=False)
             item.text = self.newitemtext
             self.db.reload()
-            self.tree.setCurrentIndex(self.uidtoitem(item.uid).index())
+            itemtoselect = self.uidtoitem(item.uid)
+            if itemtoselect:
+                self.tree.setCurrentIndex(itemtoselect.index())
             self.treestack.append((item.uid, self.NEW))
             self.revertbtn.show()
 
