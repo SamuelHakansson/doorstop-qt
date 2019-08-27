@@ -323,10 +323,9 @@ class RequirementTreeView(QWidget):
 
             data = self.model.data(self.model.indexFromItem(lastsibling), Qt.UserRole)
             if data is not None:
-                level = str(data.level).split('.')[:len(level)]
+                level = str(data.level).split('.')#[:len(level)]
                 level[-1] = str(int(level[-1]) + 1)
-            if len(level) < 2:
-                level.append('0')
+
             level = '.'.join(level)
             item = self.db.root.add_item(self.document, level=level, reorder=False)
             item.text = self.newitemtext

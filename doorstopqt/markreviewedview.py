@@ -93,6 +93,8 @@ class MarkReviewedView(QWidget):
 
     def publishtestforproduct(self):
         tree, items, selecteduid = self.getotherdbitems()
+        if not items:
+            return
         self.publishtestdoc(tree, items, selecteduid)
 
     def publishdocs(self):

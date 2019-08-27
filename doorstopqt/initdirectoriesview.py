@@ -39,7 +39,7 @@ class InitDirectoriesView(QDialog):
 
 
 class DirectoryButtons(QWidget):
-    def __init__(self, icons, databasepath, initview):
+    def __init__(self, icons, databasepath, initview=None):
         super(DirectoryButtons, self).__init__()
         self.databasepath = databasepath
         self.initview = initview
@@ -50,6 +50,9 @@ class DirectoryButtons(QWidget):
         self.setLayout(self.layout)
         self.size = QSize(150, 150)
         self.directories = []
+        self.nochanges = False
+        if initview is None:
+            self.openpathdialog()
 
         for name in buttonnames:
             self.createbutton(name)
@@ -68,21 +71,24 @@ class DirectoryButtons(QWidget):
 
     def openpathdialog(self):
         databasenames = ['Requirements', 'Tests', 'Products']
-        dialog = QFileDialog(None, "Select Directory for the repository. "
+        dialog = QFileDialog(None, "Select directory for the repository. "
                                    "Select an empty folder if you want to start from scratch.")
         dialog.setFileMode(QFileDialog.DirectoryOnly)
 
         if dialog.exec_() == QDialog.Accepted:
             path = dialog.selectedFiles()[0]
         else:
-            self.initview.exit()
+            self.nochanges = True
+            if self.initview:
+                self.initview.exit()
             return
         for name in os.listdir(path):
             for dbname in databasenames:
                 if dbname.lower() in name:
                     dbpath = str(Path(path, name))
                     self.writetojsonfile(dbname, dbpath, self.databasepath)
-        self.initview.close()
+        if self.initview:
+            self.initview.close()
 
     def writetojsonfile(self, name, path, databasestextfile):
         name = name[:-1]  # because views are named with an s in their fullview
@@ -99,6 +105,9 @@ class DirectoryButtons(QWidget):
         file_obj_wr = open(databasestextfile, 'w+')
 
         json.dump(databasedict, file_obj_wr)
+
+    def exec(self):
+        return self.nochanges
 
 
 

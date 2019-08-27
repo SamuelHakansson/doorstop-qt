@@ -11,12 +11,12 @@ from doorstopqt.stylesheetwhite import stylesheet as stylesheetwhite
 from pathlib import Path
 import sys
 import os
-from doorstopqt.initdirectoriesview import InitDirectoriesView
+from doorstopqt.initdirectoriesview import InitDirectoriesView, DirectoryButtons
 import json
 from json import JSONDecodeError
 from doorstopqt.icon import Icon
 from argparse import ArgumentParser
-import time
+
 
 class CustomSplitter(QSplitter):
     """
@@ -29,8 +29,7 @@ class CustomSplitter(QSplitter):
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
-        for move in self.movebuttonfuncs:
-            move()
+        self.movebuttons()
 
     def setwhiteStylesheet(self):
         self.setStyleSheet(stylesheetwhite)
@@ -41,11 +40,16 @@ class CustomSplitter(QSplitter):
     def setdefaultstylesheet(self):
         self.setStyleSheet("")
 
+    def movebuttons(self):
+        for move in self.movebuttonfuncs:
+            move()
+
 
 def saveWindowSettings(splitter, id):
     settings = QSettings("Lab.gruppen", id)
     settings.setValue("geometry", splitter.saveGeometry())
     settings.setValue("windowState", splitter.saveState())
+
 
 def loadWindowSettings(splitter, id):
     settings = QSettings("Lab.gruppen", id)
@@ -103,8 +107,8 @@ def getdictfromfile(file):
             return {}
 
 
-def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu, stylesheet=stylesheetdark):
-    initdirectories = InitDirectoriesView(databasestextfile, stylesheet)
+def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu):
+    initdirectories = DirectoryButtons(Icon(), databasestextfile)
     if initdirectories.exec() is False:
         clearlayout(splitter)
         showhidemenu.clear()
@@ -115,6 +119,7 @@ def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu, 
 def clearlayout(splitter):
     for i in reversed(range(splitter.count())):
         splitter.widget(i).setParent(None)
+    splitter.movebuttonfuncs = []
 
 
 def storeviews(mainsplitter):
@@ -254,12 +259,12 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     else:
         d = {}
     for view in views:
-        view.movebuttons()
-        splitter.movebuttonfuncs.append(view.movebuttons)
         if view.header in d:
             if d[view.header] == 'hide':
                 view.hide()
         inithideshow(view, showhidemenu)
+        splitter.movebuttonfuncs.append(view.movebuttons)
+        view.movebuttons()
 
 
 if __name__ == '__main__':
