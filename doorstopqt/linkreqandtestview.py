@@ -62,13 +62,15 @@ class LinkReqAndTestView(AbstractLinkView):
         if self.key in item.data:
             for link in item.data[self.key]:
                 text = ''
+                
                 if self.otherdb:
                     linkitem = self.otherdb.find(link)
-                    start = '**Feature name:**'
-                    end = "**Feature requirement:**"
-                    dt = linkitem.text
-                    if start in dt and end in dt:
-                        text = ' | ' + dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+                    if linkitem:
+                        start = '**Feature name:**'
+                        end = "**Feature requirement:**"
+                        dt = linkitem.text
+                        if start in dt and end in dt:
+                            text = ' | ' + dt[dt.find(start) + len(start):dt.rfind(end)].strip()
 
                 item = QStandardItem(str(link))
                 item.setData(str(link) + text)
@@ -97,11 +99,15 @@ class LinkReqAndTestView(AbstractLinkView):
         item = self.model.itemFromIndex(si[0])
         data = item.data()
         act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(data)))
-        act.triggered.connect(lambda: self.goto(data))
+        act.triggered.connect(lambda: self.goto(self.getuidfromguiitem(data)))
 
         act = menu.addAction(self.icons.DialogCloseButton, 'Remove link')
         act.triggered.connect(self.remove_selected_link)
         menu.popup(self.mapToGlobal(pos))
+
+    def getuidfromguiitem(self, data):
+        uid = data.split(' ', 1)[0]
+        return uid
 
     def remove_selected_link(self):
         if self.db is None:
@@ -114,11 +120,10 @@ class LinkReqAndTestView(AbstractLinkView):
             return
 
         item = self.model.itemFromIndex(si[0])
-        data = item.data()
+        data = self.getuidfromguiitem(item.data())
 
         dbitem = self.db.find(self.currentuid)
         otherdbitem = self.otherdb.find(data)
-        print('removing links', flush=True)
         self.removelink(dbitem, data)
         self.removeotherlink(otherdbitem, str(dbitem.uid))
 

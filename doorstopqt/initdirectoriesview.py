@@ -5,30 +5,28 @@ from .icon import Icon
 import os
 import json
 from json import JSONDecodeError
+from pathlib import Path
 
 
 class InitDirectoriesView(QDialog):
     def __init__(self, databasepath, style=''):
         super(InitDirectoriesView, self).__init__()
-        self.setWindowTitle('Select directories')
+        self.setWindowTitle('Select folder')
         self.databasepath = databasepath
         self.icons = Icon()
         self.setStyleSheet(style)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        self.doneicon = self.icons.fromTheme('dialog-apply')
+        #self.doneicon = self.icons.fromTheme('dialog-apply')
         self.exiticon = self.icons.fromTheme('edit-clear-all')
-        self.donebutton = QPushButton(self.doneicon, 'Continue')
         self.exitbutton = QPushButton(self.exiticon, 'Exit')
-        self.buttons = DirectoryButtons(self.icons, self.databasepath)
+        self.buttons = DirectoryButtons(self.icons, self.databasepath, self)
         self.layout.addWidget(self.buttons)
         vbox = QHBoxLayout()
         vbox.addWidget(self.exitbutton, alignment=Qt.AlignLeft)
-        vbox.addWidget(self.donebutton, alignment=Qt.AlignRight)
         self.layout.addLayout(vbox)
 
         self.exitbutton.clicked.connect(self.exit)
-        self.donebutton.clicked.connect(self.close)
         self.exitprogram = False
 
     def exit(self):
@@ -41,10 +39,11 @@ class InitDirectoriesView(QDialog):
 
 
 class DirectoryButtons(QWidget):
-    def __init__(self, icons, databasepath):
+    def __init__(self, icons, databasepath, initview):
         super(DirectoryButtons, self).__init__()
         self.databasepath = databasepath
-        buttonnames = ['Requirements', 'Tests', 'Products']
+        self.initview = initview
+        buttonnames = ['Repository']
         self.icons = icons
         self.foldericon = self.icons.fromTheme('folder-black')
         self.layout = QHBoxLayout()
@@ -65,19 +64,25 @@ class DirectoryButtons(QWidget):
         vbox.addWidget(button)
         vbox.addWidget(QLabel(name))
         self.layout.addWidget(column)
-        button.clicked.connect(lambda: self.openpathdialog(name, vbox))
+        button.clicked.connect(lambda: self.openpathdialog())
 
-    def openpathdialog(self, name, vbox):
-        dialog = QFileDialog(None, "{} {}{} {}".format("Select Directory for", name.lower(), ".",
-                                                       "Select an empty folder if you want to start from scratch."))
+    def openpathdialog(self):
+        databasenames = ['Requirements', 'Tests', 'Products']
+        dialog = QFileDialog(None, "Select Directory for the repository. "
+                                   "Select an empty folder if you want to start from scratch.")
         dialog.setFileMode(QFileDialog.DirectoryOnly)
 
         if dialog.exec_() == QDialog.Accepted:
             path = dialog.selectedFiles()[0]
         else:
-            path = None
-        vbox.addWidget(QLabel(path))
-        self.writetojsonfile(name, path, self.databasepath)
+            self.initview.exit()
+            return
+        for name in os.listdir(path):
+            for dbname in databasenames:
+                if dbname.lower() in name:
+                    dbpath = str(Path(path, name))
+                    self.writetojsonfile(dbname, dbpath, self.databasepath)
+        self.initview.close()
 
     def writetojsonfile(self, name, path, databasestextfile):
         name = name[:-1]  # because views are named with an s in their fullview

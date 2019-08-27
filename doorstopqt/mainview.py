@@ -151,17 +151,19 @@ def main():
     mainmenu = QMenuBar()
     mainmenu.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
     #optionsmenu = mainmenu.addMenu('Options')
+
+
+    showhidemenu = mainmenu.addMenu('Show/hide views')
+    storeview = mainmenu.addAction('Store view')
+    storeview.triggered.connect(lambda: storeviews(splitter))
+    setupfolders = mainmenu.addAction('Select working folder')
+    setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu))
+
     changestylesheetmenu = mainmenu.addMenu('Change theme')
     darktheme = changestylesheetmenu.addAction("Dark theme")
     whitetheme = changestylesheetmenu.addAction("White theme")
     darktheme.triggered.connect(splitter.setdarkstylesheet)
     whitetheme.triggered.connect(splitter.setwhiteStylesheet)
-
-    showhidemenu = mainmenu.addMenu('Show/hide views')
-    setupfolders = mainmenu.addAction('Setup folders')
-    setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu))
-    storeview = mainmenu.addAction('Store view')
-    storeview.triggered.connect(lambda: storeviews(splitter))
 
     loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu)
 
@@ -257,6 +259,7 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
             if d[view.header] == 'hide':
                 view.hide()
         inithideshow(view, showhidemenu)
+
 
 if __name__ == '__main__':
     main()

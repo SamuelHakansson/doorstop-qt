@@ -440,7 +440,6 @@ class DocumentView(QWidget):
             try:
                 index = selectionmodel.indexes()[0]
                 doc = index.data(Qt.UserRole)
-                print('callback selecting', doc, flush=True)
                 self.currentdocument = doc
             except IndexError:
                 doc = None
@@ -452,14 +451,12 @@ class DocumentView(QWidget):
         movedobject = self.model.index(0, 0)
         nextlist = self.getnext(movedobject, [])
         currentobjects_list = [movedobject] + nextlist
-        print('should select', document, flush=True)
-        print('-----------------', flush=True)
         if document is None:
             currentindex = self.model.index(0, 0)
             self.tree.setCurrentIndex(currentindex)
             return
         for index in currentobjects_list:
-            if index.data() == document:
+            if index.data() == str(document):
                 self.tree.setCurrentIndex(index)
                 return
 

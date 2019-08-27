@@ -77,15 +77,17 @@ class MarkReviewedView(QWidget):
         grid2.addWidget(self.ref)
         grid2.addWidget(self.refloc)
         #grid.addStretch(1)
-        grid.addWidget(self.markreviewed, alignment=Qt.AlignLeft)
-        if publishtest:
-            self.publishtest = QPushButton(sendicon, 'Publish test for product')
-            self.publishtest.setVisible(True)
-            self.publishtest.clicked.connect(self.publishtestforproduct)
-            grid.addWidget(self.publishtest, alignment=Qt.AlignRight)
+        grid2.addWidget(self.markreviewed, alignment=Qt.AlignRight)
 
         grid.addWidget(self.publish)
         vgrid.addLayout(grid)
+
+        if publishtest:
+            self.publishtest = QPushButton(sendicon, 'Publish linked test for product')
+            self.publishtest.setVisible(True)
+            self.publishtest.clicked.connect(self.publishtestforproduct)
+            #grid.addWidget(self.publishtest, alignment=Qt.AlignRight)
+            vgrid.addWidget(self.publishtest, alignment=Qt.AlignRight)
         vgrid.addLayout(grid2)
         self.setLayout(vgrid)
 

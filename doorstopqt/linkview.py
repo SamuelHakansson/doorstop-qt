@@ -97,7 +97,8 @@ class LinkView(AbstractLinkView):
             item.setEditable(False)
             self.model.appendRow(item)
         if nrfinelinks == len(data.links):
-            data.review()
+            if not data.reviewed:
+                data.review()
 
         clinks = data.find_child_links()
         for clink in clinks:

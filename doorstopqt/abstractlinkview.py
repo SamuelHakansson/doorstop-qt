@@ -61,7 +61,7 @@ class AbstractLinkView(QWidget):
             if data is None or item.isEditable():
                 return
             if type(data) is str:
-                uid = data
+                uid = data.split(' ', 1)[0]
             elif type(data) is tuple:
                 uid = data[1]
             self.goto(uid)
