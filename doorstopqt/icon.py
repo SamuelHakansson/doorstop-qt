@@ -18,9 +18,7 @@ class Icon(QIcon):
         self.setThemeName('Papirus')
         self.protectedicons = ["media-floppy"]
 
-
     def colorize(self, pixmap):
-
         color = QColor(self.defaultcolor)  # sets color of icons
         painter = QPainter(pixmap)
         painter.setCompositionMode(QPainter.CompositionMode_SourceIn)

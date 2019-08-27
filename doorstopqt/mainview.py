@@ -16,7 +16,7 @@ import json
 from json import JSONDecodeError
 from doorstopqt.icon import Icon
 from argparse import ArgumentParser
-
+import time
 
 class CustomSplitter(QSplitter):
     """
@@ -24,13 +24,13 @@ class CustomSplitter(QSplitter):
     """
     def __init__(self):
         super(CustomSplitter, self).__init__()
-        self.movebuttons = None
+        self.movebuttonfuncs = []
         self.setdarkstylesheet()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
-        if self.movebuttons:
-            self.movebuttons()
         super().resizeEvent(a0)
+        for move in self.movebuttonfuncs:
+            move()
 
     def setwhiteStylesheet(self):
         self.setStyleSheet(stylesheetwhite)
@@ -127,11 +127,11 @@ def main():
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    icons = Icon(Qt.black)
-    doorstoplogo = icons.fromTheme('doorstop-qt-logo-smallest')
-    app.setWindowIcon(doorstoplogo)
+    icons = QIcon()
+    icons.setThemeName('Papirus')
+    doorstopicon = icons.fromTheme('ds-logo-new')
+    app.setWindowIcon(doorstopicon)
     splitter = CustomSplitter()
-
     screen_resolution = app.desktop().screenGeometry()
     screenwidth, screenheight = screen_resolution.width(), screen_resolution.height()
     width = int(screenwidth*11/16)
@@ -255,6 +255,7 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         d = {}
     for view in views:
         view.movebuttons()
+        splitter.movebuttonfuncs.append(view.movebuttons)
         if view.header in d:
             if d[view.header] == 'hide':
                 view.hide()
