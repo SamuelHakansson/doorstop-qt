@@ -178,6 +178,10 @@ class DocumentView(QWidget):
 
             addaction = menu.addAction("Create child document")
             addaction.triggered.connect(lambda: addnewdocument(item))
+            addsiblingaction = menu.addAction("Create sibling document")
+            if item.parent() is None:
+                addsiblingaction.setDisabled(True)
+            addsiblingaction.triggered.connect(lambda: addnewdocument(item, child=False))
             menu.addSeparator()
             renameaction = menu.addAction("Rename")
             renameaction.triggered.connect(lambda: rename(item))
@@ -188,7 +192,6 @@ class DocumentView(QWidget):
         else:
             addaction = menu.addAction("Create document")
             addaction.triggered.connect(lambda: addnewdocument())
-
 
         def remove(item):
             documenttoremove(item)
@@ -228,10 +231,13 @@ class DocumentView(QWidget):
         def rename(itemtorename):
             self.tree.edit(itemtorename.index())
 
-        def addnewdocument(parentitem=None):
+        def addnewdocument(parentitem=None, child=True):
             newitem = QStandardItem()
             if parentitem:
-                parentitem.appendRow(newitem)
+                if child:
+                    parentitem.appendRow(newitem)
+                else:
+                    parentitem.parent().appendRow(newitem)
             else:
                 self.model.appendRow(newitem)
             self.tree.edit(newitem.index())

@@ -82,10 +82,13 @@ class DirectoryButtons(QWidget):
             if self.initview:
                 self.initview.exit()
             return
+
         for name in os.listdir(path):
             for dbname in databasenames:
                 if dbname.lower() in name:
-                    dbpath = str(Path(path, name))
+                    directory = QDir(path)
+                    directory.cd(name)
+                    dbpath = directory.path()
                     self.writetojsonfile(dbname, dbpath, self.databasepath)
         if self.initview:
             self.initview.close()

@@ -28,7 +28,10 @@ class LinkItemModel(QStandardItemModel):
                     extra = '[needs review] '
                 else:
                     extra = ''
-                text = extra + str(uid) + ' | ' + title
+                if title:
+                    text = extra + str(uid) + ' | ' + title
+                else:
+                    text = extra + str(uid)
                 if is_parent_link:
                     return '→ ' + text
                 else:

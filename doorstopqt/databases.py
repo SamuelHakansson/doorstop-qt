@@ -7,11 +7,11 @@ from json import JSONDecodeError
 
 
 class ReqDatabase(object):
-    def __init__(self):
+    def __init__(self, path=None):
         self.listeners = []
         self.other_listeners = []
         self.root = None
-        self.reload()
+        self.reload(path)
 
     def add_listeners(self, l):
         if type(l) is list:
@@ -31,8 +31,8 @@ class ReqDatabase(object):
             l.connectotherdb(self)
             self.other_listeners.append(l)
 
-    def reload(self, root=None):
-        self.root = doorstop.core.builder.build(root=Path(root))
+    def reload(self, path=None):
+        self.root = doorstop.core.builder.build(root=Path(path))
         for l in self.listeners:
             l.connectdb(self)
         for ol in self.other_listeners:
@@ -60,16 +60,15 @@ class OtherDatabase(ReqDatabase):
         self.path = self.finddatabasepath(self.databasestextfile)
         if self.path is None:
             self.path = self._openfiledialog()
-
         self._writetojsonfile(self.databasestextfile)
 
         currentdir = os.getcwd()
         self.initgit()
-        super().__init__()
+        super().__init__(self.path)
         os.chdir(currentdir)
 
-    def reload(self, root=None):
-        super(OtherDatabase, self).reload(root=self.path)
+    def reload(self, path=None):
+        super(OtherDatabase, self).reload(path=self.path)
 
     def _openfiledialog(self):
         dialog = QFileDialog(None, "{} {}{} {}".format("Select Directory for", self.name.lower(), ".",

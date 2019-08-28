@@ -224,7 +224,7 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         except:
             pass
         splitter.addWidget(view)
-
+    os.chdir(views[0].database.path) # for some reason, pictures won't load without "resetting" the path
     if TEST in viewsdict and PRODUCT in viewsdict:
         viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].reqtestlinkview2.updatedata
 
