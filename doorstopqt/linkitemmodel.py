@@ -1,11 +1,12 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from markdown import markdown
+from .nameregex import Nameregex
 
 
 class LinkItemModel(QStandardItemModel):
     def __init__(self, parent=None):
         super(LinkItemModel, self).__init__(parent)
+        self.nameregex = Nameregex()
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
@@ -20,16 +21,14 @@ class LinkItemModel(QStandardItemModel):
                 flags = data[3]
                 title = ''
                 if target is not None:
-                    title = QTextDocument()
-                    title.setHtml(markdown(target.text.split('\n')[0]))
-                    title = title.toPlainText()
+                    title = self.nameregex.gettitle(target.text)
                 if 'broken' in flags:
                     extra = '[broken] '
                 elif 'suspect' in flags:
                     extra = '[needs review] '
                 else:
                     extra = ''
-                text = extra + str(uid) + '\t' + title
+                text = extra + str(uid) + ' | ' + title
                 if is_parent_link:
                     return '→ ' + text
                 else:

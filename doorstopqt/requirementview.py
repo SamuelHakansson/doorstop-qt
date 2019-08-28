@@ -2,11 +2,11 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
-from markdown import markdown
 from .requirement_template import newitemtext
 from .customtree import CustomTree
 from .revertbutton import RevertButton
 import pathlib
+from .nameregex import Nameregex
 
 
 class RequirementTreeView(QWidget):
@@ -86,6 +86,7 @@ class RequirementTreeView(QWidget):
 
         self.otherdbviews = []
         self.currentuid = None
+        self.regexer = Nameregex()
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
         def copy():
@@ -299,6 +300,7 @@ class RequirementTreeView(QWidget):
         def createrequirement(sibling=True):
             level = None
             lastsibling = None
+            nochildren = False
             if len(si) > 0:
                 cur = self.model.itemFromIndex(si[0])
                 if sibling:
@@ -311,11 +313,11 @@ class RequirementTreeView(QWidget):
                     rows = cur.rowCount()
                     if rows == 0:
                         lastsibling = cur
+                        nochildren = True
                     else:
                         lastsibling = cur.child(rows - 1)
                     data = self.model.data(si[0], Qt.UserRole)
                     level = str(data.level)
-
             if lastsibling is None:
                 rows = self.model.rowCount()
                 lastsibling = self.model.itemFromIndex(self.model.index(rows - 1, 0))
@@ -324,7 +326,12 @@ class RequirementTreeView(QWidget):
             data = self.model.data(self.model.indexFromItem(lastsibling), Qt.UserRole)
             if data is not None:
                 level = str(data.level).split('.')#[:len(level)]
-                level[-1] = str(int(level[-1]) + 1)
+                if data.heading:
+                    del level[-1]
+                if not nochildren:
+                    level[-1] = str(int(level[-1]) + 1)
+                else:
+                    level.append('1')
 
             level = '.'.join(level)
             item = self.db.root.add_item(self.document, level=level, reorder=False)
@@ -342,8 +349,6 @@ class RequirementTreeView(QWidget):
             act.triggered.connect(lambda: createrequirement())
             act = menu.addAction(self.icons.FileIcon, 'Create child item')
             act.triggered.connect(lambda: createrequirement(False))
-            if str(data.level).split('.')[-1] != '0':
-                act.setEnabled(False)
 
             menu.addSeparator()
             act = menu.addAction('Remove item')
@@ -367,6 +372,8 @@ class RequirementTreeView(QWidget):
         else:
             act = menu.addAction(self.icons.FileIcon, 'Create item')
             act.triggered.connect(lambda: createrequirement())
+            if len(self.db.root.documents) == 0:
+                act.setDisabled(True)
         menu.addSeparator()
         menu.addAction('Expand all').triggered.connect(lambda: self.tree.expandAll())
 
@@ -615,6 +622,7 @@ class RequirementTreeView(QWidget):
         data = self.uid_to_item[uid][1]
         level = str(data.level)
         text = None
+        '''
         if data.heading:
             heading = data.text
             heading = markdown(heading.split('\n')[0])
@@ -623,18 +631,22 @@ class RequirementTreeView(QWidget):
             text.setHtml(heading)
             title = '{} {}'.format(level, text.toPlainText())
         else:
-            start = '**Feature name:**'
-            end = "**Feature requirement:**"
-            dt = data.text
-            if start in dt and end in dt:
-                text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-            elif start in dt and end not in dt:
-                text = dt[dt.find(start) + len(start):].strip()
-            if text:
-                text = '| ' + text
-            else:
-                text = ''
-            title = '{} {} {}'.format(level, uid, text)
+        
+        start = '**Feature name:**'
+        end = "**Feature requirement:**"
+        if start in dt and end in dt:
+            text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+        
+        elif start in dt and end not in dt:
+            text = dt[dt.find(start) + len(start):].strip()
+        '''
+        dt = data.text
+        text = self.regexer.gettitle(dt)
+        if text:
+            text = '| ' + text
+        else:
+            text = ''
+        title = '{} {} {}'.format(level, uid, text)
         item.setText(title)
 
     def updateuidfromitem(self, item):
@@ -643,6 +655,7 @@ class RequirementTreeView(QWidget):
         level = str(data.level)
         uid = self.uidfromindex(index)
         text = None
+        '''
         if data.heading:
             heading = data.text
             heading = markdown(heading.split('\n')[0])
@@ -651,19 +664,20 @@ class RequirementTreeView(QWidget):
             text.setHtml(heading)
             title = '{} {}'.format(level, text.toPlainText())
         else:
-            start = '**Feature name:**'
-            end = "**Feature requirement:**"
-            dt = data.text
-            if start in dt and end in dt:
-                text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-            elif start in dt and end not in dt:
-                text = dt[dt.find(start) + len(start):].strip()
-
-            if text:
-                text = '| '+text
-            else:
-                text = ''
-            title = '{} {} {}'.format(level, uid, text)
+        '''
+        dt = data.text
+        text = self.regexer.gettitle(dt)
+        '''
+        if start in dt and end in dt:
+            text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+        elif start in dt and end not in dt:
+            text = dt[dt.find(start) + len(start):].strip()
+        '''
+        if text:
+            text = '| '+text
+        else:
+            text = ''
+        title = '{} {} {}'.format(level, uid, text)
         item.setText(title)
 
     def read(self, uid):

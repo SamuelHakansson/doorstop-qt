@@ -54,8 +54,11 @@ class LinkView(AbstractLinkView):
         flags = data[3]
         is_suspect = 'suspect' in flags
 
-        act = menu.addAction(self.icons.ArrowForward, 'Go to {}'.format(str(target.uid))
-                                                                        if target is not None else "Link is broken, can't go to it")
+        act = menu.addAction(self.icons.ArrowForward,
+                             'Go to {}'.format(str(target.uid))
+                             if target is not None
+                             else "Link is broken, can't go to it")
+
         act.triggered.connect(lambda: self.goto(target.uid) if target is not None else None)
 
         currentitem = self.db.find(self.currentuid)
@@ -67,6 +70,7 @@ class LinkView(AbstractLinkView):
             else:
                 act = menu.addAction("Can't mark child links as reviewed")
                 act.setEnabled(False)
+                act.setVisible(False)
         else:
             act.setEnabled(False)
         act = menu.addAction(self.icons.DialogCloseButton, 'Remove link')

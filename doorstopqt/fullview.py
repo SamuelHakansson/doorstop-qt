@@ -12,11 +12,14 @@ from .itemreqview import ItemReqView
 
 from .databases import OtherDatabase
 
+'''
+Each of the views (requirement, test, and product view) is a fullview. 
+'''
+
 
 class FullView(QSplitter):
     def __init__(self):
         super().__init__()
-        #self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.markdownview = self.itemview.markdownview
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.itemview, self.attribview, header=self.header.lower())

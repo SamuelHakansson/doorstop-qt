@@ -8,6 +8,7 @@ from .revertbutton import RevertButton
 from .icon import Icon
 from .searchlayout import SearchLayout
 import shutil
+from .nameregex import Nameregex
 
 
 class DocumentView(QWidget):
@@ -22,7 +23,6 @@ class DocumentView(QWidget):
         self.tree.header().hide()
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.setIndentation(20)
-        #self.tree.setAlternatingRowColors(True)
 
         grid.addWidget(self.tree)
 
@@ -70,7 +70,7 @@ class DocumentView(QWidget):
         self.doctonewname = {}
         self.willberemoved = {}
         self.documentstocreate = []
-        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*']
+        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*', ' ']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
 
@@ -85,6 +85,8 @@ class DocumentView(QWidget):
         self.reloaddatabase = None
         self.folderbutton.clicked.connect(self.selectfolder)
         self.reloaditemfunc = None
+        self.nameregex = Nameregex()
+        self.completerdict = {}
 
     def selectfolder(self):
         if self.reloaddatabase:
@@ -93,17 +95,18 @@ class DocumentView(QWidget):
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.db.root.documents))
         texts = []
-
-        start = '**Feature name:**'
-        end = "**Feature requirement:**"
         self.completerdict = {}
         for doc in docs:
             for item in doc.items:
                 dt = item.text
-                if start in dt and end in dt:
-                    text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-                    texts.append(text)
-                    self.completerdict[text] = item.uid
+                uid = str(item.uid)
+                text = self.nameregex.gettitle(dt)
+                if text:
+                    text = uid + ' | ' + text
+                else:
+                    text = uid
+                texts.append(text)
+                self.completerdict[text] = item.uid
         model = QStringListModel()
         model.setStringList(texts)
         self.completer.setModel(model)
@@ -245,8 +248,7 @@ class DocumentView(QWidget):
                 self.documentstocreate.remove(docitem)
                 return
             for char in self.badcharacters:
-                if char in prefix:
-                    prefix.replace(char, '_')
+                prefix = prefix.replace(char, '_')
             self.model.blockSignals(True)
             docitem.setData(prefix, role=Qt.UserRole)
             self.model.blockSignals(False)
@@ -261,6 +263,7 @@ class DocumentView(QWidget):
             self.tree.setCurrentIndex(docitem.index())
             self.treestack.append((doc, self.NEW))
             self.currentdocument = doc
+            self.db.reload()
             self.moverevertbutton()
             self.revert.show()
 

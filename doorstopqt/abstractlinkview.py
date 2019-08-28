@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import *
 from .icon import Icon
 from .customcompleter import CustomQCompleter
 from .searchlayout import SearchLayout
+from .nameregex import Nameregex
 
 
 class AbstractLinkView(QWidget):
@@ -14,7 +15,6 @@ class AbstractLinkView(QWidget):
         self.icons = Icon()
         self.db = None
 
-        #self.listview.setAlternatingRowColors(True)
         self.locked = False
         self.currentitemedit = None
         self.currentindexedit = None
@@ -41,6 +41,7 @@ class AbstractLinkView(QWidget):
         self.listview.setContextMenuPolicy(Qt.CustomContextMenu)
         self.listview.customContextMenuRequested.connect(self.contextmenu)
         self.completer.activated.connect(self.createlinkingitem)
+        self.nameregex = Nameregex()
 
 
         def clicked(index):
@@ -79,15 +80,13 @@ class AbstractLinkView(QWidget):
         self.locked = lock
 
     def updateCompleter(self, docs):
-        start = '**Feature name:**'
-        end = "**Feature requirement:**"
         texts = []
         for doc in docs:
             for item in doc.items:
                 dt = item.text
                 uid = str(item.uid)
-                if start in dt and end in dt:
-                    text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
+                text = self.nameregex.gettitle(dt)
+                if text:
                     text = uid + ' | ' + text
                 else:
                     text = uid

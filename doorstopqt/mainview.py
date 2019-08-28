@@ -45,19 +45,24 @@ class CustomSplitter(QSplitter):
             move()
 
 
+GEOMETRY = "geometry"
+WINDOWSTATE = "windowState"
+LABGRUPPEN = "Lab.gruppen"
+
+
 def saveWindowSettings(splitter, id):
-    settings = QSettings("Lab.gruppen", id)
-    settings.setValue("geometry", splitter.saveGeometry())
-    settings.setValue("windowState", splitter.saveState())
+    settings = QSettings(LABGRUPPEN, id)
+    settings.setValue(GEOMETRY, splitter.saveGeometry())
+    settings.setValue(WINDOWSTATE, splitter.saveState())
 
 
 def loadWindowSettings(splitter, id):
-    settings = QSettings("Lab.gruppen", id)
-    if not settings.value("geometry"):
+    settings = QSettings(LABGRUPPEN, id)
+    if not settings.value(GEOMETRY):
         return
-    saved_geometry = settings.value("geometry")
+    saved_geometry = settings.value(GEOMETRY)
     splitter.restoreGeometry(saved_geometry)
-    saved_state = settings.value("windowState")
+    saved_state = settings.value(WINDOWSTATE)
     splitter.restoreState(saved_state)
 
 
@@ -87,7 +92,7 @@ def inithideshow(view, menu):
 
 
 def saveshowhide(view, showhide):
-    showhidefile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
+    showhidefile = Path(os.getcwd(), SHOWHIDEFILE)
     data = getdictfromfile(showhidefile)
     if not data:
         data = {view.header: showhide}
@@ -128,6 +133,10 @@ def storeviews(mainsplitter):
         saveWindowSettings(splitter, str(id))
 
 
+DATABASESFILE = 'doorstopqt_databases.json'
+SHOWHIDEFILE = 'doorstopqt_showhideviews.json'
+
+
 def main():
 
     app = QApplication(sys.argv)
@@ -146,7 +155,7 @@ def main():
 
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
-    databasestextfile = Path(os.getcwd(), 'doorstopqt_databases.json')
+    databasestextfile = Path(os.getcwd(), DATABASESFILE)
     if not os.path.isfile(databasestextfile):
         initdirectories = InitDirectoriesView(databasestextfile, stylesheetdark)
         closeprogram = initdirectories.exec()
@@ -155,8 +164,6 @@ def main():
 
     mainmenu = QMenuBar()
     mainmenu.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-    #optionsmenu = mainmenu.addMenu('Options')
-
 
     showhidemenu = mainmenu.addMenu('Show/hide views')
     storeview = mainmenu.addAction('Store view')
@@ -175,10 +182,15 @@ def main():
     sys.exit(app.exec_())
 
 
+REQUIREMENT = 'Requirement'
+TEST = 'Test'
+PRODUCT = 'Product'
+
+
 def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     splitter.addWidget(mainmenu)
     databasedict = getdictfromfile(databasestextfile)
-    headers = [('Requirement', ReqView), ('Test', TestView), ('Product', ProductView)]
+    headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
 
     views = []
     viewsdict = {}
@@ -190,11 +202,6 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
             views.append(view)
             viewsdict[name] = view
 
-    #reqview = ReqView()
-    #testview = TestView()
-    #productview = ProductView()
-
-    #views = [reqview, testview, productview]
     linkviews = {}
     for view in views:
         linkviews[view.header] = [view.reqtestlinkview, view.reqtestlinkview2]
@@ -205,7 +212,6 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
-
 
         for v in view.otherheaders:
             if v.capitalize() in linkviews:
@@ -218,19 +224,9 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         except:
             pass
         splitter.addWidget(view)
-    #reqview.database.add_other_listeners([testview.reqtestlinkview, productview.reqtestlinkview])
-    #testview.database.add_other_listeners([reqview.reqtestlinkview, productview.reqtestlinkview2])
-    #productview.database.add_other_listeners([reqview.reqtestlinkview2, testview.reqtestlinkview2])
 
-    #reqview.reqtestlinkview.gotoclb = testview.selectfunc
-    #testview.reqtestlinkview.gotoclb = reqview.selectfunc
-    #productview.reqtestlinkview.gotoclb = reqview.selectfunc
-
-    #reqview.reqtestlinkview2.gotoclb = productview.selectfunc
-    #testview.reqtestlinkview2.gotoclb = productview.selectfunc
-    #productview.reqtestlinkview2.gotoclb = testview.selectfunc
-    if 'Test' in viewsdict and 'Product' in viewsdict:
-        viewsdict['Test'].itemview.applytootheritem = viewsdict['Product'].reqtestlinkview2.updatedata
+    if TEST in viewsdict and PRODUCT in viewsdict:
+        viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].reqtestlinkview2.updatedata
 
     parser = ArgumentParser()
     parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,
@@ -239,12 +235,9 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     # to publish test for all products
     args = parser.parse_args()
     if args.publish:
-        productview = viewsdict['Product']
+        productview = viewsdict[PRODUCT]
         productview.publishalltestsforallproducts()
         sys.exit()
-    #splitter.addWidget(reqview)
-    #splitter.addWidget(testview)
-    #splitter.addWidget(productview)
 
     splitter.setOrientation(Qt.Vertical)
 
@@ -253,7 +246,7 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         loadWindowSettings(child, str(id))
 
     splitter.show()
-    showfile = Path(os.getcwd(), 'doorstopqt_showhideviews.json')
+    showfile = Path(os.getcwd(), SHOWHIDEFILE)
     if os.path.isfile(showfile):
         d = getdictfromfile(showfile)
     else:
