@@ -42,6 +42,9 @@ class DecisiontakersView(QWidget):
         while self.model.rowCount() < 4:
             self.additem()
 
+    def toPlainText(self):
+        return self.text()
+
     def createdecisiontakerslist(self):
         decisiontakerslist = []
         for row in range(self.rows()):
