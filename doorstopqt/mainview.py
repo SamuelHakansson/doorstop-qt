@@ -167,7 +167,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("-p", "--publish-all-tests", dest="path", default=False,
                         help="Publish the test for all products")
-    #  doorstop-qt -p "path\to\repository"
+    # doorstop-qt -p "path\to\repository"
     # to publish test for all products
     args = parser.parse_args()
     databasenames = [REQUIREMENT, TEST, PRODUCT]
@@ -289,7 +289,6 @@ def loadviews(app, splitter, databasedict, mainmenu, showhidemenu):
 
 
 def loadviewstopublish(app, databasedict):
-
     headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
     views = []
     viewsdict = {}
@@ -307,7 +306,12 @@ def loadviewstopublish(app, databasedict):
     databasestextfilepath = Path(os.getcwd(), DATABASESFILE)
     for i, view in enumerate(views):
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
-        databasepath = finddatabasepath(view.header, databasestextfilepath)
+        try:
+            databasepath = databasedict[view.header]
+        except KeyError:
+            print("Didn't find path for " + view.header, flush=True)
+            sys.exit()
+
         view.database = view.calldatabase(databasepath, databasestextfilepath, name=view.header)
         view.database.add_listeners([view.attribview, view.linkview, view.linkotherview, view.linkotherview2,
                                      view.tree, view.docview, view.itemview])
