@@ -47,17 +47,17 @@ class CustomSplitter(QSplitter):
 
 GEOMETRY = "geometry"
 WINDOWSTATE = "windowState"
-LABGRUPPEN = "Lab.gruppen"
+DOORSTOPQT = "doorstop-qt"
 
 
 def saveWindowSettings(splitter, id):
-    settings = QSettings(LABGRUPPEN, id)
+    settings = QSettings(DOORSTOPQT, id)
     settings.setValue(GEOMETRY, splitter.saveGeometry())
     settings.setValue(WINDOWSTATE, splitter.saveState())
 
 
 def loadWindowSettings(splitter, id):
-    settings = QSettings(LABGRUPPEN, id)
+    settings = QSettings(DOORSTOPQT, id)
     if not settings.value(GEOMETRY):
         return
     saved_geometry = settings.value(GEOMETRY)
@@ -164,17 +164,16 @@ def main():
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
-
     parser = ArgumentParser()
-    parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,
+    parser.add_argument("-p", "--publish-all-tests", dest="path", default=False,
                         help="Publish the test for all products")
-    #  doorstop-qt -p True
+    #  doorstop-qt -p "path\to\repository"
     # to publish test for all products
     args = parser.parse_args()
     databasenames = [REQUIREMENT, TEST, PRODUCT]
-    if args.publish:
-        databasedict = getdictfrompath(args.publish, databasenames)
-        loadviews2(app, databasedict)
+    if args.path:
+        databasedict = getdictfrompath(args.path, databasenames)
+        loadviewstopublish(app, databasedict)
         sys.exit()
 
     icons = QIcon()
@@ -289,7 +288,7 @@ def loadviews(app, splitter, databasedict, mainmenu, showhidemenu):
         view.movebuttons()
 
 
-def loadviews2(app, databasedict):
+def loadviewstopublish(app, databasedict):
 
     headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
     views = []

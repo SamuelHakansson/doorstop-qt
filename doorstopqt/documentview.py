@@ -131,7 +131,7 @@ class DocumentView(QWidget):
             newname = changeditem.text()
             if doc:
                 if doc != newname:
-                    newname.replace(" ", "_")
+                    newname = self.formatname(newname)
                     self.doctonewname[str(doc)] = newname
                     changeditem.setText(newname)
 
@@ -238,6 +238,8 @@ class DocumentView(QWidget):
                     parentitem.parent().appendRow(newitem)
             else:
                 self.model.appendRow(newitem)
+            if newitem.parent():
+                self.tree.expand(newitem.parent().index())
             self.tree.edit(newitem.index())
 
         menu.popup(self.tree.mapToGlobal(pos))
@@ -258,24 +260,40 @@ class DocumentView(QWidget):
         filename = filename.replace(' ', '_')  # I don't like spaces in filenames.
         return filename
 
+    def removeunwantedrowanddoc(self, docitem):
+        if docitem.parent():
+            self.model.removeRow(docitem.row(), docitem.parent().index())
+        else:
+            self.model.removeRow(docitem.row())
+        self.documentstocreate.remove(docitem)
+
+    def formatname(self, name):
+        if not name:
+            return
+        prefix = name
+        prefix = self.format_filename(prefix)
+        if not prefix or prefix == '':
+            return
+
+        if prefix[-1].isnumeric():
+            prefix = prefix + '_'
+
+        while prefix[0] == "-" or prefix[0] == '_' or prefix[0].isdigit():
+            prefix = prefix[1:]
+            if len(prefix) == 0:
+                break
+
+        return prefix
+
     def createnew(self):
         for docitem in self.documentstocreate:
             if not docitem:
                 return
-            prefix = docitem.text()
-            prefix = self.format_filename(prefix)
-            if prefix[-1].isnumeric():
-                prefix = prefix + '_'
+            prefix = self.formatname(docitem.text())
 
-            while prefix[0] == "-" or prefix[0] == '_' or prefix[0].isdigit():
-                prefix = prefix[1:]
-                if len(prefix) == 0:
-                    break
-
-            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '' or \
+            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '' or prefix is None or \
                     not (any(char.isdigit() or char.isalpha() for char in prefix)):
-                self.model.removeRow(docitem.row(), docitem.parent().index())
-                self.documentstocreate.remove(docitem)
+                self.removeunwantedrowanddoc(docitem)
                 return
 
             self.model.blockSignals(True)
