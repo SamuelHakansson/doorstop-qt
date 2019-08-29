@@ -31,8 +31,6 @@ class DocumentView(QWidget):
         self.warningmessage.hide()
 
         papirusicons = Icon()
-        #searchicon = papirusicons.fromTheme("search")
-        #clearicon = papirusicons.fromTheme("edit-clear-all")
         foldericon = papirusicons.fromTheme("folder-open")
         self.revert = RevertButton()
 

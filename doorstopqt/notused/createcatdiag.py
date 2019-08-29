@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
-from .categoryselector import CategorySelector
-import re
+from doorstopqt.notused.categoryselector import CategorySelector
+
 
 class CreateCategoryDialog(QDialog):
     def __init__(self, parent=None):

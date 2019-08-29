@@ -69,8 +69,6 @@ class MarkReviewedView(QWidget):
                 self.readlinkview(self.currentuid)
         self.markreviewed.clicked.connect(markreviewed)
 
-
-
         self.publish.clicked.connect(self.publishdocs)
 
         grid2.addWidget(self.reflabel)
@@ -99,7 +97,6 @@ class MarkReviewedView(QWidget):
 
     def publishdocs(self):
         publisher.publish(self.db.root, Path(self.db.root.root, "public"))
-
 
     def publishtestdoc(self, tree, items, selecteduid):
         path = tree.root

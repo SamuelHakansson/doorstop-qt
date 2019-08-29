@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 class InitDirectoriesView(QDialog):
-    def __init__(self, databasepath, style=''):
+    def __init__(self, databasepath, databasenames, style=''):
         super(InitDirectoriesView, self).__init__()
         self.setWindowTitle('Select folder')
         self.databasepath = databasepath
@@ -17,10 +17,9 @@ class InitDirectoriesView(QDialog):
         self.setStyleSheet(style)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        #self.doneicon = self.icons.fromTheme('dialog-apply')
         self.exiticon = self.icons.fromTheme('edit-clear-all')
         self.exitbutton = QPushButton(self.exiticon, 'Exit')
-        self.buttons = DirectoryButtons(self.icons, self.databasepath, self)
+        self.buttons = DirectoryButtons(self.icons, self.databasepath, databasenames, self)
         self.layout.addWidget(self.buttons)
         vbox = QHBoxLayout()
         vbox.addWidget(self.exitbutton, alignment=Qt.AlignLeft)
@@ -39,7 +38,7 @@ class InitDirectoriesView(QDialog):
 
 
 class DirectoryButtons(QWidget):
-    def __init__(self, icons, databasepath, initview=None):
+    def __init__(self, icons, databasepath, databasenames, initview=None):
         super(DirectoryButtons, self).__init__()
         self.databasepath = databasepath
         self.initview = initview
@@ -52,12 +51,12 @@ class DirectoryButtons(QWidget):
         self.directories = []
         self.nochanges = False
         if initview is None:
-            self.openpathdialog()
+            self.openpathdialog(databasenames)
 
         for name in buttonnames:
-            self.createbutton(name)
+            self.createbutton(name, databasenames)
 
-    def createbutton(self, name):
+    def createbutton(self, name, databasenames):
         column = QWidget()
         vbox = QVBoxLayout()
         column.setLayout(vbox)
@@ -67,10 +66,10 @@ class DirectoryButtons(QWidget):
         vbox.addWidget(button)
         vbox.addWidget(QLabel(name))
         self.layout.addWidget(column)
-        button.clicked.connect(lambda: self.openpathdialog())
+        button.clicked.connect(lambda: self.openpathdialog(databasenames))
 
-    def openpathdialog(self):
-        databasenames = ['Requirements', 'Tests', 'Products']
+    def openpathdialog(self, databasenames):
+
         dialog = QFileDialog(None, "Select directory for the repository. "
                                    "Select an empty folder if you want to start from scratch.")
         dialog.setFileMode(QFileDialog.DirectoryOnly)

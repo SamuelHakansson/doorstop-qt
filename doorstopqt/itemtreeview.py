@@ -9,9 +9,9 @@ import pathlib
 from .nameregex import Nameregex
 
 
-class RequirementTreeView(QWidget):
+class ItemTreeView(QWidget):
     def __init__(self, parent=None, attributeview=None):
-        super(RequirementTreeView, self).__init__(parent)
+        super(ItemTreeView, self).__init__(parent)
 
         self.tree = CustomTree()
 
@@ -69,12 +69,7 @@ class RequirementTreeView(QWidget):
         self.model.layoutChanged.connect(self.layoutwrapper)
 
         self.layoutchange_cooldown = 0
-        '''
-        self.attributeview.active.stateChanged.connect(self.active_link)
-        self.attributeview.derived.stateChanged.connect(self.derived_link)
-        self.attributeview.normative.stateChanged.connect(self.normative_link)
-        self.attributeview.heading.stateChanged.connect(self.heading_link)
-        '''
+
         self.newitemtext = newitemtext
         self.fullstack = {}
         self.treestack = []
@@ -89,6 +84,7 @@ class RequirementTreeView(QWidget):
         self.regexer = Nameregex()
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
+
         def copy():
             if self.clipboard is None:
                 return
@@ -96,7 +92,6 @@ class RequirementTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
         self.revertbtn.clicked.connect(self.undo)
-
 
     def active_link(self, s):
         self.setcheckboxvalue(s=s, attribute=1)
@@ -621,25 +616,7 @@ class RequirementTreeView(QWidget):
         item = self.uid_to_item[uid][0]
         data = self.uid_to_item[uid][1]
         level = str(data.level)
-        text = None
-        '''
-        if data.heading:
-            heading = data.text
-            heading = markdown(heading.split('\n')[0])
 
-            text = QTextDocument()
-            text.setHtml(heading)
-            title = '{} {}'.format(level, text.toPlainText())
-        else:
-        
-        start = '**Feature name:**'
-        end = "**Feature requirement:**"
-        if start in dt and end in dt:
-            text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-        
-        elif start in dt and end not in dt:
-            text = dt[dt.find(start) + len(start):].strip()
-        '''
         dt = data.text
         text = self.regexer.gettitle(dt)
         if text:
@@ -654,25 +631,10 @@ class RequirementTreeView(QWidget):
         data = self.model.data(index, role=Qt.UserRole)
         level = str(data.level)
         uid = self.uidfromindex(index)
-        text = None
-        '''
-        if data.heading:
-            heading = data.text
-            heading = markdown(heading.split('\n')[0])
 
-            text = QTextDocument()
-            text.setHtml(heading)
-            title = '{} {}'.format(level, text.toPlainText())
-        else:
-        '''
         dt = data.text
         text = self.regexer.gettitle(dt)
-        '''
-        if start in dt and end in dt:
-            text = dt[dt.find(start) + len(start):dt.rfind(end)].strip()
-        elif start in dt and end not in dt:
-            text = dt[dt.find(start) + len(start):].strip()
-        '''
+
         if text:
             text = '| '+text
         else:

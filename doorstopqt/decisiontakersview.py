@@ -7,7 +7,6 @@ class DecisiontakersView(QWidget):
         super().__init__()
         self.text = self.createdecisiontakerslist
         self.listview = QListView()
-        #self.listview.setAlternatingRowColors(True)
         self.label = QLabel(name)
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -17,7 +16,7 @@ class DecisiontakersView(QWidget):
         self.weight = 1
         self.model = QStandardItemModel()
         self.listview.setModel(self.model)
-        #self.listview.setDragDropMode()
+        #self.listview.setDragDropMode(QAbstractItemView.InternalMove)
         self.listview.model().dataChanged.connect(self.checkrows)
         self.rows = self.listview.model().rowCount
 

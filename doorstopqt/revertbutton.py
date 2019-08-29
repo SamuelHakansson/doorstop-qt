@@ -25,7 +25,6 @@ class RevertButton(QPushButton):
         self.fadeoutanimation.setKeyValueAt(0.5, 0)
         self.fadeoutanimation.setEndValue(1)
 
-
     def animate(self):
         self.fadeoutanimation.start()
 

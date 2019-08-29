@@ -2,11 +2,11 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from .requirementview import RequirementTreeView
+from .itemtreeview import ItemTreeView
 from .documentview import DocumentView
 from .markreviewedview import MarkReviewedView
 from .linkview import LinkView
-from .linkreqandtestview import LinkReqAndTestView
+from .linkotherview import LinkOtherView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
@@ -23,20 +23,20 @@ class FullView(QSplitter):
         self.markdownview = self.itemview.markdownview
         self.attribview = MarkReviewedView(self.publishtest)
         self.linkview = LinkView(self.itemview, self.attribview, header=self.header.lower())
-        self.reqtestlinkview = LinkReqAndTestView(self.itemview, self.attribview, self.keys[0], self.ownkey,
-                                                  header=self.otherheaders[0].lower())
-        self.reqtestlinkview2 = LinkReqAndTestView(self.itemview, self.attribview, self.keys[1], self.ownkey,
-                                                   header=self.otherheaders[1].lower(),
-                                                   changeexpectedresults=self.changeexpectedresults)
-        self.linkviews = [self.linkview, self.reqtestlinkview, self.reqtestlinkview2]
+        self.linkotherview = LinkOtherView(self.itemview, self.attribview, self.keys[0], self.ownkey,
+                                           header=self.otherheaders[0].lower())
+        self.linkotherview2 = LinkOtherView(self.itemview, self.attribview, self.keys[1], self.ownkey,
+                                            header=self.otherheaders[1].lower(),
+                                            changeexpectedresults=self.changeexpectedresults)
+        self.linkviews = [self.linkview, self.linkotherview, self.linkotherview2]
 
-        self.tree = RequirementTreeView(attributeview=self.attribview)
+        self.tree = ItemTreeView(attributeview=self.attribview)
         self.tree.setheaderlabel(self.header)
         self.docview = DocumentView(header=self.header + 's')
         self.tree.connectview(self.markdownview)
         self.tree.connectdocview(self.docview)
         self.tree.post_init()
-        self.views = [self.attribview, self.linkview, self.reqtestlinkview, self.reqtestlinkview2,  self.docview, self.tree, self.itemview]
+        self.views = [self.attribview, self.linkview, self.linkotherview, self.linkotherview2, self.docview, self.tree, self.itemview]
 
         editor = QWidget()
         editorgrid = QVBoxLayout()
@@ -58,8 +58,8 @@ class FullView(QSplitter):
         rightvsplitter = QSplitter(Qt.Vertical)
         rightvsplitter.addWidget(self.attribview)
         rightvsplitter.addWidget(self.linkview)
-        rightvsplitter.addWidget(self.reqtestlinkview)
-        rightvsplitter.addWidget(self.reqtestlinkview2)
+        rightvsplitter.addWidget(self.linkotherview)
+        rightvsplitter.addWidget(self.linkotherview2)
         rlinkviewgrid.addWidget(rightvsplitter)
 
         self.addWidget(self.docview)
@@ -71,12 +71,12 @@ class FullView(QSplitter):
 
         self.tree.selectionclb = self.selectfunc
         self.linkview.gotoclb = self.selectfunc
-        self.reqtestlinkview.gotoclb = self.selectfunc
-        self.reqtestlinkview2.gotoclb = self.selectfunc
+        self.linkotherview.gotoclb = self.selectfunc
+        self.linkotherview2.gotoclb = self.selectfunc
         self.docview.gotoclb = self.selectfunc
         self.tree.setlinkfunc = self.setlink
 
-        self.tree.otherdbviews = [self.reqtestlinkview, self.reqtestlinkview2]
+        self.tree.otherdbviews = [self.linkotherview, self.linkotherview2]
         self.attribview.readlinkview = self.linkview.read
         self.setstretch()
 
@@ -175,7 +175,7 @@ class ProductView(FullView):
     def publishalltestsforallproducts(self):
         for document in self.database.root.documents:
             for item in document.items:
-                tree, items, uid = self.reqtestlinkview2.getpublishtree(item.uid)
+                tree, items, uid = self.linkotherview2.getpublishtree(item.uid)
                 self.attribview.publishtestdoc(tree, items, str(uid))
 
 

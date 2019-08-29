@@ -7,9 +7,9 @@ from doorstop.core import Tree, Document, builder
 from pathlib import Path
 
 
-class LinkReqAndTestView(AbstractLinkView):
+class LinkOtherView(AbstractLinkView):
     def __init__(self, itemview, attribview, key, ownkey, header="", changeexpectedresults=False):
-        super(LinkReqAndTestView, self).__init__(itemview, attribview, header=header)
+        super(LinkOtherView, self).__init__(itemview, attribview, header=header)
         self.header = header
         self.key = key
         self.ownkey = ownkey
@@ -131,7 +131,7 @@ class LinkReqAndTestView(AbstractLinkView):
 
     def updateCompleter(self):
         docs = list(map(lambda x: x, self.otherdb.root.documents))
-        super(LinkReqAndTestView, self).updateCompleter(docs)
+        super(LinkOtherView, self).updateCompleter(docs)
 
     def connectotherdb(self, db):
         self.otherdb = db

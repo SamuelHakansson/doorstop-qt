@@ -112,8 +112,8 @@ def getdictfromfile(file):
             return {}
 
 
-def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu):
-    initdirectories = DirectoryButtons(Icon(), databasestextfile)
+def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu, databasenames):
+    initdirectories = DirectoryButtons(Icon(), databasestextfile, databasenames)
     if initdirectories.exec() is False:
         clearlayout(splitter)
         showhidemenu.clear()
@@ -156,8 +156,9 @@ def main():
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     databasestextfile = Path(os.getcwd(), DATABASESFILE)
+    databasenames = ['Requirements', 'Tests', 'Products']
     if not os.path.isfile(databasestextfile):
-        initdirectories = InitDirectoriesView(databasestextfile, stylesheetdark)
+        initdirectories = InitDirectoriesView(databasestextfile, databasenames, style=stylesheetdark)
         closeprogram = initdirectories.exec()
         if closeprogram:
             sys.exit()
@@ -169,7 +170,7 @@ def main():
     storeview = mainmenu.addAction('Store view')
     storeview.triggered.connect(lambda: storeviews(splitter))
     setupfolders = mainmenu.addAction('Select working folder')
-    setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu))
+    setupfolders.triggered.connect(lambda: setupdirectories(app, splitter, databasestextfile, mainmenu, showhidemenu, databasenames))
 
     changestylesheetmenu = mainmenu.addMenu('Change theme')
     darktheme = changestylesheetmenu.addAction("Dark theme")
@@ -204,12 +205,12 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
 
     linkviews = {}
     for view in views:
-        linkviews[view.header] = [view.reqtestlinkview, view.reqtestlinkview2]
-
+        linkviews[view.header] = [view.linkotherview, view.linkotherview2]
+    databasestextfilepath = Path(os.getcwd(), DATABASESFILE)
     for i, view in enumerate(views):
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
-        view.database = view.calldatabase(view.header)
-        view.database.add_listeners([view.attribview, view.linkview, view.reqtestlinkview, view.reqtestlinkview2,
+        view.database = view.calldatabase(databasestextfilepath, name=view.header)
+        view.database.add_listeners([view.attribview, view.linkview, view.linkotherview, view.linkotherview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
 
@@ -219,14 +220,15 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
                 del linkviews[v.capitalize()][0]
                 view.database.add_other_listeners(lv)
         try:
-            view.reqtestlinkview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
-            view.reqtestlinkview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
+            view.linkotherview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
+            view.linkotherview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
         except:
             pass
         splitter.addWidget(view)
-    os.chdir(views[0].database.path) # for some reason, pictures won't load without "resetting" the path
+    if views:
+        os.chdir(views[0].database.path)  # for some reason, pictures won't load without "resetting" the path
     if TEST in viewsdict and PRODUCT in viewsdict:
-        viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].reqtestlinkview2.updatedata
+        viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].linkotherview2.updatedata
 
     parser = ArgumentParser()
     parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,

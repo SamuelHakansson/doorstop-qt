@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import *
 
 class SimpleMarkdownHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
-        import re
 
         self.matchAndApply('^#.*', text, 'b', sz=3)
         self.matchAndApply('^##.*', text, 'b', sz=2)
@@ -112,7 +111,6 @@ class MarkdownView(QWidget):
         self.itemfunc = None
         self.weight = 15
         self.db = None
-
 
     def viewhtml(self):
         from markdown import markdown

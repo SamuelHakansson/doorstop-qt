@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from doorstop.common import DoorstopError
 import os
-from .icon import Icon
+from doorstopqt.icon import Icon
 
 
 class AttributeView(QWidget):

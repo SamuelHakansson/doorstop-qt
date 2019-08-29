@@ -72,6 +72,7 @@ class ItemView(QSplitter):
         self.cache = {}
         self.CHANGED = 'changed'
         self.EXPECTEDRESULTS = 'expectedresults'
+        self.LASTUPDATED = 'lastupdated'
         self.applytootheritem = None
 
     def connectdb(self, db):
@@ -132,7 +133,7 @@ class ItemView(QSplitter):
         if self.currentuid is not None:
             if self.currentuid in self.cache and self.cache[self.currentuid][self.CHANGED]:
                 for view in self.views:
-                    if view.name != 'lastupdated':
+                    if view.name != self.LASTUPDATED:
                         self.writetocache(view)
 
         for view in self.views:
@@ -225,7 +226,7 @@ class ItemView(QSplitter):
 
     def updatelastupdated(self):
         for view in self.views:
-            if view.name == 'lastupdated':
+            if view.name == self.LASTUPDATED:
                 view.setPlainText(view.toPlainText())
 
     def showexpectedresults(self, uid):
