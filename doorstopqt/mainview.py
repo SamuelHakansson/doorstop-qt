@@ -174,6 +174,9 @@ def main():
     databasenames = [REQUIREMENT, TEST, PRODUCT]
     if args.path:
         databasedict = getdictfrompath(args.path, databasenames)
+        if databasedict is None:
+            print('Not a valid path', flush=True)
+            sys.exit()
         loadviewstopublish(databasedict)
         sys.exit()
 
@@ -301,7 +304,9 @@ def loadviewstopublish(databasedict):
             view = viewtype()
             views.append(view)
             viewsdict[name] = view
-
+    if not viewsdict:
+        print("{} {}{} {}{} {} {}".format('Not a path containg folders with the names:', REQUIREMENT.lower(), ',', TEST.lower(), ',', 'or', PRODUCT.lower(), 'in it'), flush=True)
+        sys.exit()
     linkviews = {}
     for view in views:
         linkviews[view.header] = [view.linkotherview, view.linkotherview2]
