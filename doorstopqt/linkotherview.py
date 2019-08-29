@@ -3,8 +3,7 @@ from PyQt5.QtWidgets import *
 from .abstractlinkview import AbstractLinkView
 from .linkitemmodel import SimpleLinkItemModel
 from .lastupdatedtext import LastUpdatedText
-from doorstop.core import Tree, Document, builder
-from pathlib import Path
+
 
 
 class LinkOtherView(AbstractLinkView):

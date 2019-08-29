@@ -53,11 +53,10 @@ class ReqDatabase(object):
 
 
 class OtherDatabase(ReqDatabase):
-    def __init__(self, databasestextfilepath, name=None):
+    def __init__(self, path, databasestextfilepath, name=None):
         self.name = name
-
         self.databasestextfilepath = databasestextfilepath
-        self.path = self.finddatabasepath(self.databasestextfilepath)
+        self.path = path
         if self.path is None:
             self.path = self._openfiledialog()
         self._writetojsonfile(self.databasestextfilepath)
@@ -95,16 +94,6 @@ class OtherDatabase(ReqDatabase):
         file_obj_wr = open(databasestextfile, 'w+')
 
         json.dump(databasedict, file_obj_wr)
-
-    def finddatabasepath(self, databasestextfile):
-        if os.path.isfile(databasestextfile):
-            file_obj = open(databasestextfile, 'r')
-            try:
-                databasedict = json.load(file_obj)
-                if self.name in databasedict:
-                    return databasedict[self.name]
-            except JSONDecodeError:
-                return
 
     def opennewdatabase(self):
         folder = self._openfiledialog()

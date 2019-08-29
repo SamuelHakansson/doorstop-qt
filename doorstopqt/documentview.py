@@ -9,7 +9,7 @@ from .icon import Icon
 from .searchlayout import SearchLayout
 import shutil
 from .nameregex import Nameregex
-
+import string
 
 class DocumentView(QWidget):
     def __init__(self, parent=None, header=''):
@@ -68,7 +68,7 @@ class DocumentView(QWidget):
         self.doctonewname = {}
         self.willberemoved = {}
         self.documentstocreate = []
-        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*', ' ']
+        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*', ' ', '%', '&', '#', '"', "'", ';', '´', '`']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
 
@@ -242,18 +242,44 @@ class DocumentView(QWidget):
 
         menu.popup(self.tree.mapToGlobal(pos))
 
+    def format_filename(self, s):
+        """Take a string and return a valid filename constructed from the string.
+    Uses a whitelist approach: any characters not present in valid_chars are
+    removed. Also spaces are replaced with underscores.
+
+    Note: this method may produce invalid filenames such as ``, `.` or `..`
+    When I use this method I prepend a date string like '2009_01_15_19_46_32_'
+    and append a file extension like '.txt', so I avoid the potential of using
+    an invalid filename.
+
+    """
+        valid_chars = "-_ %s%s" % (string.ascii_letters, string.digits)
+        filename = ''.join(c for c in s if c in valid_chars)
+        filename = filename.replace(' ', '_')  # I don't like spaces in filenames.
+        return filename
+
     def createnew(self):
         for docitem in self.documentstocreate:
             if not docitem:
                 return
             prefix = docitem.text()
-            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '':
+            prefix = self.format_filename(prefix)
+            if prefix[-1].isnumeric():
+                prefix = prefix + '_'
+
+            while prefix[0] == "-" or prefix[0] == '_' or prefix[0].isdigit():
+                prefix = prefix[1:]
+                if len(prefix) == 0:
+                    break
+
+            if prefix in list(map(lambda x: x.prefix, self.db.root.documents)) or prefix == '' or \
+                    not (any(char.isdigit() or char.isalpha() for char in prefix)):
                 self.model.removeRow(docitem.row(), docitem.parent().index())
                 self.documentstocreate.remove(docitem)
                 return
-            for char in self.badcharacters:
-                prefix = prefix.replace(char, '_')
+
             self.model.blockSignals(True)
+            docitem.setText(prefix)
             docitem.setData(prefix, role=Qt.UserRole)
             self.model.blockSignals(False)
             path = Path(self.db.root.root, prefix)
@@ -267,10 +293,8 @@ class DocumentView(QWidget):
             self.tree.setCurrentIndex(docitem.index())
             self.treestack.append((doc, self.NEW))
             self.currentdocument = doc
-            self.db.reload()
             self.moverevertbutton()
             self.revert.show()
-
         self.documentstocreate = []
 
     def buildlist(self):

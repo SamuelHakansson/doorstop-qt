@@ -176,6 +176,7 @@ class ProductView(FullView):
         for document in self.database.root.documents:
             for item in document.items:
                 tree, items, uid = self.linkotherview2.getpublishtree(item.uid)
-                self.attribview.publishtestdoc(tree, items, str(uid))
+                if items:
+                    self.attribview.publishtestdoc(tree, items, str(uid))
 
 

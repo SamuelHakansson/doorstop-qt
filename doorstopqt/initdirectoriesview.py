@@ -93,7 +93,6 @@ class DirectoryButtons(QWidget):
             self.initview.close()
 
     def writetojsonfile(self, name, path, databasestextfile):
-        name = name[:-1]  # because views are named with an s in their fullview
         if os.path.isfile(databasestextfile):
             file_obj = open(databasestextfile, 'r')
             try:

@@ -112,6 +112,18 @@ def getdictfromfile(file):
             return {}
 
 
+def getdictfrompath(path, names):
+    if not os.path.isdir(Path(path)):
+        return
+    databasedict = {}
+    dirs = os.listdir(path)
+    for name in names:
+        for dir in dirs:
+            if name.lower() in dir:
+                databasedict[name] = str(Path(path, dir))
+    return databasedict
+
+
 def setupdirectories(app,  splitter, databasestextfile, mainmenu, showhidemenu, databasenames):
     initdirectories = DirectoryButtons(Icon(), databasestextfile, databasenames)
     if initdirectories.exec() is False:
@@ -133,14 +145,38 @@ def storeviews(mainsplitter):
         saveWindowSettings(splitter, str(id))
 
 
+def finddatabasepath(name, databasestextfile):
+    if os.path.isfile(databasestextfile):
+        file_obj = open(databasestextfile, 'r')
+        try:
+            databasedict = json.load(file_obj)
+            if name in databasedict:
+                return databasedict[name]
+        except JSONDecodeError:
+            return
+
+
 DATABASESFILE = 'doorstopqt_databases.json'
 SHOWHIDEFILE = 'doorstopqt_showhideviews.json'
 
 
 def main():
-
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+
+    parser = ArgumentParser()
+    parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,
+                        help="Publish the test for all products")
+    #  doorstop-qt -p True
+    # to publish test for all products
+    args = parser.parse_args()
+    databasenames = [REQUIREMENT, TEST, PRODUCT]
+    if args.publish:
+        databasedict = getdictfrompath(args.publish, databasenames)
+        loadviews2(app, databasedict)
+        sys.exit()
+
     icons = QIcon()
     icons.setThemeName('Papirus')
     doorstopicon = icons.fromTheme('ds-logo-new')
@@ -156,7 +192,7 @@ def main():
     splitter.setWindowTitle('doorstop-qt {}'.format(VERSION))
 
     databasestextfile = Path(os.getcwd(), DATABASESFILE)
-    databasenames = ['Requirements', 'Tests', 'Products']
+
     if not os.path.isfile(databasestextfile):
         initdirectories = InitDirectoriesView(databasestextfile, databasenames, style=stylesheetdark)
         closeprogram = initdirectories.exec()
@@ -178,7 +214,8 @@ def main():
     darktheme.triggered.connect(splitter.setdarkstylesheet)
     whitetheme.triggered.connect(splitter.setwhiteStylesheet)
 
-    loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu)
+    databasedict = getdictfromfile(databasestextfile)
+    loadviews(app, splitter, databasedict, mainmenu, showhidemenu)
 
     sys.exit(app.exec_())
 
@@ -188,9 +225,9 @@ TEST = 'Test'
 PRODUCT = 'Product'
 
 
-def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
+def loadviews(app, splitter, databasedict, mainmenu, showhidemenu):
     splitter.addWidget(mainmenu)
-    databasedict = getdictfromfile(databasestextfile)
+
     headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
 
     views = []
@@ -209,7 +246,8 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     databasestextfilepath = Path(os.getcwd(), DATABASESFILE)
     for i, view in enumerate(views):
         view.tree.clipboard = lambda x: app.clipboard().setText(x)
-        view.database = view.calldatabase(databasestextfilepath, name=view.header)
+        databasepath = finddatabasepath(view.header, databasestextfilepath)
+        view.database = view.calldatabase(databasepath, databasestextfilepath, name=view.header)
         view.database.add_listeners([view.attribview, view.linkview, view.linkotherview, view.linkotherview2,
                                      view.tree, view.docview, view.itemview])
         view.docview.reloaddatabase = view.database.opennewdatabase
@@ -230,17 +268,6 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
     if TEST in viewsdict and PRODUCT in viewsdict:
         viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].linkotherview2.updatedata
 
-    parser = ArgumentParser()
-    parser.add_argument("-p", "--publish-all-tests", dest="publish", default=False,
-                        help="Publish the test for all products")
-    #  doorstop-qt -p True
-    # to publish test for all products
-    args = parser.parse_args()
-    if args.publish:
-        productview = viewsdict[PRODUCT]
-        productview.publishalltestsforallproducts()
-        sys.exit()
-
     splitter.setOrientation(Qt.Vertical)
 
     children = splitter.findChildren(QSplitter)
@@ -260,6 +287,51 @@ def loadviews(app, splitter, databasestextfile, mainmenu, showhidemenu):
         inithideshow(view, showhidemenu)
         splitter.movebuttonfuncs.append(view.movebuttons)
         view.movebuttons()
+
+
+def loadviews2(app, databasedict):
+
+    headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
+    views = []
+    viewsdict = {}
+    for header in headers:
+        name = header[0]
+        viewtype = header[1]
+        if name in databasedict:
+            view = viewtype()
+            views.append(view)
+            viewsdict[name] = view
+
+    linkviews = {}
+    for view in views:
+        linkviews[view.header] = [view.linkotherview, view.linkotherview2]
+    databasestextfilepath = Path(os.getcwd(), DATABASESFILE)
+    for i, view in enumerate(views):
+        view.tree.clipboard = lambda x: app.clipboard().setText(x)
+        databasepath = finddatabasepath(view.header, databasestextfilepath)
+        view.database = view.calldatabase(databasepath, databasestextfilepath, name=view.header)
+        view.database.add_listeners([view.attribview, view.linkview, view.linkotherview, view.linkotherview2,
+                                     view.tree, view.docview, view.itemview])
+        view.docview.reloaddatabase = view.database.opennewdatabase
+
+        for v in view.otherheaders:
+            if v.capitalize() in linkviews:
+                lv = linkviews[v.capitalize()][0]
+                del linkviews[v.capitalize()][0]
+                view.database.add_other_listeners(lv)
+        try:
+            view.linkotherview.gotoclb = viewsdict[view.otherheaders[0].capitalize()].selectfunc
+            view.linkotherview2.gotoclb = viewsdict[view.otherheaders[1].capitalize()].selectfunc
+        except:
+            pass
+
+    if views:
+        os.chdir(views[0].database.path)  # for some reason, pictures won't load without "resetting" the path
+    if TEST in viewsdict and PRODUCT in viewsdict:
+        viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].linkotherview2.updatedata
+
+    productview = viewsdict[PRODUCT]
+    productview.publishalltestsforallproducts()
 
 
 if __name__ == '__main__':
