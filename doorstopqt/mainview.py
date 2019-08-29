@@ -161,6 +161,7 @@ SHOWHIDEFILE = 'doorstopqt_showhideviews.json'
 
 
 def main():
+
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
@@ -173,8 +174,9 @@ def main():
     databasenames = [REQUIREMENT, TEST, PRODUCT]
     if args.path:
         databasedict = getdictfrompath(args.path, databasenames)
-        loadviewstopublish(app, databasedict)
+        loadviewstopublish(databasedict)
         sys.exit()
+
 
     icons = QIcon()
     icons.setThemeName('Papirus')
@@ -288,7 +290,7 @@ def loadviews(app, splitter, databasedict, mainmenu, showhidemenu):
         view.movebuttons()
 
 
-def loadviewstopublish(app, databasedict):
+def loadviewstopublish(databasedict):
     headers = [(REQUIREMENT, ReqView), (TEST, TestView), (PRODUCT, ProductView)]
     views = []
     viewsdict = {}
@@ -305,7 +307,6 @@ def loadviewstopublish(app, databasedict):
         linkviews[view.header] = [view.linkotherview, view.linkotherview2]
     databasestextfilepath = Path(os.getcwd(), DATABASESFILE)
     for i, view in enumerate(views):
-        view.tree.clipboard = lambda x: app.clipboard().setText(x)
         try:
             databasepath = databasedict[view.header]
         except KeyError:
