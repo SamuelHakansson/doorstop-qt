@@ -14,7 +14,7 @@ EXTENSIONS = (
 
 
 class MarkReviewedView(QWidget):
-    def __init__(self, publishtest=False, parent=None):
+    def __init__(self, publishtest=False, parent=None, iconcolor=None):
         super(MarkReviewedView, self).__init__(parent)
 
         self.db = None
@@ -39,8 +39,9 @@ class MarkReviewedView(QWidget):
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
         self.markreviewed.setSizePolicy(sizepolicyretain)
-        papirusicons = Icon()
+        papirusicons = Icon(iconcolor)
         sendicon = papirusicons.fromTheme("document-send-symbolic")
+        self.icons = [sendicon]
         self.publish = QPushButton(sendicon, 'Publish locally')
         self.publish.setVisible(True)
         self.getotherdbitems = None

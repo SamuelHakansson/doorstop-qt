@@ -26,6 +26,7 @@ class CustomSplitter(QSplitter):
         super(CustomSplitter, self).__init__()
         self.movebuttonfuncs = []
         self.setdarkstylesheet()
+        self.iconchanger = Icon()
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
@@ -33,6 +34,7 @@ class CustomSplitter(QSplitter):
 
     def setwhiteStylesheet(self):
         self.setStyleSheet(stylesheetwhite)
+
 
     def setdarkstylesheet(self):
         self.setStyleSheet(stylesheetdark)
@@ -45,9 +47,12 @@ class CustomSplitter(QSplitter):
             move()
 
 
+
+
 GEOMETRY = "geometry"
 WINDOWSTATE = "windowState"
 DOORSTOPQT = "doorstop-qt"
+
 
 
 def saveWindowSettings(splitter, id):
@@ -164,7 +169,6 @@ def main():
 
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
     parser = ArgumentParser()
     parser.add_argument("-p", "--publish-all-tests", dest="path", default=False,
                         help="Publish the test for all products")

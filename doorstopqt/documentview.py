@@ -11,8 +11,9 @@ import shutil
 from .nameregex import Nameregex
 import string
 
+
 class DocumentView(QWidget):
-    def __init__(self, parent=None, header=''):
+    def __init__(self, parent=None, header='', iconcolor=None):
         super(DocumentView, self).__init__(parent)
 
         self.vbox = QVBoxLayout()
@@ -30,8 +31,9 @@ class DocumentView(QWidget):
         self.warningmessage.setStyleSheet('color: red')
         self.warningmessage.hide()
 
-        papirusicons = Icon()
+        papirusicons = Icon(iconcolor)
         foldericon = papirusicons.fromTheme("folder-open")
+
         self.revert = RevertButton()
 
         self.db = None
@@ -68,10 +70,8 @@ class DocumentView(QWidget):
         self.doctonewname = {}
         self.willberemoved = {}
         self.documentstocreate = []
-        self.badcharacters = ['<', '>', ':', '/', '\\', '|', '?', '*', ' ', '%', '&', '#', '"', "'", ';', '´', '`']
         self.gotoclb = None
         self.completer.activated.connect(self.gotocompleted)
-
 
         self.treestack = []
         self.revert.clicked.connect(self.undowrap)
@@ -85,6 +85,7 @@ class DocumentView(QWidget):
         self.reloaditemfunc = None
         self.nameregex = Nameregex()
         self.completerdict = {}
+        self.icons = [foldericon]
 
     def selectfolder(self):
         if self.reloaddatabase:
@@ -440,7 +441,7 @@ class DocumentView(QWidget):
         currentindex = self.tree.currentIndex()
         moveddata = currentindex.data(role=Qt.UserRole)
 
-        nextlist = self.getnext(rootobject, [])
+        nextlist = self.getnextlist(rootobject, [])
 
         for i, index in enumerate(nextlist):
             if index.data(role=Qt.UserRole) == moveddata and index == currentindex:
@@ -465,12 +466,12 @@ class DocumentView(QWidget):
             self.revert.show()
         self.tree.expandAll()
 
-    def getnext(self, index, nextobjectslist):
+    def getnextlist(self, index, nextobjectslist):
         nextobject = self.tree.indexBelow(index)
         data = self.model.data(nextobject, role=Qt.UserRole)
         if data is not None:
             nextobjectslist.append(nextobject)
-            self.getnext(nextobject, nextobjectslist)
+            self.getnextlist(nextobject, nextobjectslist)
         return nextobjectslist
 
     def findallchildren(self, item):
@@ -498,7 +499,7 @@ class DocumentView(QWidget):
 
     def select(self, document=None):
         movedobject = self.model.index(0, 0)
-        nextlist = self.getnext(movedobject, [])
+        nextlist = self.getnextlist(movedobject, [])
         currentobjects_list = [movedobject] + nextlist
         if document is None:
             currentindex = self.model.index(0, 0)

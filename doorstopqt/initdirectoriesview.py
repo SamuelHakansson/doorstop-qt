@@ -9,11 +9,11 @@ from pathlib import Path
 
 
 class InitDirectoriesView(QDialog):
-    def __init__(self, databasepath, databasenames, style=''):
+    def __init__(self, databasepath, databasenames, style='', iconcolor=None):
         super(InitDirectoriesView, self).__init__()
         self.setWindowTitle('Select folder')
         self.databasepath = databasepath
-        self.icons = Icon()
+        self.icons = Icon(iconcolor)
         self.setStyleSheet(style)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)

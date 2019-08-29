@@ -21,4 +21,8 @@ QPushButton
     background-color: #444;
     color: white;
 }
+QLineEdit
+{
+    background-color: #bebebe;
+}
 """

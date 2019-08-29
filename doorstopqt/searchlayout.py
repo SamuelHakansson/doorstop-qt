@@ -1,13 +1,11 @@
 from .icon import Icon
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 
 class SearchLayout(QHBoxLayout):
-    def __init__(self, placeholder=''):
+    def __init__(self, placeholder='', iconcolor=None):
         super(SearchLayout, self).__init__()
-        papirusicons = Icon()
+        papirusicons = Icon(iconcolor)
         searchicon = papirusicons.fromTheme("search")
         clearicon = papirusicons.fromTheme("edit-clear-all")
         self.searchbox = QLineEdit()
@@ -23,6 +21,7 @@ class SearchLayout(QHBoxLayout):
         self.setSpacing(0)
 
         self.clearbutton.clicked.connect(self.clearsearchbox)
+        self.icons = [searchicon, clearicon]
 
     def clearsearchbox(self):
         self.searchbox.setText('')

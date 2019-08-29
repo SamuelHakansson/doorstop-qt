@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+
 
 class DecisiontakersView(QWidget):
     def __init__(self, name):
@@ -16,7 +16,6 @@ class DecisiontakersView(QWidget):
         self.weight = 1
         self.model = QStandardItemModel()
         self.listview.setModel(self.model)
-        #self.listview.setDragDropMode(QAbstractItemView.InternalMove)
         self.listview.model().dataChanged.connect(self.checkrows)
         self.rows = self.listview.model().rowCount
 

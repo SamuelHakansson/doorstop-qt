@@ -7,7 +7,7 @@ from doorstopqt.icon import Icon
 
 
 class AttributeView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, iconcolor=None):
         super(AttributeView, self).__init__(parent)
 
         self.db = None
@@ -31,7 +31,7 @@ class AttributeView(QWidget):
         self.refloc.setVisible(False)
         self.markreviewed = QPushButton('Mark as reviewed')
         self.markreviewed.setVisible(False)
-        self.icons = Icon()
+        self.icons = Icon(iconcolor)
         papirusicons = QIcon()
         papirusicons.setThemeName('papirus')
         sendicon = papirusicons.fromTheme("document-send-symbolic")

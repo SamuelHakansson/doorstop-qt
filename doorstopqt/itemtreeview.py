@@ -10,7 +10,7 @@ from .nameregex import Nameregex
 
 
 class ItemTreeView(QWidget):
-    def __init__(self, parent=None, attributeview=None):
+    def __init__(self, parent=None, attributeview=None, iconcolor=None):
         super(ItemTreeView, self).__init__(parent)
 
         self.tree = CustomTree()
@@ -21,7 +21,7 @@ class ItemTreeView(QWidget):
         self.document = None
         self.db = None
         self.editview = None
-        self.icons = Icon()
+        self.icons = Icon(iconcolor)
         self.lastdocument = None
 
         self.revertbtn = RevertButton()

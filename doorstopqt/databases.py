@@ -6,7 +6,7 @@ import json
 from json import JSONDecodeError
 
 
-class ReqDatabase(object):
+class Database(object):
     def __init__(self, path=None):
         self.listeners = []
         self.other_listeners = []
@@ -52,7 +52,7 @@ class ReqDatabase(object):
             self.reload()
 
 
-class OtherDatabase(ReqDatabase):
+class DatabasePlus(Database):
     def __init__(self, path, databasestextfilepath, name=None):
         self.name = name
         self.databasestextfilepath = databasestextfilepath
@@ -67,7 +67,7 @@ class OtherDatabase(ReqDatabase):
         os.chdir(currentdir)
 
     def reload(self, path=None):
-        super(OtherDatabase, self).reload(path=self.path)
+        super(DatabasePlus, self).reload(path=self.path)
 
     def _openfiledialog(self):
         dialog = QFileDialog(None, "{} {}{} {}".format("Select Directory for", self.name.lower(), ".",
@@ -104,6 +104,7 @@ class OtherDatabase(ReqDatabase):
             self._writetojsonfile(self.databasestextfilepath)
 
     def initgit(self):
+        # git is needed for doorstop to work
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         os.chdir(self.path)

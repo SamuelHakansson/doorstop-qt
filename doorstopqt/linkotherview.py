@@ -5,10 +5,9 @@ from .linkitemmodel import SimpleLinkItemModel
 from .lastupdatedtext import LastUpdatedText
 
 
-
 class LinkOtherView(AbstractLinkView):
-    def __init__(self, itemview, attribview, key, ownkey, header="", changeexpectedresults=False):
-        super(LinkOtherView, self).__init__(itemview, attribview, header=header)
+    def __init__(self, itemview, attribview, key, ownkey, header="", changeexpectedresults=False, iconcolor=None):
+        super(LinkOtherView, self).__init__(itemview, attribview, header=header, iconcolor=iconcolor)
         self.header = header
         self.key = key
         self.ownkey = ownkey

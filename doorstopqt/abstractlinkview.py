@@ -6,13 +6,17 @@ from .customcompleter import CustomQCompleter
 from .searchlayout import SearchLayout
 from .nameregex import Nameregex
 
+'''
+AbstractLinkView is used as a common ground for linkview and linkotherview.
+'''
+
 
 class AbstractLinkView(QWidget):
-    def __init__(self, itemview, attribview, header=""):
+    def __init__(self, itemview, attribview, header="", iconcolor=None):
         super().__init__()
         self.vbox = QVBoxLayout()
         self.listview = QListView()
-        self.icons = Icon()
+        self.icons = Icon(iconcolor)
         self.db = None
 
         self.locked = False
@@ -42,7 +46,6 @@ class AbstractLinkView(QWidget):
         self.listview.customContextMenuRequested.connect(self.contextmenu)
         self.completer.activated.connect(self.createlinkingitem)
         self.nameregex = Nameregex()
-
 
         def clicked(index):
             item = self.model.itemFromIndex(index)

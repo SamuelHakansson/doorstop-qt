@@ -4,10 +4,10 @@ from .icon import Icon
 
 
 class RevertButton(QPushButton):
-    def __init__(self):
+    def __init__(self, iconcolor=None):
         super(RevertButton, self).__init__()
 
-        papirusicons = Icon()
+        papirusicons = Icon(iconcolor)
 
         reverticon = papirusicons.fromTheme("document-revert")
 
@@ -24,6 +24,7 @@ class RevertButton(QPushButton):
         self.fadeoutanimation.setStartValue(1)
         self.fadeoutanimation.setKeyValueAt(0.5, 0)
         self.fadeoutanimation.setEndValue(1)
+        self.icons = [reverticon]
 
     def animate(self):
         self.fadeoutanimation.start()

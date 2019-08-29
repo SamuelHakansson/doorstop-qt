@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import *
-from .vartable import VarTable
 from .decisiontakersview import DecisiontakersView
 from .extratextview import ExtratextView
 

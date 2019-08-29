@@ -10,7 +10,7 @@ from .linkotherview import LinkOtherView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
 
-from .databases import OtherDatabase
+from .databases import DatabasePlus
 
 '''
 Each of the views (requirement, test, and product view) is a fullview. 
@@ -129,7 +129,7 @@ LINKEDPRODUCTS = 'linkedproducts'
 class ReqView(FullView):
     def __init__(self):
         self.itemview = ItemReqView()
-        self.calldatabase = OtherDatabase
+        self.calldatabase = DatabasePlus
         self.database = None
         self.header = 'Requirement'
         self.otherheaders = [TEST, PRODUCT]
@@ -146,7 +146,7 @@ class TestView(FullView):
         self.itemview = ItemTestView()
         self.itemview.vartables.inputtable.table.setHorizontalHeaderLabels(['Name', 'Default value'])
         self.itemview.vartables.expectedresultsmarkdownview.label.setText('Default expected results')
-        self.calldatabase = OtherDatabase
+        self.calldatabase = DatabasePlus
         self.database = None
         self.header = 'Test'
         self.otherheaders = [REQUIREMENT, PRODUCT]
@@ -161,7 +161,7 @@ class TestView(FullView):
 class ProductView(FullView):
     def __init__(self):
         self.itemview = ItemTestView()
-        self.calldatabase = OtherDatabase
+        self.calldatabase = DatabasePlus
         self.database = None
         self.header = 'Product'
         self.otherheaders = [REQUIREMENT, TEST]
@@ -173,6 +173,9 @@ class ProductView(FullView):
         super().__init__()
 
     def publishalltestsforallproducts(self):
+        '''
+        Only used through the command line.
+        '''
         for document in self.database.root.documents:
             for item in document.items:
                 tree, items, uid = self.linkotherview2.getpublishtree(item.uid)

@@ -6,6 +6,8 @@ from PyQt5.QtCore import *
 class Icon(QIcon):
     def __init__(self, color=Qt.white):
         super(Icon, self).__init__()
+        if not color:
+            color = Qt.white
         self.defaultcolor = color
         style = QCommonStyle()
         icons = [x for x in dir(QStyle) if x.startswith('SP_')]
@@ -18,8 +20,10 @@ class Icon(QIcon):
         self.setThemeName('Papirus')
         self.protectedicons = ["media-floppy"]
 
-    def colorize(self, pixmap):
-        color = QColor(self.defaultcolor)  # sets color of icons
+    def colorize(self, pixmap, color=None):
+        if color is None:
+            color = self.defaultcolor
+        color = QColor(color)
         painter = QPainter(pixmap)
         painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
 
@@ -27,6 +31,12 @@ class Icon(QIcon):
 
         icon = QIcon(pixmap)
         return icon
+
+    def colorizeicon(self, color):
+        pixmap = self.getpixmap(self)
+        icon = self.colorize(pixmap, color)
+        newpixmap = self.getpixmap(icon)
+        self.pixmap(newpixmap)
 
     def getpixmap(self, icon):
         if len(icon.availableSizes()) > 0:

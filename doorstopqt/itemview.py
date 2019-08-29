@@ -8,7 +8,7 @@ import sys
 
 
 class ItemView(QSplitter):
-    def __init__(self, views=None, viewssplitted=None):
+    def __init__(self, views=None, viewssplitted=None, iconcolor=None):
         super().__init__()
         self.setOrientation(Qt.Vertical)
         self.db = None
@@ -25,11 +25,13 @@ class ItemView(QSplitter):
             if type(view) is MarkdownView or type(view) is MarkdownViewExt:
                 self.markdownviews.append(view)
 
-        papirusicons = Icon()
+        papirusicons = Icon(iconcolor)
         reverticon = papirusicons.fromTheme("document-revert")
         saveicon = papirusicons.fromTheme("media-floppy")
         previewicon = papirusicons.fromTheme("document-preview")
         editicon = papirusicons.fromTheme("edit")
+
+        self.icons = [reverticon, saveicon, previewicon, editicon]
 
         self.previewbtn = QPushButton(previewicon, "Preview")
         self.previewbtn.clicked.connect(self.viewhtml)
