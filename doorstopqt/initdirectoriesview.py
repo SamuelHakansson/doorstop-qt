@@ -84,7 +84,7 @@ class DirectoryButtons(QWidget):
 
         for name in os.listdir(path):
             for dbname in databasenames:
-                if dbname.lower() in name:
+                if dbname.lower() in name.lower():
                     directory = QDir(path)
                     directory.cd(name)
                     dbpath = directory.path()

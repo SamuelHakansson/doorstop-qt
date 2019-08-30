@@ -118,14 +118,14 @@ def getdictfromfile(file):
 
 
 def getdictfrompath(path, names):
-    if not os.path.isdir(Path(path)):
+    if not os.path.exists(path):
         return
     databasedict = {}
     dirs = os.listdir(path)
     for name in names:
         for dir in dirs:
-            if name.lower() in dir:
-                databasedict[name] = str(Path(path, dir))
+            if name.lower() in dir.lower():
+                databasedict[name] = str(os.path.abspath(Path(path, dir)))
     return databasedict
 
 
