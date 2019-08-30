@@ -10,3 +10,8 @@ Doorstop is a requirement management tool where you create documents by linking 
 The program concerns documentation of three different categories: requirements, tests, and products. Each of these categories has its own view and each item can be linked between each other.
 
 This software was mainly developed at Lab.gruppen.
+
+Screenshots: 
+![Full screenshot](https://github.com/SamuelHakansson/doorstop-qt/blob/master/Screenshots/dsqt_screenshot1.png)
+
+![Part screenshot](https://github.com/SamuelHakansson/doorstop-qt/blob/master/Screenshots/dsqt_screenshot2.png)
