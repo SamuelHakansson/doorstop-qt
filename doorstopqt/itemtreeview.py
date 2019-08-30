@@ -566,7 +566,7 @@ class ItemTreeView(QWidget):
 
         #extrawidth = self.tree.verticalScrollBar().width()
         extraheight = self.tree.horizontalScrollBar().height()
-        self.revertbtn.move(self.tree.width() - 50, self.tree.height() - extraheight - 30)
+        self.revertbtn.move(self.tree.width() - 45, self.tree.height() - extraheight - 30)
 
     def post_init(self):
         self.model.itemChanged.connect(self.updatecheckbox)

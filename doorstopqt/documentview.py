@@ -511,7 +511,7 @@ class DocumentView(QWidget):
                 return
 
     def moverevertbutton(self):
-        self.revert.move(self.tree.width() - 35, self.tree.height() - 30)
+        self.revert.move(self.tree.width() - 43, self.tree.height() - 35)
         warnwidth = self.warningmessage.width()
         self.warningmessage.move(int((self.tree.width() - warnwidth)/2), self.tree.height() - 30)
 
