@@ -224,7 +224,6 @@ def main():
 
     databasedict = getdictfromfile(databasestextfile)
     loadviews(app, splitter, databasedict, mainmenu, showhidemenu)
-
     sys.exit(app.exec_())
 
 
@@ -273,6 +272,7 @@ def loadviews(app, splitter, databasedict, mainmenu, showhidemenu):
         splitter.addWidget(view)
     if views:
         os.chdir(views[0].database.path)  # for some reason, pictures won't load without "resetting" the path
+        os.chdir('..')
     if TEST in viewsdict and PRODUCT in viewsdict:
         viewsdict[TEST].itemview.applytootheritem = viewsdict[PRODUCT].linkotherview2.updatedata
 

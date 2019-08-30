@@ -2,15 +2,16 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .icon import Icon
-from .requirement_template import newitemtext
+from .item_template import defaulttext
 from .customtree import CustomTree
 from .revertbutton import RevertButton
-import pathlib
+from pathlib import Path
 from .nameregex import Nameregex
+import os
 
 
 class ItemTreeView(QWidget):
-    def __init__(self, parent=None, attributeview=None, iconcolor=None):
+    def __init__(self, parent=None, attributeview=None, iconcolor=None, templatename=None):
         super(ItemTreeView, self).__init__(parent)
 
         self.tree = CustomTree()
@@ -70,7 +71,7 @@ class ItemTreeView(QWidget):
 
         self.layoutchange_cooldown = 0
 
-        self.newitemtext = newitemtext
+        self.newitemtext = self.gettemplatetextfromtextfile
         self.fullstack = {}
         self.treestack = []
         self.LEVELS = 0
@@ -82,6 +83,7 @@ class ItemTreeView(QWidget):
         self.otherdbviews = []
         self.currentuid = None
         self.regexer = Nameregex()
+        self.templatename = templatename
 
         copyshortcut = QShortcut(QKeySequence("Ctrl+C"), self.tree)
 
@@ -92,6 +94,17 @@ class ItemTreeView(QWidget):
 
         copyshortcut.activated.connect(copy)
         self.revertbtn.clicked.connect(self.undo)
+
+    def gettemplatetextfromtextfile(self):
+        if self.templatename:
+            path = Path(os.getcwd(), self.templatename)
+            if os.path.isfile(path):
+                file = open(path, 'r')
+                template = file.read()
+                file.close()
+                return template
+        else:
+            return defaulttext
 
     def active_link(self, s):
         self.setcheckboxvalue(s=s, attribute=1)
@@ -332,7 +345,7 @@ class ItemTreeView(QWidget):
 
             level = '.'.join(level)
             item = self.db.root.add_item(self.document, level=level, reorder=False)
-            item.text = self.newitemtext
+            item.text = self.newitemtext()
             self.db.reload()
             itemtoselect = self.uidtoitem(item.uid)
             if itemtoselect:
@@ -410,7 +423,7 @@ class ItemTreeView(QWidget):
             file.write(data)
             file.close()
             self.db.reload()
-            uid = pathlib.Path(path).stem
+            uid = Path(path).stem
             item = self.db.find(uid)
             for otherdbview in self.otherdbviews:
                 if otherdbview.key in item.data:

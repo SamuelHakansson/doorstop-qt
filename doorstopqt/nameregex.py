@@ -13,8 +13,14 @@ class Nameregex():
             return
         if not search:
             return
-        start = self.setasterisks(search[0])
-        end = search2[0]
+        try:
+            start = self.setasterisks(search[0])
+        except IndexError:
+            return
+        try:
+            end = search2[0]
+        except IndexError:
+            return text.replace(start, '').strip()
         title = end.replace(start, '')
         return title.strip()
 

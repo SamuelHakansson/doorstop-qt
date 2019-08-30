@@ -9,8 +9,10 @@ from .linkview import LinkView
 from .linkotherview import LinkOtherView
 from .itemtestview import ItemTestView
 from .itemreqview import ItemReqView
-
 from .databases import DatabasePlus
+from pathlib import Path
+import os
+from doorstopqt.item_template import requirementtext, teststext, productstext
 
 '''
 Each of the views (requirement, test, and product view) is a fullview. 
@@ -30,7 +32,7 @@ class FullView(QSplitter):
                                             changeexpectedresults=self.changeexpectedresults)
         self.linkviews = [self.linkview, self.linkotherview, self.linkotherview2]
 
-        self.tree = ItemTreeView(attributeview=self.attribview)
+        self.tree = ItemTreeView(attributeview=self.attribview, templatename=self.templatepath)
         self.tree.setheaderlabel(self.header)
         self.docview = DocumentView(header=self.header + 's')
         self.tree.connectview(self.markdownview)
@@ -83,6 +85,8 @@ class FullView(QSplitter):
         self.currentuid = None
         self.markdownview.modeclb = self.modeclb
 
+
+
     def modeclb(self, editmode):
         if editmode:
             self.attribview.showref(True)
@@ -117,6 +121,18 @@ class FullView(QSplitter):
         self.setStretchFactor(2, int(6 / self.stretchfac))
         self.setStretchFactor(3, 4)
 
+    def savetemplatesasfiles(self):
+        file = 'template_' + self.header.lower() + '.txt'
+        filepath = Path(os.getcwd(), file)
+        self.templatepath = filepath
+        print(filepath, flush=True)
+        if not os.path.isfile(filepath):
+            file_obj = open(filepath, 'w+')
+            text = self.template
+            file_obj.write(text)
+            file_obj.close()
+            print('created', file, 'at', filepath, flush=True)
+
 
 REQUIREMENT = 'requirement'
 TEST = 'test'
@@ -138,6 +154,9 @@ class ReqView(FullView):
         self.stretchfac = 2
         self.publishtest = False
         self.changeexpectedresults = False
+        self.template = requirementtext
+        self.templatepath = None
+        self.savetemplatesasfiles()
         super().__init__()
 
 
@@ -155,6 +174,8 @@ class TestView(FullView):
         self.stretchfac = 2
         self.publishtest = False
         self.changeexpectedresults = False
+        self.template = teststext
+        self.savetemplatesasfiles()
         super().__init__()
 
 
@@ -170,6 +191,8 @@ class ProductView(FullView):
         self.stretchfac = 2
         self.publishtest = True
         self.changeexpectedresults = True
+        self.template = productstext
+        self.savetemplatesasfiles()
         super().__init__()
 
     def publishalltestsforallproducts(self):
