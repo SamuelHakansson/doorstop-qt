@@ -9,7 +9,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "doorstop >= 1.4, < 2",
-        "pyqt5 >= 5.9, < 6",
+        "pyqt5 >= 5.12.1, < 6",
         "markdown >= 2.6.9, < 3"
     ],
     entry_points={
