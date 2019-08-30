@@ -125,13 +125,11 @@ class FullView(QSplitter):
         file = 'template_' + self.header.lower() + '.txt'
         filepath = Path(os.getcwd(), file)
         self.templatepath = filepath
-        print(filepath, flush=True)
         if not os.path.isfile(filepath):
             file_obj = open(filepath, 'w+')
             text = self.template
             file_obj.write(text)
             file_obj.close()
-            print('created', file, 'at', filepath, flush=True)
 
 
 REQUIREMENT = 'requirement'
