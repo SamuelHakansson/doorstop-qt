@@ -509,6 +509,10 @@ class DocumentView(QWidget):
             if index.data() == str(document):
                 self.tree.setCurrentIndex(index)
                 return
+        currentindex = self.model.index(0, 0)
+        if currentindex:
+            self.tree.setCurrentIndex(currentindex)
+
 
     def moverevertbutton(self):
         self.revert.move(self.tree.width() - 43, self.tree.height() - 35)

@@ -179,7 +179,9 @@ class ItemTreeView(QWidget):
 
     def gettreeaslist(self):
         movedobject = self.tree.currentIndex()
-
+        if not movedobject:
+            self.tree.setCurrentIndex(self.model.index(0, 0))
+            movedobject = self.tree.currentIndex()
         movedobject = movedobject.siblingAtColumn(0)
         nextlist = self.getnext(movedobject, [])
         previouslist = self.getprevious(movedobject, [])
@@ -189,9 +191,9 @@ class ItemTreeView(QWidget):
     def onlayoutchanged(self):
         movedobject = self.tree.currentIndex()
         movedobject = movedobject.siblingAtColumn(0)
-        nextlist = self.getnext(movedobject, [])
-        previouslist = self.getprevious(movedobject, [])
-        currentobjects_list = previouslist + nextlist
+        #nextlist = self.getnext(movedobject, [])
+        #previouslist = self.getprevious(movedobject, [])
+        #currentobjects_list = previouslist + nextlist
 
         self.savelevels()
         currentobjects_list = self.gettreeaslist()
